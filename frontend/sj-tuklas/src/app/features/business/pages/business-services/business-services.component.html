@@ -1,0 +1,139 @@
+@if (business(); as business) {
+  <section class="services-page">
+    <div class="container">
+      <a [routerLink]="['/business', business.id]" class="back-link">
+        <i class="bx bx-left-arrow-alt"></i>
+        Back to business
+      </a>
+
+      @if (servicesEnabled()) {
+        <div class="page-header">
+          <span class="eyebrow">
+            <i class="bx bx-briefcase-alt-2"></i>
+            SERVICES
+          </span>
+
+          <h1>Services offered</h1>
+
+          <p>
+            Explore the services available from
+            {{ business.name }}.
+          </p>
+        </div>
+
+        <div class="services-grid">
+          <article class="service-card">
+            <div class="service-icon">
+              <i class="bx bx-star"></i>
+            </div>
+
+            <div class="service-content">
+              <div class="service-top">
+                <span>POPULAR</span>
+
+                <strong>₱500</strong>
+              </div>
+
+              <h3>Premium Service</h3>
+
+              <p>
+                A professional service designed for customers looking for a
+                complete experience.
+              </p>
+
+              <button type="button">
+                Request service
+                <i class="bx bx-right-arrow-alt"></i>
+              </button>
+            </div>
+          </article>
+
+          <article class="service-card">
+            <div class="service-icon">
+              <i class="bx bx-wrench"></i>
+            </div>
+
+            <div class="service-content">
+              <div class="service-top">
+                <span>SERVICE</span>
+
+                <strong>₱350</strong>
+              </div>
+
+              <h3>Standard Service</h3>
+
+              <p>A reliable option for everyday customer needs.</p>
+
+              <button type="button">
+                Request service
+                <i class="bx bx-right-arrow-alt"></i>
+              </button>
+            </div>
+          </article>
+
+          <article class="service-card">
+            <div class="service-icon">
+              <i class="bx bx-check-shield"></i>
+            </div>
+
+            <div class="service-content">
+              <div class="service-top">
+                <span>CARE</span>
+
+                <strong>₱250</strong>
+              </div>
+
+              <h3>Basic Service</h3>
+
+              <p>A simple service option for quick and basic needs.</p>
+
+              <button type="button">
+                Request service
+                <i class="bx bx-right-arrow-alt"></i>
+              </button>
+            </div>
+          </article>
+        </div>
+
+        <div class="contact-banner">
+          <div class="banner-icon">
+            <i class="bx bx-phone"></i>
+          </div>
+
+          <div>
+            <strong>Need help choosing a service?</strong>
+
+            <p>Contact {{ business.name }} directly for more information.</p>
+          </div>
+
+          @if (business.phone) {
+            <a [href]="'tel:' + business.phone" class="contact-button">
+              Contact
+              <i class="bx bx-right-arrow-alt"></i>
+            </a>
+          }
+        </div>
+      } @else {
+        <div class="unavailable-state">
+          <div class="empty-icon">
+            <i class="bx bx-briefcase"></i>
+          </div>
+
+          <span class="eyebrow"> SERVICES UNAVAILABLE </span>
+
+          <h1>No online services available</h1>
+
+          <p>
+            {{ business.name }} does not currently list its services on SJ
+            Tuklas.
+          </p>
+
+          <a [routerLink]="['/business', business.id]" class="primary-action">
+            <i class="bx bx-left-arrow-alt"></i>
+            Back to business
+          </a>
+        </div>
+      }
+    </div>
+  </section>
+}

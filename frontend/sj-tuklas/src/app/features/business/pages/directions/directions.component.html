@@ -1,0 +1,415 @@
+<section class="directions-page">
+  <div class="container">
+    <!-- ==========================================================
+         HEADER
+    =========================================================== -->
+
+    <header class="directions-header">
+      <div class="header-left">
+        <a routerLink="/search" class="back-button">
+          <i class="bx bx-arrow-back"></i>
+          <span>Back</span>
+        </a>
+
+        @if (business(); as currentBusiness) {
+          <div class="destination-info">
+            <div class="destination-icon">
+              <i class="bx bx-navigation"></i>
+            </div>
+
+            <div class="destination-copy">
+              <span class="eyebrow">DIRECTIONS</span>
+
+              <h1>
+                {{ currentBusiness.name }}
+              </h1>
+
+              <p>
+                {{
+                  currentBusiness.location ||
+                    currentBusiness.barangay ||
+                    "San Jose, Occidental Mindoro"
+                }}
+              </p>
+            </div>
+          </div>
+        } @else {
+          <div class="destination-loading">
+            <span></span>
+            <span></span>
+          </div>
+        }
+      </div>
+
+      <div class="header-actions">
+        <button
+          type="button"
+          class="header-action"
+          (click)="recenterRoute()"
+          [disabled]="!routeReady()"
+        >
+          <i class="bx bx-current-location"></i>
+          <span>Route</span>
+        </button>
+
+        <button
+          type="button"
+          class="header-action"
+          (click)="centerDestination()"
+          [disabled]="!business()"
+        >
+          <i class="bx bx-map-pin"></i>
+          <span>Destination</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ==========================================================
+         MAIN
+    =========================================================== -->
+
+    <main class="directions-main">
+      <!-- ========================================================
+           MAP
+      ========================================================= -->
+
+      <section class="map-section">
+        <div class="map-wrapper">
+          <!-- ====================================================
+               REUSABLE BUSINESS MAP
+          ===================================================== -->
+
+          <app-business-map
+            #businessMap
+            class="directions-map-component"
+            [directionsMode]="true"
+            [userLocation]="userLocation() ?? undefined"
+            [destination]="business()"
+            [nearbyBusinesses]="nearbyBusinesses()"
+            [showNearbyBusinesses]="true"
+            [autoFitRoute]="true"
+            [animateRoute]="true"
+            [routeColor]="'#111111'"
+            [routeAccentColor]="'#22c55e'"
+            [routeWidth]="10"
+            [animatedRouteWidth]="6"
+            [routeAnimationDuration]="1800"
+            [showLegend]="false"
+            [showControls]="false"
+            [enable3D]="true"
+            (routeLoaded)="onRouteLoaded($event)"
+            (routeError)="onRouteError($event)"
+            (businessSelected)="onBusinessSelected($event)"
+          ></app-business-map>
+
+          <!-- ======================================================
+               MAP CONTROLS
+          ======================================================= -->
+
+          <div class="map-controls">
+            <button
+              type="button"
+              class="map-control"
+              (click)="recenterRoute()"
+              [disabled]="!routeReady()"
+              title="Show route"
+            >
+              <i class="bx bx-expand"></i>
+            </button>
+
+            <button
+              type="button"
+              class="map-control"
+              (click)="centerDestination()"
+              [disabled]="!business()"
+              title="Show destination"
+            >
+              <i class="bx bx-map-pin"></i>
+            </button>
+
+            <button
+              type="button"
+              class="map-control map-3d-toggle"
+              [class.active]="is3D()"
+              (click)="toggle3D()"
+              title="Toggle 3D"
+            >
+              <span>
+                {{ is3D() ? "2D" : "3D" }}
+              </span>
+            </button>
+          </div>
+
+          <!-- ======================================================
+               MAP LEGEND
+          ======================================================= -->
+
+          <div class="map-legend">
+            <div class="legend-item">
+              <span class="legend-line route-black"></span>
+              <span>Route</span>
+            </div>
+
+            <div class="legend-item">
+              <span class="legend-dot user-dot"></span>
+              <span>You</span>
+            </div>
+
+            <div class="legend-item">
+              <span class="legend-dot destination-dot"></span>
+              <span>Destination</span>
+            </div>
+          </div>
+
+          <!-- ======================================================
+               LOADING
+          ======================================================= -->
+
+          @if (loading()) {
+            <div class="map-loading">
+              <div class="loading-spinner"></div>
+
+              <strong>Finding route</strong>
+
+              <span>Calculating the best road path...</span>
+            </div>
+          }
+
+          <!-- ======================================================
+               ERROR
+          ======================================================= -->
+
+          @if (error(); as errorMessage) {
+            <div class="map-error">
+              <div class="error-icon">
+                <i class="bx bx-error-circle"></i>
+              </div>
+
+              <div class="error-copy">
+                <strong>Unable to load directions</strong>
+
+                <span>
+                  {{ errorMessage }}
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- ========================================================
+           SIDEBAR
+      ========================================================= -->
+
+      <aside class="directions-sidebar">
+        <!-- ======================================================
+             ROUTE SUMMARY
+        ======================================================= -->
+
+        <section class="route-card">
+          <div class="card-label">
+            <i class="bx bx-route"></i>
+            YOUR ROUTE
+          </div>
+
+          @if (routeReady()) {
+            <div class="route-main">
+              <div class="route-main-icon">
+                <i class="bx bx-car"></i>
+              </div>
+
+              <div class="route-main-copy">
+                <strong>Driving route</strong>
+
+                <span>Via available roads</span>
+              </div>
+            </div>
+
+            <div class="route-stats">
+              <div class="route-stat">
+                <span class="stat-label">DISTANCE</span>
+
+                <strong>
+                  @if (distance() !== null) {
+                    {{ distance()!.toFixed(1) }} km
+                  } @else {
+                    —
+                  }
+                </strong>
+              </div>
+
+              <div class="route-stat">
+                <span class="stat-label">EST. TIME</span>
+
+                <strong>
+                  @if (duration() !== null) {
+                    @if (duration()! >= 60) {
+                      {{ formatDuration(duration()!) }}
+                    } @else {
+                      {{ duration()! < 1 ? 1 : duration()! }} min
+                    }
+                  } @else {
+                    —
+                  }
+                </strong>
+              </div>
+            </div>
+
+            <div class="route-status">
+              <span class="status-dot"></span>
+              <span>Route loaded</span>
+            </div>
+          } @else {
+            <div class="route-empty">
+              <div class="empty-icon">
+                <i class="bx bx-map"></i>
+              </div>
+
+              <strong>Route information</strong>
+
+              <span>Your driving route will appear here.</span>
+            </div>
+          }
+        </section>
+
+        <!-- ======================================================
+             DESTINATION CARD
+        ======================================================= -->
+
+        @if (business(); as currentBusiness) {
+          <section class="destination-card">
+            <div class="card-label">
+              <i class="bx bx-map-pin"></i>
+              DESTINATION
+            </div>
+
+            <div class="business-destination">
+              <div class="business-image">
+                @if (currentBusiness.profileImage) {
+                  <img
+                    [src]="currentBusiness.profileImage"
+                    [alt]="currentBusiness.name"
+                  />
+                } @else {
+                  <div class="business-image-placeholder">
+                    <i class="bx bx-store"></i>
+                  </div>
+                }
+              </div>
+
+              <div class="business-copy">
+                <h2>
+                  {{ currentBusiness.name }}
+                </h2>
+
+                <span>
+                  {{ currentBusiness.category || "Local business" }}
+                </span>
+
+                <p>
+                  {{
+                    currentBusiness.location ||
+                      currentBusiness.barangay ||
+                      "San Jose, Occidental Mindoro"
+                  }}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="destination-button"
+              (click)="centerDestination()"
+            >
+              <i class="bx bx-navigation"></i>
+              Show destination
+            </button>
+          </section>
+        }
+
+        <!-- ======================================================
+             NEARBY
+        ======================================================= -->
+
+        <section class="nearby-section">
+          <div class="section-heading">
+            <div>
+              <span class="card-label">
+                <i class="bx bx-map-alt"></i>
+                NEARBY
+              </span>
+
+              <h2>Businesses along the area</h2>
+            </div>
+
+            @if (nearbyBusinesses().length > 0) {
+              <span class="nearby-count">
+                {{ nearbyBusinesses().length }}
+              </span>
+            }
+          </div>
+
+          @if (nearbyLoading()) {
+            <div class="nearby-loading">
+              <div class="small-spinner"></div>
+
+              <span>Finding nearby businesses...</span>
+            </div>
+          } @else if (nearbyBusinesses().length > 0) {
+            <div class="nearby-list">
+              @for (nearby of nearbyBusinesses(); track nearby.id) {
+                <button
+                  type="button"
+                  class="nearby-item"
+                  (click)="focusBusiness(nearby)"
+                >
+                  <div class="nearby-icon">
+                    <i class="bx bx-store"></i>
+                  </div>
+
+                  <div class="nearby-copy">
+                    <strong>
+                      {{ nearby.name }}
+                    </strong>
+
+                    <span>
+                      {{ nearby.category || "Business" }}
+                    </span>
+
+                    <small>
+                      {{ nearby.barangay || nearby.location || "San Jose" }}
+                    </small>
+                  </div>
+
+                  <i class="bx bx-chevron-right nearby-arrow"></i>
+                </button>
+              }
+            </div>
+          } @else {
+            <div class="nearby-empty">
+              <i class="bx bx-map"></i>
+
+              <span>No nearby businesses found.</span>
+            </div>
+          }
+        </section>
+
+        <!-- ======================================================
+             MAP DATA
+        ======================================================= -->
+
+        <div class="map-data">
+          <div class="data-item">
+            <i class="bx bx-layer"></i>
+            <span>OpenStreetMap</span>
+          </div>
+
+          <div class="data-item">
+            <i class="bx bx-navigation"></i>
+            <span>OSRM routing</span>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+</section>

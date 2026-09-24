@@ -1,0 +1,1728 @@
+// ============================================================
+// SJ TUKLAS — DIRECTIONS
+// CLEAN MINIMAL DESIGN SYSTEM
+// FULL-WIDTH PAGE + CENTERED CONTAINER
+// ============================================================
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+// ============================================================
+// PAGE
+// ============================================================
+
+.directions-page {
+  width: 100%;
+  min-height: 100vh;
+
+  background: #ffffff;
+  color: #111111;
+}
+
+// ============================================================
+// CONTAINER
+// SAME SYSTEM AS SEARCH / LOCATIONS
+// ============================================================
+
+.container {
+  width: min(1380px, calc(100% - 40px));
+  margin: 0 auto;
+}
+
+// ============================================================
+// HEADER
+// ============================================================
+
+.directions-header {
+  position: relative;
+  z-index: 20;
+
+  width: 100%;
+  min-height: 76px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 24px;
+  padding: 14px 0;
+
+  background: #ffffff;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.header-left {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 18px;
+}
+
+.back-button {
+  flex-shrink: 0;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  min-height: 40px;
+  padding: 0 13px;
+
+  background: #ffffff;
+  color: #222222;
+
+  border: 1px solid #e5e5e5;
+  border-radius: 9px;
+
+  text-decoration: none;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.back-button:hover {
+  background: #f7f7f5;
+  border-color: #d8d8d4;
+
+  transform: translateY(-1px);
+}
+
+.back-button i {
+  font-size: 17px;
+}
+
+// ============================================================
+// DESTINATION INFO
+// ============================================================
+
+.destination-info {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+}
+
+.destination-icon {
+  width: 40px;
+  height: 40px;
+
+  flex-shrink: 0;
+
+  display: grid;
+  place-items: center;
+
+  background: #111111;
+  color: #ffffff;
+
+  border-radius: 9px;
+}
+
+.destination-icon i {
+  font-size: 19px;
+}
+
+.destination-copy {
+  min-width: 0;
+}
+
+.eyebrow {
+  display: block;
+
+  margin-bottom: 3px;
+
+  color: #888888;
+
+  font-size: 9px;
+  font-weight: 800;
+
+  letter-spacing: 0.14em;
+}
+
+.destination-copy h1 {
+  margin: 0;
+
+  color: #111111;
+
+  font-size: 16px;
+  font-weight: 800;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.destination-copy p {
+  margin: 2px 0 0;
+
+  color: #777777;
+
+  font-size: 11px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ============================================================
+// LOADING SKELETON
+// ============================================================
+
+.destination-loading {
+  display: flex;
+  flex-direction: column;
+
+  gap: 7px;
+}
+
+.destination-loading span {
+  display: block;
+
+  width: 220px;
+  height: 8px;
+
+  background: #eeeeeb;
+
+  border-radius: 4px;
+
+  animation: skeletonPulse 1.4s ease-in-out infinite;
+}
+
+.destination-loading span:last-child {
+  width: 150px;
+}
+
+// ============================================================
+// HEADER ACTIONS
+// ============================================================
+
+.header-actions {
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+}
+
+.header-action {
+  min-height: 39px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  padding: 0 12px;
+
+  background: #ffffff;
+  color: #222222;
+
+  border: 1px solid #ddddda;
+  border-radius: 9px;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.header-action:hover:not(:disabled) {
+  background: #f7f7f5;
+  border-color: #cfcfca;
+}
+
+.header-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.header-action i {
+  font-size: 16px;
+}
+
+// ============================================================
+// MAIN
+// ============================================================
+
+.directions-main {
+  width: 100%;
+
+  min-height: calc(100vh - 76px);
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    390px;
+
+  overflow: hidden;
+}
+
+// ============================================================
+// MAP SECTION
+// ============================================================
+
+.map-section {
+  position: relative;
+
+  min-width: 0;
+  min-height: 0;
+
+  padding: 20px;
+
+  background: #ffffff;
+}
+
+.map-wrapper {
+  position: relative;
+
+  width: 100%;
+  height: 100%;
+
+  min-height: 600px;
+
+  overflow: hidden;
+
+  border: 1px solid #e5e5e5;
+  border-radius: 16px;
+
+  background: #eeeeeb;
+}
+
+// ============================================================
+// LEAFLET MAP
+// ============================================================
+
+.directions-map {
+  position: absolute;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  background: #e6e6e2;
+
+  transition: transform 0.8s ease;
+}
+
+// ============================================================
+// PSEUDO 3D
+// ============================================================
+
+.directions-map.sj-map-3d {
+  transform: perspective(1400px) rotateX(42deg) scale(1.08) translateY(3%);
+
+  transform-origin: center center;
+}
+
+// ============================================================
+// MAP CONTROLS
+// ============================================================
+
+.map-controls {
+  position: absolute;
+
+  top: 16px;
+  right: 16px;
+
+  z-index: 1000;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+}
+
+.map-control {
+  width: 40px;
+  height: 40px;
+
+  display: grid;
+  place-items: center;
+
+  background: #ffffff;
+  color: #111111;
+
+  border: 1px solid #e1e1dd;
+  border-radius: 9px;
+
+  cursor: pointer;
+
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 800;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.map-control:hover:not(:disabled) {
+  background: #f7f7f5;
+  border-color: #d3d3ce;
+
+  transform: translateY(-1px);
+}
+
+.map-control:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.map-control.active {
+  background: #111111;
+  color: #ffffff;
+
+  border-color: #111111;
+}
+
+.map-3d-toggle {
+  font-size: 11px;
+}
+
+// ============================================================
+// MAP LEGEND
+// ============================================================
+
+.map-legend {
+  position: absolute;
+
+  left: 16px;
+  bottom: 16px;
+
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 9px 12px;
+
+  background: rgba(255, 255, 255, 0.94);
+
+  border: 1px solid #e1e1dd;
+  border-radius: 9px;
+
+  backdrop-filter: blur(8px);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+
+  gap: 6px;
+
+  color: #666666;
+
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.legend-line {
+  width: 19px;
+  height: 3px;
+
+  border-radius: 999px;
+}
+
+.route-black {
+  background: #111111;
+}
+
+.legend-dot {
+  width: 9px;
+  height: 9px;
+
+  display: block;
+
+  border-radius: 50%;
+}
+
+.user-dot {
+  background: #2563eb;
+
+  border: 2px solid #ffffff;
+
+  box-shadow: 0 0 0 1px #2563eb;
+}
+
+.destination-dot {
+  background: #111111;
+
+  border: 2px solid #ffffff;
+
+  box-shadow: 0 0 0 1px #111111;
+}
+
+// ============================================================
+// LOADING
+// ============================================================
+
+.map-loading {
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  z-index: 2000;
+
+  transform: translate(-50%, -50%);
+
+  width: min(320px, calc(100% - 40px));
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  padding: 24px;
+
+  background: rgba(255, 255, 255, 0.97);
+
+  border: 1px solid #e1e1dd;
+  border-radius: 14px;
+
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 28px;
+  height: 28px;
+
+  margin-bottom: 12px;
+
+  border: 3px solid #e5e5e5;
+  border-top-color: #111111;
+
+  border-radius: 50%;
+
+  animation: spin 0.8s linear infinite;
+}
+
+.map-loading strong {
+  color: #111111;
+
+  font-size: 13px;
+}
+
+.map-loading span {
+  margin-top: 4px;
+
+  color: #777777;
+
+  font-size: 10px;
+}
+
+// ============================================================
+// ERROR
+// ============================================================
+
+.map-error {
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  z-index: 2000;
+
+  transform: translate(-50%, -50%);
+
+  width: min(420px, calc(100% - 40px));
+
+  display: flex;
+  align-items: flex-start;
+
+  gap: 12px;
+
+  padding: 18px;
+
+  background: #ffffff;
+
+  border: 1px solid #e1e1dd;
+  border-radius: 14px;
+
+  text-align: left;
+}
+
+.error-icon {
+  width: 38px;
+  height: 38px;
+
+  flex-shrink: 0;
+
+  display: grid;
+  place-items: center;
+
+  background: #f3f3f0;
+  color: #222222;
+
+  border-radius: 9px;
+}
+
+.error-icon i {
+  font-size: 19px;
+}
+
+.error-copy {
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+.error-copy strong {
+  color: #111111;
+
+  font-size: 13px;
+}
+
+.error-copy span {
+  color: #777777;
+
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+// ============================================================
+// SIDEBAR
+// ============================================================
+
+.directions-sidebar {
+  position: relative;
+
+  z-index: 10;
+
+  height: 100%;
+
+  overflow-y: auto;
+
+  background: #ffffff;
+
+  border-left: 1px solid #e5e5e5;
+
+  scrollbar-width: thin;
+}
+
+.directions-sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.directions-sidebar::-webkit-scrollbar-thumb {
+  background: #d0d0cb;
+
+  border-radius: 999px;
+}
+
+// ============================================================
+// CARDS
+// ============================================================
+
+.route-card,
+.destination-card {
+  padding: 22px;
+
+  border-bottom: 1px solid #e8e8e4;
+}
+
+.card-label {
+  display: flex;
+  align-items: center;
+
+  gap: 6px;
+
+  color: #888888;
+
+  font-size: 9px;
+  font-weight: 900;
+
+  letter-spacing: 0.12em;
+}
+
+.card-label i {
+  font-size: 14px;
+}
+
+// ============================================================
+// ROUTE MAIN
+// ============================================================
+
+.route-main {
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  margin-top: 17px;
+}
+
+.route-main-icon {
+  width: 42px;
+  height: 42px;
+
+  flex-shrink: 0;
+
+  display: grid;
+  place-items: center;
+
+  background: #111111;
+  color: #ffffff;
+
+  border-radius: 10px;
+}
+
+.route-main-icon i {
+  font-size: 20px;
+}
+
+.route-main-copy {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.route-main-copy strong {
+  color: #111111;
+
+  font-size: 14px;
+}
+
+.route-main-copy span {
+  color: #888888;
+
+  font-size: 10px;
+}
+
+// ============================================================
+// ROUTE STATS
+// ============================================================
+
+.route-stats {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  margin-top: 18px;
+
+  border: 1px solid #e6e6e2;
+  border-radius: 9px;
+
+  overflow: hidden;
+}
+
+.route-stat {
+  padding: 12px;
+
+  background: #fafaf8;
+}
+
+.route-stat + .route-stat {
+  border-left: 1px solid #e6e6e2;
+}
+
+.stat-label {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: #999999;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+}
+
+.route-stat strong {
+  color: #111111;
+
+  font-size: 17px;
+  font-weight: 800;
+}
+
+// ============================================================
+// ROUTE STATUS
+// ============================================================
+
+.route-status {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  margin-top: 12px;
+
+  color: #666666;
+
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+
+  background: #22c55e;
+
+  border-radius: 50%;
+}
+
+// ============================================================
+// ROUTE EMPTY
+// ============================================================
+
+.route-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  margin-top: 16px;
+
+  gap: 4px;
+}
+
+.route-empty .empty-icon {
+  width: 38px;
+  height: 38px;
+
+  display: grid;
+  place-items: center;
+
+  margin-bottom: 5px;
+
+  background: #f3f3f0;
+  color: #555555;
+
+  border-radius: 9px;
+}
+
+.route-empty .empty-icon i {
+  font-size: 18px;
+}
+
+.route-empty strong {
+  color: #222222;
+
+  font-size: 12px;
+}
+
+.route-empty span {
+  color: #999999;
+
+  font-size: 9px;
+}
+
+// ============================================================
+// DESTINATION
+// ============================================================
+
+.business-destination {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 11px;
+
+  margin-top: 15px;
+}
+
+.business-image {
+  width: 56px;
+  height: 56px;
+
+  flex-shrink: 0;
+
+  overflow: hidden;
+
+  background: #eeeeeb;
+
+  border-radius: 9px;
+}
+
+.business-image img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+}
+
+.business-image-placeholder {
+  width: 100%;
+  height: 100%;
+
+  display: grid;
+  place-items: center;
+
+  color: #777777;
+}
+
+.business-image-placeholder i {
+  font-size: 21px;
+}
+
+.business-copy {
+  min-width: 0;
+}
+
+.business-copy h2 {
+  margin: 0;
+
+  color: #111111;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  line-height: 1.25;
+}
+
+.business-copy > span {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #777777;
+
+  font-size: 10px;
+}
+
+.business-copy p {
+  margin: 6px 0 0;
+
+  color: #888888;
+
+  font-size: 10px;
+
+  line-height: 1.4;
+}
+
+// ============================================================
+// DESTINATION BUTTON
+// ============================================================
+
+.destination-button {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  min-height: 40px;
+
+  margin-top: 14px;
+
+  background: #111111;
+  color: #ffffff;
+
+  border: 0;
+  border-radius: 9px;
+
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.destination-button:hover {
+  background: #292929;
+
+  transform: translateY(-1px);
+}
+
+.destination-button i {
+  font-size: 15px;
+}
+
+// ============================================================
+// NEARBY
+// ============================================================
+
+.nearby-section {
+  padding: 22px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 10px;
+}
+
+.section-heading h2 {
+  margin: 7px 0 0;
+
+  color: #111111;
+
+  font-size: 16px;
+
+  line-height: 1.25;
+}
+
+.nearby-count {
+  min-width: 25px;
+  height: 25px;
+
+  display: grid;
+  place-items: center;
+
+  background: #f2f2ef;
+  color: #555555;
+
+  border-radius: 999px;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+// ============================================================
+// NEARBY LIST
+// ============================================================
+
+.nearby-list {
+  display: flex;
+  flex-direction: column;
+
+  margin-top: 15px;
+
+  border-top: 1px solid #eeeeea;
+}
+
+.nearby-item {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 12px 2px;
+
+  background: transparent;
+  color: inherit;
+
+  border: 0;
+  border-bottom: 1px solid #eeeeea;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  font-family: inherit;
+
+  transition:
+    background 0.2s ease,
+    padding 0.2s ease;
+}
+
+.nearby-item:hover {
+  padding-left: 6px;
+  padding-right: 6px;
+
+  background: #fafaf8;
+}
+
+.nearby-icon {
+  width: 34px;
+  height: 34px;
+
+  flex-shrink: 0;
+
+  display: grid;
+  place-items: center;
+
+  background: #f2f2ef;
+  color: #333333;
+
+  border-radius: 8px;
+}
+
+.nearby-icon i {
+  font-size: 16px;
+}
+
+.nearby-copy {
+  min-width: 0;
+
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.nearby-copy strong {
+  color: #222222;
+
+  font-size: 11px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nearby-copy span {
+  margin-top: 2px;
+
+  color: #777777;
+
+  font-size: 9px;
+}
+
+.nearby-copy small {
+  margin-top: 2px;
+
+  color: #999999;
+
+  font-size: 8px;
+}
+
+.nearby-arrow {
+  flex-shrink: 0;
+
+  color: #aaaaaa;
+
+  font-size: 17px;
+}
+
+// ============================================================
+// NEARBY LOADING / EMPTY
+// ============================================================
+
+.nearby-loading {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: 18px;
+
+  color: #888888;
+
+  font-size: 10px;
+}
+
+.small-spinner {
+  width: 15px;
+  height: 15px;
+
+  border: 2px solid #ddddda;
+  border-top-color: #111111;
+
+  border-radius: 50%;
+
+  animation: spin 0.7s linear infinite;
+}
+
+.nearby-empty {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  margin-top: 18px;
+
+  color: #999999;
+
+  font-size: 10px;
+}
+
+.nearby-empty i {
+  font-size: 16px;
+}
+
+// ============================================================
+// MAP DATA
+// ============================================================
+
+.map-data {
+  display: flex;
+  align-items: center;
+
+  gap: 16px;
+
+  padding: 14px 22px;
+
+  border-top: 1px solid #e8e8e4;
+
+  color: #999999;
+}
+
+.data-item {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  font-size: 9px;
+}
+
+.data-item i {
+  font-size: 13px;
+}
+
+// ============================================================
+// USER MARKER
+// ============================================================
+
+:host ::ng-deep .sj-user-marker-wrapper {
+  background: transparent;
+  border: 0;
+}
+
+:host ::ng-deep .sj-user-marker {
+  position: relative;
+
+  width: 34px;
+  height: 34px;
+
+  display: grid;
+  place-items: center;
+}
+
+:host ::ng-deep .sj-user-marker-pulse {
+  position: absolute;
+
+  width: 30px;
+  height: 30px;
+
+  background: rgba(37, 99, 235, 0.2);
+
+  border: 1px solid rgba(37, 99, 235, 0.35);
+
+  border-radius: 50%;
+
+  animation: locationPulse 2s ease-out infinite;
+}
+
+:host ::ng-deep .sj-user-marker-dot {
+  position: relative;
+
+  z-index: 2;
+
+  width: 14px;
+  height: 14px;
+
+  background: #2563eb;
+
+  border: 3px solid #ffffff;
+
+  border-radius: 50%;
+
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.2);
+}
+
+// ============================================================
+// DESTINATION MARKER
+// ============================================================
+
+:host ::ng-deep .sj-destination-marker-wrapper {
+  background: transparent;
+  border: 0;
+}
+
+:host ::ng-deep .sj-destination-marker {
+  width: 42px;
+  height: 42px;
+
+  display: grid;
+  place-items: center;
+
+  background: #111111;
+  color: #ffffff;
+
+  border: 3px solid #ffffff;
+
+  border-radius: 50% 50% 50% 0;
+
+  transform: rotate(-45deg);
+
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.22);
+}
+
+:host ::ng-deep .sj-destination-marker i {
+  font-size: 18px;
+
+  transform: rotate(45deg);
+}
+
+// ============================================================
+// NEARBY MARKER
+// ============================================================
+
+:host ::ng-deep .sj-nearby-marker-wrapper {
+  background: transparent;
+  border: 0;
+}
+
+:host ::ng-deep .sj-nearby-marker {
+  width: 32px;
+  height: 32px;
+
+  display: grid;
+  place-items: center;
+
+  background: #ffffff;
+  color: #222222;
+
+  border: 2px solid #111111;
+
+  border-radius: 50%;
+
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.16);
+}
+
+:host ::ng-deep .sj-nearby-marker i {
+  font-size: 15px;
+}
+
+// ============================================================
+// POPUP
+// ============================================================
+
+:host ::ng-deep .sj-popup {
+  min-width: 145px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+:host ::ng-deep .sj-popup strong {
+  color: #111111;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+:host ::ng-deep .sj-popup span {
+  color: #777777;
+
+  font-size: 10px;
+}
+
+:host ::ng-deep .sj-popup-link {
+  display: inline-flex;
+
+  width: fit-content;
+
+  margin-top: 7px;
+
+  padding: 6px 9px;
+
+  background: #111111;
+  color: #ffffff;
+
+  border-radius: 6px;
+
+  text-decoration: none;
+
+  font-size: 9px;
+  font-weight: 800;
+}
+
+// ============================================================
+// LEAFLET OVERRIDES
+// ============================================================
+
+:host ::ng-deep .leaflet-container {
+  width: 100%;
+  height: 100%;
+
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  background: #e6e6e2;
+}
+
+:host ::ng-deep .leaflet-control-zoom {
+  margin-left: 14px !important;
+  margin-top: 14px !important;
+
+  border: 0 !important;
+
+  box-shadow: none !important;
+}
+
+:host ::ng-deep .leaflet-control-zoom a {
+  width: 34px !important;
+  height: 34px !important;
+
+  display: grid !important;
+  place-items: center !important;
+
+  background: #ffffff !important;
+  color: #222222 !important;
+
+  border: 1px solid #e5e5e5 !important;
+
+  font-size: 18px !important;
+  line-height: 1 !important;
+}
+
+:host ::ng-deep .leaflet-control-zoom a:first-child {
+  border-radius: 8px 8px 0 0 !important;
+}
+
+:host ::ng-deep .leaflet-control-zoom a:last-child {
+  border-radius: 0 0 8px 8px !important;
+}
+
+:host ::ng-deep .leaflet-control-attribution {
+  padding: 3px 7px !important;
+
+  background: rgba(255, 255, 255, 0.88) !important;
+
+  color: #777777 !important;
+
+  font-size: 8px !important;
+}
+
+:host ::ng-deep .leaflet-control-attribution a {
+  color: #555555 !important;
+}
+
+// ============================================================
+// ANIMATIONS
+// ============================================================
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes locationPulse {
+  0% {
+    transform: scale(0.65);
+    opacity: 0.8;
+  }
+
+  70% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes skeletonPulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+// ============================================================
+// TABLET
+// ============================================================
+
+@media (max-width: 1100px) {
+  .directions-main {
+    grid-template-columns:
+      minmax(0, 1fr)
+      340px;
+  }
+
+  .map-section {
+    padding: 16px;
+  }
+
+  .header-action span {
+    display: none;
+  }
+
+  .header-action {
+    width: 40px;
+
+    padding: 0;
+  }
+}
+
+// ============================================================
+// MOBILE
+// ============================================================
+
+@media (max-width: 850px) {
+  .container {
+    width: calc(100% - 24px);
+  }
+
+  .directions-page {
+    overflow: visible;
+  }
+
+  .directions-header {
+    min-height: auto;
+
+    padding: 11px 0;
+
+    gap: 10px;
+  }
+
+  .header-left {
+    gap: 10px;
+  }
+
+  .back-button {
+    width: 38px;
+    height: 38px;
+
+    min-height: 38px;
+
+    padding: 0;
+  }
+
+  .back-button span {
+    display: none;
+  }
+
+  .destination-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .destination-icon i {
+    font-size: 17px;
+  }
+
+  .destination-copy h1 {
+    max-width: 190px;
+
+    font-size: 14px;
+  }
+
+  .destination-copy p {
+    max-width: 190px;
+
+    font-size: 9px;
+  }
+
+  .directions-main {
+    width: 100%;
+
+    height: auto;
+
+    min-height: calc(100vh - 62px);
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: visible;
+  }
+
+  .map-section {
+    width: 100%;
+
+    height: 58vh;
+
+    min-height: 430px;
+
+    padding: 12px;
+  }
+
+  .map-wrapper {
+    min-height: 0;
+
+    border-radius: 14px;
+  }
+
+  .directions-sidebar {
+    width: 100%;
+
+    height: auto;
+
+    overflow: visible;
+
+    border-left: 0;
+
+    border-top: 1px solid #e1e1dd;
+  }
+
+  .map-legend {
+    left: 12px;
+    bottom: 12px;
+
+    gap: 9px;
+
+    padding: 8px 10px;
+  }
+
+  .legend-item {
+    font-size: 8px;
+  }
+
+  .route-card,
+  .destination-card,
+  .nearby-section {
+    padding: 18px;
+  }
+}
+
+// ============================================================
+// SMALL MOBILE
+// ============================================================
+
+@media (max-width: 520px) {
+  .container {
+    width: calc(100% - 20px);
+  }
+
+  .directions-header {
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    gap: 5px;
+  }
+
+  .header-action {
+    width: 36px;
+    height: 36px;
+
+    min-height: 36px;
+  }
+
+  .destination-copy h1 {
+    max-width: 145px;
+  }
+
+  .destination-copy p {
+    max-width: 145px;
+  }
+
+  .map-section {
+    height: 55vh;
+
+    min-height: 390px;
+
+    padding: 10px;
+  }
+
+  .map-controls {
+    top: 12px;
+    right: 12px;
+  }
+
+  .map-control {
+    width: 38px;
+    height: 38px;
+  }
+
+  .map-legend {
+    max-width: calc(100% - 24px);
+
+    overflow-x: auto;
+
+    white-space: nowrap;
+  }
+
+  .route-stat strong {
+    font-size: 16px;
+  }
+}
+
+// ============================================================
+// EXTRA SMALL MOBILE
+// ============================================================
+
+@media (max-width: 380px) {
+  .container {
+    width: calc(100% - 16px);
+  }
+
+  .destination-copy h1 {
+    max-width: 120px;
+  }
+
+  .destination-copy p {
+    max-width: 120px;
+  }
+
+  .map-section {
+    min-height: 360px;
+  }
+
+  .map-legend {
+    gap: 7px;
+
+    padding: 7px 8px;
+  }
+
+  .legend-item {
+    font-size: 7px;
+  }
+
+  .route-card,
+  .destination-card,
+  .nearby-section {
+    padding: 16px;
+  }
+}
+
+// ============================================================
+// REDUCED MOTION
+// ============================================================
+
+@media (prefers-reduced-motion: reduce) {
+  .back-button,
+  .header-action,
+  .map-control,
+  .nearby-item,
+  .destination-button,
+  .directions-map {
+    transition: none;
+  }
+
+  .loading-spinner,
+  .small-spinner,
+  .sj-user-marker-pulse,
+  .destination-loading span {
+    animation: none;
+  }
+}

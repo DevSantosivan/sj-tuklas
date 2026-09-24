@@ -1,0 +1,110 @@
+<section class="feature-page">
+  <div class="container">
+    <a routerLink="../" class="back-link">
+      <i class="bx bx-left-arrow-alt"></i>
+      Back to business
+    </a>
+
+    <div class="page-header">
+      <span class="eyebrow">RESERVATION</span>
+      <h1>Reserve your spot</h1>
+      <p>
+        Send a reservation request directly to
+        <strong>{{ businessName() }}</strong
+        >.
+      </p>
+    </div>
+
+    <div class="content-grid">
+      <main class="form-card">
+        <div class="card-heading">
+          <div class="icon">
+            <i class="bx bx-calendar"></i>
+          </div>
+
+          <div>
+            <h2>Reservation details</h2>
+            <p>Tell the business when you'd like to visit.</p>
+          </div>
+        </div>
+
+        <form>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Date</label>
+
+              <div class="input-wrap">
+                <i class="bx bx-calendar"></i>
+                <input type="date" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Time</label>
+
+              <div class="input-wrap">
+                <i class="bx bx-time-five"></i>
+                <input type="time" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Number of guests</label>
+
+            <select>
+              <option>1 guest</option>
+              <option>2 guests</option>
+              <option>3 guests</option>
+              <option>4 guests</option>
+              <option>5 guests</option>
+              <option>6+ guests</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Special request <span>Optional</span></label>
+
+            <textarea
+              rows="4"
+              placeholder="Any special request or note..."
+            ></textarea>
+          </div>
+
+          <div class="notice">
+            <i class="bx bx-info-circle"></i>
+
+            <p>
+              Your reservation will be sent to the business for confirmation.
+            </p>
+          </div>
+
+          <button type="submit" class="primary-button">
+            <i class="bx bx-calendar-check"></i>
+            Send reservation request
+          </button>
+        </form>
+      </main>
+
+      <aside class="summary-card">
+        <span class="summary-label">BUSINESS</span>
+
+        <h3>{{ businessName() }}</h3>
+
+        <div class="summary-item">
+          <i class="bx bx-map"></i>
+          <span>San Jose</span>
+        </div>
+
+        <div class="summary-item">
+          <i class="bx bx-check-circle"></i>
+          <span>Reservation available</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <p>Reservations are subject to confirmation by the business.</p>
+      </aside>
+    </div>
+  </div>
+</section>

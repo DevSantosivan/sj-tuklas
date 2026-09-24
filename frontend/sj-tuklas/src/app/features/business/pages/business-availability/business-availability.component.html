@@ -1,0 +1,229 @@
+<section class="feature-page">
+  <div class="container">
+    <!-- BACK -->
+    <a routerLink="../" class="back-link">
+      <i class="bx bx-left-arrow-alt"></i>
+      Back to business
+    </a>
+
+    @if (business(); as business) {
+      <!-- HEADER -->
+      <div class="page-header">
+        <span class="eyebrow"> AVAILABILITY </span>
+
+        <h1>Check availability</h1>
+
+        <p>
+          Check available dates and accommodation options at
+          <strong>{{ business.name }}</strong
+          >.
+        </p>
+      </div>
+
+      <!-- SEARCH CARD -->
+      <div class="availability-card">
+        <div class="card-heading">
+          <div class="icon">
+            <i class="bx bx-calendar-check"></i>
+          </div>
+
+          <div>
+            <h2>Search availability</h2>
+
+            <p>Choose your dates and number of guests.</p>
+          </div>
+        </div>
+
+        <!-- FORM -->
+        <div class="form-grid">
+          <!-- CHECK IN -->
+          <div class="form-group">
+            <label for="checkIn"> Check-in </label>
+
+            <div class="input-wrap">
+              <i class="bx bx-calendar"></i>
+
+              <input
+                id="checkIn"
+                type="date"
+                [value]="checkIn()"
+                (change)="onCheckInChange($event)"
+              />
+            </div>
+          </div>
+
+          <!-- CHECK OUT -->
+          <div class="form-group">
+            <label for="checkOut"> Check-out </label>
+
+            <div class="input-wrap">
+              <i class="bx bx-calendar"></i>
+
+              <input
+                id="checkOut"
+                type="date"
+                [value]="checkOut()"
+                (change)="onCheckOutChange($event)"
+              />
+            </div>
+          </div>
+
+          <!-- GUESTS -->
+          <div class="form-group">
+            <label for="guests"> Guests </label>
+
+            <div class="input-wrap">
+              <i class="bx bx-user"></i>
+
+              <select
+                id="guests"
+                [value]="guests()"
+                (change)="onGuestsChange($event)"
+              >
+                <option value="1">1 Guest</option>
+
+                <option value="2">2 Guests</option>
+
+                <option value="3">3 Guests</option>
+
+                <option value="4">4 Guests</option>
+
+                <option value="5">5 Guests</option>
+
+                <option value="6">6 Guests</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- NOTICE -->
+        <div class="notice">
+          <i class="bx bx-info-circle"></i>
+
+          <p>
+            Availability shown here is based on the business's current
+            accommodation information. Final confirmation may still depend on
+            the business.
+          </p>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="actions">
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="resetSearch()"
+          >
+            Clear
+          </button>
+
+          <button
+            type="button"
+            class="primary-button"
+            [disabled]="!checkIn() || !checkOut()"
+            (click)="checkAvailability()"
+          >
+            <i class="bx bx-search"></i>
+            Check availability
+          </button>
+        </div>
+      </div>
+
+      <!-- RESULTS -->
+      @if (searched()) {
+        @if (available()) {
+          <!-- AVAILABLE -->
+          <section class="result-card available">
+            <div class="result-icon">
+              <i class="bx bx-check"></i>
+            </div>
+
+            <div class="result-content">
+              <span class="result-label"> AVAILABILITY RESULT </span>
+
+              <h2>Rooms may be available</h2>
+
+              <p>
+                We found accommodation options that may fit your selected dates
+                and guest count.
+              </p>
+
+              <div class="result-details">
+                <span>
+                  <i class="bx bx-calendar"></i>
+                  {{ checkIn() }}
+                </span>
+
+                <span>
+                  <i class="bx bx-calendar"></i>
+                  {{ checkOut() }}
+                </span>
+
+                <span>
+                  <i class="bx bx-user"></i>
+                  {{ guests() }}
+                  {{ guests() === 1 ? "Guest" : "Guests" }}
+                </span>
+              </div>
+
+              <div class="result-actions">
+                <a routerLink="../rooms" class="secondary-button">
+                  <i class="bx bx-bed"></i>
+                  View rooms
+                </a>
+
+                <a routerLink="../inquire" class="primary-button">
+                  <i class="bx bx-message-rounded"></i>
+                  Ask the business
+                </a>
+              </div>
+            </div>
+          </section>
+        } @else {
+          <!-- INVALID DATES -->
+          <section class="result-card unavailable">
+            <div class="result-icon">
+              <i class="bx bx-error"></i>
+            </div>
+
+            <div class="result-content">
+              <span class="result-label"> CHECK YOUR DATES </span>
+
+              <h2>Invalid date range</h2>
+
+              <p>Your check-out date must be later than your check-in date.</p>
+
+              <button
+                type="button"
+                class="secondary-button"
+                (click)="resetSearch()"
+              >
+                <i class="bx bx-refresh"></i>
+                Search again
+              </button>
+            </div>
+          </section>
+        }
+      }
+    } @else {
+      <!-- NOT FOUND -->
+      <section class="empty-state">
+        <div class="empty-icon">
+          <i class="bx bx-store-alt"></i>
+        </div>
+
+        <h2>Business not found</h2>
+
+        <p>
+          The business you're looking for doesn't exist or may have been
+          removed.
+        </p>
+
+        <a routerLink="/search" class="primary-button">
+          <i class="bx bx-left-arrow-alt"></i>
+          Back to businesses
+        </a>
+      </section>
+    }
+  </div>
+</section>

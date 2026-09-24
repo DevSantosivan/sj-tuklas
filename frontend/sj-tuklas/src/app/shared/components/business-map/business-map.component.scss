@@ -1,0 +1,1818 @@
+/* =====================================================
+   SJ TUKLAS — BUSINESS MAP
+===================================================== */
+
+:host {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 520px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.business-map {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 520px;
+  overflow: hidden;
+}
+
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 520px;
+  overflow: hidden;
+
+  perspective: 1400px;
+  perspective-origin: center center;
+}
+
+/* =====================================================
+   LEAFLET MAP
+===================================================== */
+
+:host ::ng-deep .leaflet-container {
+  position: relative;
+
+  width: 100%;
+  height: 100%;
+
+  z-index: 0;
+  overflow: hidden;
+
+  background: #f3f4f6;
+
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  transform-origin: center center;
+
+  transform: perspective(1400px) rotateX(0deg) scale(1);
+
+  transition:
+    transform 700ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 500ms ease;
+}
+
+/* =====================================================
+   3D MAP MODE
+===================================================== */
+
+:host ::ng-deep .leaflet-container.sj-map-3d {
+  transform: perspective(1400px) rotateX(48deg) scale(1.12);
+
+  filter: saturate(1.08) contrast(1.02);
+}
+
+/*
+ * NOTE:
+ * Do NOT translate the entire marker pane using translateZ().
+ * Leaflet controls marker positioning internally and this can
+ * cause markers to drift or become visually detached.
+ */
+
+/* =====================================================
+   LEAFLET BASE
+===================================================== */
+
+:host ::ng-deep .leaflet-pane {
+  z-index: 0;
+}
+
+:host ::ng-deep .leaflet-tile-pane {
+  z-index: 1;
+}
+
+:host ::ng-deep .leaflet-overlay-pane {
+  z-index: 2;
+}
+
+:host ::ng-deep .leaflet-shadow-pane {
+  z-index: 3;
+}
+
+:host ::ng-deep .leaflet-marker-pane {
+  z-index: 4;
+}
+
+:host ::ng-deep .leaflet-tooltip-pane {
+  z-index: 5;
+}
+
+:host ::ng-deep .leaflet-popup-pane {
+  z-index: 6;
+}
+
+:host ::ng-deep .leaflet-control-container {
+  position: relative;
+  z-index: 10;
+}
+
+/* =====================================================
+   REMOVE DEFAULT LEAFLET MARKER BOX
+===================================================== */
+
+:host ::ng-deep .sj-category-marker-wrapper,
+:host ::ng-deep .sj-location-marker-wrapper {
+  background: transparent !important;
+  border: 0 !important;
+}
+
+/* =====================================================
+   BUSINESS / CATEGORY MARKERS
+===================================================== */
+
+:host ::ng-deep .sj-category-marker {
+  position: relative;
+
+  width: 42px;
+  height: 50px;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+
+  pointer-events: auto;
+
+  transform-style: preserve-3d;
+
+  transition:
+    filter 180ms ease,
+    transform 180ms ease;
+}
+
+/* =====================================================
+   CATEGORY MARKER PIN
+===================================================== */
+
+:host ::ng-deep .sj-category-marker-pin {
+  position: relative;
+
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-top: 1px;
+
+  background: var(--marker-color);
+
+  border: 3px solid #ffffff;
+
+  border-radius: 50% 50% 50% 0;
+
+  /*
+   * Normal Leaflet marker shape
+   */
+  transform: rotate(-45deg);
+
+  transform-origin: center;
+
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.22);
+
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    filter 180ms ease;
+
+  z-index: 2;
+}
+
+/* =====================================================
+   CATEGORY MARKER — CENTER HIGHLIGHT
+===================================================== */
+
+:host ::ng-deep .sj-category-marker-pin::after {
+  content: "";
+
+  position: absolute;
+
+  width: 8px;
+  height: 8px;
+
+  left: 50%;
+  top: 50%;
+
+  transform: translate(-50%, -50%);
+
+  background: rgba(255, 255, 255, 0.14);
+
+  border-radius: 50%;
+
+  pointer-events: none;
+}
+
+/* =====================================================
+   CATEGORY MARKER — 3D EXTRUSION
+===================================================== */
+
+:host ::ng-deep .leaflet-container.sj-map-3d .sj-category-marker-pin::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  background: var(--marker-color);
+
+  border-radius: 50% 50% 50% 0;
+
+  /*
+   * Fake depth / extrusion
+   */
+  transform: translateY(7px);
+
+  filter: brightness(0.58);
+
+  opacity: 0.95;
+
+  z-index: -1;
+
+  pointer-events: none;
+}
+
+/* =====================================================
+   CATEGORY MARKER — 3D MODE
+===================================================== */
+
+:host ::ng-deep .leaflet-container.sj-map-3d .sj-category-marker {
+  filter: drop-shadow(0 8px 6px rgba(0, 0, 0, 0.28));
+}
+
+/* =====================================================
+   CATEGORY MARKER — 3D PIN
+===================================================== */
+
+:host ::ng-deep .leaflet-container.sj-map-3d .sj-category-marker-pin {
+  transform: rotate(-45deg) translateY(-2px);
+
+  box-shadow:
+    0 3px 0 rgba(0, 0, 0, 0.18),
+    0 6px 0 rgba(0, 0, 0, 0.12),
+    0 10px 16px rgba(0, 0, 0, 0.25);
+
+  filter: saturate(1.08) brightness(1.02);
+}
+
+/* =====================================================
+   CATEGORY MARKER ICON
+===================================================== */
+
+:host ::ng-deep .sj-category-marker-pin i {
+  position: relative;
+
+  z-index: 2;
+
+  color: #ffffff;
+
+  font-size: 18px;
+
+  line-height: 1;
+
+  transform: rotate(45deg);
+
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.22);
+
+  transition: transform 180ms ease;
+}
+
+/* =====================================================
+   CATEGORY MARKER HOVER
+===================================================== */
+
+:host ::ng-deep .sj-category-marker:hover {
+  z-index: 999 !important;
+}
+
+:host ::ng-deep .sj-category-marker:hover .sj-category-marker-pin {
+  transform: rotate(-45deg) scale(1.12);
+
+  box-shadow: 0 5px 13px rgba(0, 0, 0, 0.3);
+}
+
+/* 3D hover */
+
+:host
+  ::ng-deep
+  .leaflet-container.sj-map-3d
+  .sj-category-marker:hover
+  .sj-category-marker-pin {
+  transform: rotate(-45deg) translateY(-4px) scale(1.12);
+
+  box-shadow:
+    0 4px 0 rgba(0, 0, 0, 0.2),
+    0 8px 0 rgba(0, 0, 0, 0.14),
+    0 14px 22px rgba(0, 0, 0, 0.3);
+}
+
+/* =====================================================
+   LOCATION / BARANGAY MARKERS
+===================================================== */
+
+:host ::ng-deep .sj-location-marker {
+  position: relative;
+
+  width: 120px;
+  height: 64px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  pointer-events: auto;
+
+  transform-style: preserve-3d;
+}
+
+/* =====================================================
+   BARANGAY LABEL
+===================================================== */
+
+:host ::ng-deep .sj-location-marker-label {
+  position: absolute;
+
+  top: 0;
+  left: 50%;
+
+  max-width: 112px;
+
+  padding: 5px 9px;
+
+  transform: translateX(-50%);
+
+  border: 1px solid #111111;
+
+  border-radius: 7px;
+
+  background: #ffffff;
+
+  color: #111111;
+
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  line-height: 1.15;
+
+  letter-spacing: 0.02em;
+
+  text-align: center;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+
+  z-index: 2;
+
+  transition:
+    background 150ms ease,
+    color 150ms ease,
+    transform 150ms ease,
+    box-shadow 150ms ease;
+}
+
+/* =====================================================
+   BARANGAY LABEL POINTER
+===================================================== */
+
+:host ::ng-deep .sj-location-marker-label::after {
+  content: "";
+
+  position: absolute;
+
+  left: 50%;
+  bottom: -5px;
+
+  width: 8px;
+  height: 8px;
+
+  background: #ffffff;
+
+  border-right: 1px solid #111111;
+
+  border-bottom: 1px solid #111111;
+
+  transform: translateX(-50%) rotate(45deg);
+
+  z-index: -1;
+}
+
+/* =====================================================
+   BARANGAY LABEL — 3D
+===================================================== */
+
+:host ::ng-deep .leaflet-container.sj-map-3d .sj-location-marker-label {
+  box-shadow:
+    0 4px 0 rgba(0, 0, 0, 0.12),
+    0 8px 16px rgba(0, 0, 0, 0.22);
+
+  transform: translateX(-50%) translateY(-3px);
+}
+
+/* =====================================================
+   BARANGAY PIN
+===================================================== */
+
+:host ::ng-deep .sj-location-marker-pin {
+  position: absolute;
+
+  left: 50%;
+  bottom: 2px;
+
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transform: translateX(-50%) rotate(-45deg);
+
+  transform-origin: center;
+
+  background: #111111;
+
+  border: 3px solid #ffffff;
+
+  border-radius: 50% 50% 50% 0;
+
+  color: #ffffff;
+
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.28);
+
+  z-index: 3;
+
+  transition:
+    transform 150ms ease,
+    background 150ms ease,
+    box-shadow 150ms ease;
+}
+
+/* =====================================================
+   BARANGAY PIN 3D EXTRUSION
+===================================================== */
+
+:host ::ng-deep .leaflet-container.sj-map-3d .sj-location-marker-pin::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  background: #000000;
+
+  border-radius: 50% 50% 50% 0;
+
+  transform: translateY(7px);
+
+  opacity: 0.9;
+
+  z-index: -1;
+}
+
+/* =====================================================
+   BARANGAY PIN ICON
+===================================================== */
+
+:host ::ng-deep .sj-location-marker-pin i {
+  font-size: 17px;
+
+  line-height: 1;
+
+  transform: rotate(45deg);
+
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* =====================================================
+   BARANGAY 3D MODE
+===================================================== */
+
+:host ::ng-deep .leaflet-container.sj-map-3d .sj-location-marker {
+  filter: drop-shadow(0 7px 6px rgba(0, 0, 0, 0.25));
+}
+
+:host ::ng-deep .leaflet-container.sj-map-3d .sj-location-marker-pin {
+  box-shadow:
+    0 3px 0 rgba(0, 0, 0, 0.2),
+    0 7px 0 rgba(0, 0, 0, 0.14),
+    0 12px 18px rgba(0, 0, 0, 0.28);
+}
+
+/* =====================================================
+   LOCATION HOVER
+===================================================== */
+
+:host ::ng-deep .sj-location-marker:hover {
+  z-index: 999 !important;
+}
+
+:host ::ng-deep .sj-location-marker:hover .sj-location-marker-label {
+  background: #111111;
+
+  color: #ffffff;
+
+  transform: translateX(-50%) translateY(-2px);
+}
+
+:host ::ng-deep .sj-location-marker:hover .sj-location-marker-label::after {
+  background: #111111;
+
+  border-color: #111111;
+}
+
+:host ::ng-deep .sj-location-marker:hover .sj-location-marker-pin {
+  background: #000000;
+
+  transform: translateX(-50%) rotate(-45deg) scale(1.08);
+
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.35);
+}
+
+/* =====================================================
+   LOCATION 3D HOVER
+===================================================== */
+
+:host
+  ::ng-deep
+  .leaflet-container.sj-map-3d
+  .sj-location-marker:hover
+  .sj-location-marker-pin {
+  transform: translateX(-50%) rotate(-45deg) translateY(-4px) scale(1.08);
+
+  box-shadow:
+    0 4px 0 rgba(0, 0, 0, 0.2),
+    0 8px 0 rgba(0, 0, 0, 0.14),
+    0 15px 22px rgba(0, 0, 0, 0.3);
+}
+
+/* =====================================================
+   LEAFLET POPUP CONTAINER
+===================================================== */
+
+:host ::ng-deep .leaflet-popup-content-wrapper {
+  padding: 0;
+
+  overflow: hidden;
+
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
+:host ::ng-deep .leaflet-popup-content {
+  width: 250px !important;
+
+  margin: 0;
+
+  line-height: normal;
+}
+
+:host ::ng-deep .leaflet-popup-tip {
+  background: #ffffff;
+}
+
+:host ::ng-deep .leaflet-popup-close-button {
+  top: 8px !important;
+  right: 8px !important;
+
+  width: 26px !important;
+  height: 26px !important;
+
+  display: flex !important;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.92);
+
+  color: #111111 !important;
+
+  font-size: 18px !important;
+  font-weight: 700 !important;
+
+  z-index: 10;
+
+  transition:
+    background 150ms ease,
+    color 150ms ease;
+}
+
+:host ::ng-deep .leaflet-popup-close-button:hover {
+  background: #111111;
+
+  color: #ffffff !important;
+}
+
+/* =====================================================
+   BUSINESS POPUP
+===================================================== */
+
+:host ::ng-deep .sj-map-popup {
+  width: 100%;
+
+  overflow: hidden;
+
+  border-radius: 12px;
+
+  background: #ffffff;
+}
+
+:host ::ng-deep .sj-map-popup-image {
+  display: block;
+
+  width: 100%;
+  height: 130px;
+
+  object-fit: cover;
+
+  background: #f3f4f6;
+}
+
+:host ::ng-deep .sj-map-popup-content {
+  padding: 13px;
+}
+
+:host ::ng-deep .sj-map-popup-category {
+  display: flex;
+
+  align-items: center;
+
+  gap: 5px;
+
+  margin-bottom: 4px;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  letter-spacing: 0.05em;
+
+  text-transform: uppercase;
+}
+
+:host ::ng-deep .sj-map-popup-category i {
+  font-size: 13px;
+}
+
+:host ::ng-deep .sj-map-popup-title {
+  margin-bottom: 3px;
+
+  color: #111827;
+
+  font-size: 15px;
+  font-weight: 800;
+
+  line-height: 1.25;
+}
+
+:host ::ng-deep .sj-map-popup-type {
+  margin-bottom: 9px;
+
+  color: #6b7280;
+
+  font-size: 11px;
+  font-weight: 500;
+}
+
+:host ::ng-deep .sj-map-popup-location {
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 5px;
+
+  margin-bottom: 7px;
+
+  color: #6b7280;
+
+  font-size: 11px;
+
+  line-height: 1.35;
+}
+
+:host ::ng-deep .sj-map-popup-location i {
+  flex: 0 0 auto;
+
+  margin-top: 1px;
+
+  font-size: 13px;
+}
+
+:host ::ng-deep .sj-map-popup-rating {
+  display: flex;
+
+  align-items: center;
+
+  gap: 4px;
+
+  margin-bottom: 11px;
+
+  color: #374151;
+
+  font-size: 11px;
+}
+
+:host ::ng-deep .sj-map-popup-rating i {
+  color: #f59e0b;
+
+  font-size: 13px;
+}
+
+:host ::ng-deep .sj-map-popup-rating strong {
+  font-weight: 800;
+}
+
+:host ::ng-deep .sj-map-popup-rating span {
+  color: #9ca3af;
+}
+
+/* =====================================================
+   BUSINESS POPUP BUTTON
+===================================================== */
+
+:host ::ng-deep .sj-map-popup-button {
+  width: 100%;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 9px 11px;
+
+  border: 0;
+
+  border-radius: 7px;
+
+  background: #111827;
+
+  color: #ffffff;
+
+  font-family: inherit;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 150ms ease,
+    transform 150ms ease;
+}
+
+:host ::ng-deep .sj-map-popup-button:hover {
+  background: #000000;
+}
+
+:host ::ng-deep .sj-map-popup-button:active {
+  transform: scale(0.98);
+}
+
+:host ::ng-deep .sj-map-popup-button i {
+  font-size: 15px;
+}
+
+/* =====================================================
+   LOCATION / BARANGAY POPUP
+===================================================== */
+
+:host ::ng-deep .sj-location-popup {
+  width: 100%;
+
+  overflow: hidden;
+
+  border-radius: 12px;
+
+  background: #ffffff;
+}
+
+:host ::ng-deep .sj-location-popup-image {
+  display: block;
+
+  width: 100%;
+  height: 125px;
+
+  object-fit: cover;
+
+  background: #f3f4f6;
+}
+
+:host ::ng-deep .sj-location-popup-content {
+  padding: 13px;
+}
+
+:host ::ng-deep .sj-location-popup-label {
+  display: flex;
+
+  align-items: center;
+
+  gap: 5px;
+
+  margin-bottom: 4px;
+
+  color: #6b7280;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+}
+
+:host ::ng-deep .sj-location-popup-label i {
+  color: #111111;
+
+  font-size: 13px;
+}
+
+:host ::ng-deep .sj-location-popup-title {
+  margin-bottom: 4px;
+
+  color: #111111;
+
+  font-size: 16px;
+  font-weight: 800;
+
+  line-height: 1.2;
+}
+
+:host ::ng-deep .sj-location-popup-location {
+  margin-bottom: 11px;
+
+  color: #6b7280;
+
+  font-size: 11px;
+
+  line-height: 1.4;
+}
+
+/* =====================================================
+   LOCATION POPUP BUTTON
+===================================================== */
+
+:host ::ng-deep .sj-location-popup-button {
+  width: 100%;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 9px 11px;
+
+  border: 0;
+
+  border-radius: 7px;
+
+  background: #111111;
+
+  color: #ffffff;
+
+  font-family: inherit;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 150ms ease,
+    transform 150ms ease;
+}
+
+:host ::ng-deep .sj-location-popup-button:hover {
+  background: #000000;
+}
+
+:host ::ng-deep .sj-location-popup-button:active {
+  transform: scale(0.98);
+}
+
+:host ::ng-deep .sj-location-popup-button i {
+  font-size: 15px;
+}
+
+/* =====================================================
+   MAP LEGEND
+===================================================== */
+
+:host ::ng-deep .sj-map-legend {
+  min-width: 175px;
+
+  padding: 13px 14px;
+
+  background: rgba(255, 255, 255, 0.96);
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 10px;
+
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+  font-family: inherit;
+
+  font-size: 11px;
+
+  backdrop-filter: blur(8px);
+}
+
+:host ::ng-deep .sj-map-legend-title {
+  margin-bottom: 9px;
+
+  color: #6b7280;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+
+  text-transform: uppercase;
+}
+
+:host ::ng-deep .sj-map-legend-item {
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+
+  margin-bottom: 8px;
+
+  color: #374151;
+
+  font-size: 11px;
+  font-weight: 500;
+}
+
+:host ::ng-deep .sj-map-legend-item:last-child {
+  margin-bottom: 0;
+}
+
+:host ::ng-deep .sj-map-legend-icon {
+  width: 24px;
+  height: 24px;
+
+  flex: 0 0 24px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  color: #ffffff;
+
+  font-size: 13px;
+
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.16);
+}
+
+:host ::ng-deep .sj-map-legend-icon i {
+  line-height: 1;
+}
+
+/* =====================================================
+   LEAFLET ZOOM CONTROLS
+===================================================== */
+
+:host ::ng-deep .leaflet-control-zoom {
+  margin-top: 12px !important;
+  margin-left: 12px !important;
+
+  overflow: hidden;
+
+  border: 1px solid #e5e7eb !important;
+
+  border-radius: 9px !important;
+
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.12);
+}
+
+:host ::ng-deep .leaflet-control-zoom a {
+  width: 34px !important;
+  height: 34px !important;
+
+  display: flex !important;
+
+  align-items: center;
+  justify-content: center;
+
+  border: 0 !important;
+
+  background: #ffffff !important;
+
+  color: #111111 !important;
+
+  font-size: 18px !important;
+  font-weight: 500;
+
+  transition:
+    background 150ms ease,
+    color 150ms ease;
+}
+
+:host ::ng-deep .leaflet-control-zoom a:hover {
+  background: #111111 !important;
+
+  color: #ffffff !important;
+}
+
+/* =====================================================
+   BUSINESS LOCATION PICKER
+===================================================== */
+
+:host ::ng-deep .sj-picker-marker-wrapper {
+  background: transparent !important;
+
+  border: 0 !important;
+
+  overflow: visible !important;
+
+  pointer-events: auto !important;
+}
+
+/* =====================================================
+   PICKER MARKER
+===================================================== */
+
+:host ::ng-deep .sj-picker-marker {
+  position: relative;
+
+  width: 150px;
+  height: 86px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  pointer-events: none;
+
+  overflow: visible;
+
+  transform-style: preserve-3d;
+}
+
+/* =====================================================
+   YOUR BUSINESS LABEL
+===================================================== */
+
+:host ::ng-deep .sj-picker-marker-label {
+  position: absolute;
+
+  top: 0;
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  min-height: 28px;
+
+  padding: 7px 11px;
+
+  background: #111111;
+
+  color: #ffffff;
+
+  border: 1px solid rgba(255, 255, 255, 0.16);
+
+  border-radius: 7px;
+
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  line-height: 1;
+
+  white-space: nowrap;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+
+  z-index: 10;
+
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease;
+}
+
+/* =====================================================
+   PICKER LABEL ICON
+===================================================== */
+
+:host ::ng-deep .sj-picker-marker-label i {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  color: #ffffff;
+
+  font-size: 14px;
+
+  line-height: 1;
+}
+
+/* =====================================================
+   PICKER LABEL POINTER
+===================================================== */
+
+:host ::ng-deep .sj-picker-marker-label::after {
+  content: "";
+
+  position: absolute;
+
+  left: 50%;
+  bottom: -5px;
+
+  width: 9px;
+  height: 9px;
+
+  background: #111111;
+
+  border-right: 1px solid #111111;
+
+  border-bottom: 1px solid #111111;
+
+  transform: translateX(-50%) rotate(45deg);
+
+  z-index: -1;
+}
+
+/* =====================================================
+   PICKER LABEL — 3D
+===================================================== */
+
+:host ::ng-deep .leaflet-container.sj-map-3d .sj-picker-marker-label {
+  box-shadow:
+    0 4px 0 rgba(0, 0, 0, 0.15),
+    0 8px 16px rgba(0, 0, 0, 0.28);
+
+  transform: translateX(-50%) translateY(-3px);
+}
+
+/* =====================================================
+   MAIN PICKER PIN
+===================================================== */
+
+:host ::ng-deep .sj-picker-marker-pin {
+  position: absolute;
+
+  top: 34px;
+  left: 50%;
+
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  background: #111111;
+
+  border: 3px solid #ffffff;
+
+  border-radius: 50% 50% 50% 0;
+
+  transform: translateX(-50%) rotate(-45deg);
+
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.28);
+
+  z-index: 8;
+
+  cursor: grab;
+
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease;
+}
+
+/* =====================================================
+   PICKER PIN — 3D EXTRUSION
+===================================================== */
+
+:host ::ng-deep .leaflet-container.sj-map-3d .sj-picker-marker-pin::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  background: #000000;
+
+  border-radius: 50% 50% 50% 0;
+
+  transform: translateY(8px);
+
+  opacity: 0.92;
+
+  z-index: -1;
+}
+
+/* =====================================================
+   PICKER PIN ICON
+===================================================== */
+
+:host ::ng-deep .sj-picker-marker-pin i {
+  color: #ffffff;
+
+  font-size: 19px;
+
+  line-height: 1;
+
+  transform: rotate(45deg);
+
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.28);
+}
+
+/* =====================================================
+   PICKER PIN CENTER DOT
+===================================================== */
+
+:host ::ng-deep .sj-picker-marker-pin::after {
+  content: "";
+
+  position: absolute;
+
+  width: 8px;
+  height: 8px;
+
+  left: 50%;
+  top: 50%;
+
+  background: rgba(255, 255, 255, 0.18);
+
+  border-radius: 50%;
+
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+/* =====================================================
+   PICKER 3D MODE
+===================================================== */
+
+:host ::ng-deep .leaflet-container.sj-map-3d .sj-picker-marker {
+  filter: drop-shadow(0 8px 6px rgba(0, 0, 0, 0.28));
+}
+
+:host ::ng-deep .leaflet-container.sj-map-3d .sj-picker-marker-pin {
+  transform: translateX(-50%) rotate(-45deg) translateY(-3px);
+
+  box-shadow:
+    0 3px 0 rgba(0, 0, 0, 0.2),
+    0 7px 0 rgba(0, 0, 0, 0.15),
+    0 12px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* =====================================================
+   PICKER PULSE
+===================================================== */
+
+:host ::ng-deep .sj-picker-marker-pin::before {
+  content: "";
+
+  position: absolute;
+
+  width: 52px;
+  height: 52px;
+
+  left: 50%;
+  top: 50%;
+
+  border: 1px solid rgba(17, 17, 17, 0.28);
+
+  border-radius: 50%;
+
+  transform: translate(-50%, -50%) rotate(45deg);
+
+  animation: sj-picker-pulse 2s ease-out infinite;
+
+  pointer-events: none;
+}
+
+/*
+ * 3D mode overrides the pseudo-element above.
+ * The pulse is moved to the marker itself so the
+ * extrusion can remain visible.
+ */
+
+@keyframes sj-picker-pulse {
+  0% {
+    opacity: 0.6;
+
+    transform: translate(-50%, -50%) rotate(45deg) scale(0.65);
+  }
+
+  70% {
+    opacity: 0;
+
+    transform: translate(-50%, -50%) rotate(45deg) scale(1.35);
+  }
+
+  100% {
+    opacity: 0;
+
+    transform: translate(-50%, -50%) rotate(45deg) scale(1.35);
+  }
+}
+
+/* =====================================================
+   GROUND SHADOW
+===================================================== */
+
+:host ::ng-deep .sj-picker-marker-shadow {
+  position: absolute;
+
+  left: 50%;
+  bottom: 2px;
+
+  width: 24px;
+  height: 7px;
+
+  background: rgba(0, 0, 0, 0.2);
+
+  border-radius: 50%;
+
+  transform: translateX(-50%);
+
+  filter: blur(2px);
+
+  z-index: 2;
+}
+
+/* =====================================================
+   3D GROUND SHADOW
+===================================================== */
+
+:host ::ng-deep .leaflet-container.sj-map-3d .sj-picker-marker-shadow {
+  width: 30px;
+
+  background: rgba(0, 0, 0, 0.28);
+
+  filter: blur(4px);
+}
+
+/* =====================================================
+   PICKER HOVER
+===================================================== */
+
+:host ::ng-deep .sj-picker-marker-wrapper:hover {
+  z-index: 999 !important;
+}
+
+:host ::ng-deep .sj-picker-marker-wrapper:hover .sj-picker-marker-pin {
+  transform: translateX(-50%) rotate(-45deg) scale(1.08);
+
+  box-shadow: 0 7px 18px rgba(0, 0, 0, 0.32);
+}
+
+/* =====================================================
+   PICKER 3D HOVER
+===================================================== */
+
+:host
+  ::ng-deep
+  .leaflet-container.sj-map-3d
+  .sj-picker-marker-wrapper:hover
+  .sj-picker-marker-pin {
+  transform: translateX(-50%) rotate(-45deg) translateY(-5px) scale(1.08);
+
+  box-shadow:
+    0 4px 0 rgba(0, 0, 0, 0.2),
+    0 8px 0 rgba(0, 0, 0, 0.15),
+    0 16px 24px rgba(0, 0, 0, 0.32);
+}
+
+/* =====================================================
+   DRAGGING
+===================================================== */
+
+:host ::ng-deep .leaflet-marker-draggable .sj-picker-marker-wrapper {
+  cursor: grab;
+}
+
+:host ::ng-deep .leaflet-marker-draggable .sj-picker-marker-wrapper:active {
+  cursor: grabbing;
+}
+
+:host
+  ::ng-deep
+  .leaflet-marker-draggable
+  .sj-picker-marker-wrapper:active
+  .sj-picker-marker-pin {
+  cursor: grabbing;
+
+  transform: translateX(-50%) rotate(-45deg) scale(1.12);
+
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+/* =====================================================
+   MAP CONTROLS
+===================================================== */
+
+.map-controls {
+  position: absolute;
+
+  top: 16px;
+  right: 16px;
+
+  z-index: 1000;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+.map-control-button {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  min-width: 64px;
+  height: 40px;
+
+  padding: 0 12px;
+
+  border: 1px solid rgba(0, 0, 0, 0.12);
+
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  color: #111111;
+
+  font-family: inherit;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.map-control-button:hover {
+  transform: translateY(-1px);
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+}
+
+.map-control-button i {
+  font-size: 18px;
+}
+
+.map-control-button.active {
+  background: #111111;
+
+  color: #ffffff;
+}
+
+.map-control-button:active {
+  transform: translateY(0);
+}
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 900px) {
+  :host,
+  .business-map,
+  .map-container {
+    min-height: 480px;
+  }
+
+  :host ::ng-deep .sj-map-legend {
+    min-width: 150px;
+
+    padding: 10px 11px;
+
+    font-size: 10px;
+  }
+
+  :host ::ng-deep .sj-map-legend-title {
+    margin-bottom: 7px;
+
+    font-size: 9px;
+  }
+
+  :host ::ng-deep .sj-map-legend-item {
+    gap: 7px;
+
+    margin-bottom: 6px;
+
+    font-size: 10px;
+  }
+
+  :host ::ng-deep .sj-map-legend-icon {
+    width: 22px;
+    height: 22px;
+
+    flex-basis: 22px;
+
+    font-size: 12px;
+  }
+
+  /* Barangay labels */
+
+  :host ::ng-deep .sj-location-marker-label {
+    max-width: 96px;
+
+    padding: 4px 7px;
+
+    font-size: 9px;
+  }
+
+  :host ::ng-deep .sj-location-marker-pin {
+    width: 31px;
+    height: 31px;
+
+    border-width: 2px;
+  }
+
+  :host ::ng-deep .sj-location-marker-pin i {
+    font-size: 15px;
+  }
+
+  /* Popup */
+
+  :host ::ng-deep .sj-map-popup-image,
+  :host ::ng-deep .sj-location-popup-image {
+    height: 115px;
+  }
+
+  :host ::ng-deep .leaflet-popup-content {
+    width: 235px !important;
+  }
+}
+
+/* =====================================================
+   SMALL MOBILE
+===================================================== */
+
+@media (max-width: 600px) {
+  :host,
+  .business-map,
+  .map-container {
+    min-height: 430px;
+  }
+
+  /* Barangay labels */
+
+  :host ::ng-deep .sj-location-marker-label {
+    max-width: 88px;
+
+    padding: 4px 6px;
+
+    font-size: 8px;
+
+    border-radius: 6px;
+  }
+
+  :host ::ng-deep .sj-location-marker-pin {
+    width: 29px;
+    height: 29px;
+  }
+
+  :host ::ng-deep .sj-location-marker-pin i {
+    font-size: 14px;
+  }
+
+  /* Picker */
+
+  :host ::ng-deep .sj-picker-marker {
+    width: 135px;
+    height: 80px;
+  }
+
+  :host ::ng-deep .sj-picker-marker-label {
+    padding: 6px 9px;
+
+    font-size: 9px;
+  }
+
+  :host ::ng-deep .sj-picker-marker-label i {
+    font-size: 13px;
+  }
+
+  :host ::ng-deep .sj-picker-marker-pin {
+    top: 32px;
+
+    width: 36px;
+    height: 36px;
+  }
+
+  :host ::ng-deep .sj-picker-marker-pin i {
+    font-size: 17px;
+  }
+
+  /* Zoom controls */
+
+  :host ::ng-deep .leaflet-control-zoom {
+    margin-top: 10px !important;
+    margin-left: 10px !important;
+  }
+
+  :host ::ng-deep .leaflet-control-zoom a {
+    width: 32px !important;
+    height: 32px !important;
+
+    font-size: 17px !important;
+  }
+
+  /* Legend */
+
+  :host ::ng-deep .sj-map-legend {
+    min-width: auto;
+
+    padding: 8px 10px;
+
+    border-radius: 8px;
+
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.12);
+  }
+
+  :host ::ng-deep .sj-map-legend-title {
+    margin-bottom: 5px;
+  }
+
+  :host ::ng-deep .sj-map-legend-item {
+    margin-bottom: 4px;
+  }
+
+  :host ::ng-deep .sj-map-legend-icon {
+    width: 20px;
+    height: 20px;
+
+    flex-basis: 20px;
+
+    font-size: 11px;
+  }
+
+  /* Popup */
+
+  :host ::ng-deep .leaflet-popup-content {
+    width: 220px !important;
+  }
+
+  :host ::ng-deep .leaflet-popup-close-button {
+    width: 24px !important;
+    height: 24px !important;
+
+    font-size: 16px !important;
+  }
+
+  :host ::ng-deep .sj-map-popup-image,
+  :host ::ng-deep .sj-location-popup-image {
+    height: 105px;
+  }
+
+  :host ::ng-deep .sj-map-popup-content,
+  :host ::ng-deep .sj-location-popup-content {
+    padding: 11px;
+  }
+
+  :host ::ng-deep .sj-map-popup-title,
+  :host ::ng-deep .sj-location-popup-title {
+    font-size: 14px;
+  }
+
+  /* Map controls */
+
+  .map-controls {
+    top: 10px;
+    right: 10px;
+
+    gap: 6px;
+  }
+
+  .map-control-button {
+    min-width: 56px;
+    height: 36px;
+
+    padding: 0 10px;
+
+    border-radius: 8px;
+
+    font-size: 11px;
+  }
+
+  .map-control-button i {
+    font-size: 16px;
+  }
+}
+
+/* =====================================================
+   VERY SMALL PHONES
+===================================================== */
+
+@media (max-width: 380px) {
+  :host,
+  .business-map,
+  .map-container {
+    min-height: 400px;
+  }
+
+  :host ::ng-deep .sj-location-marker-label {
+    max-width: 76px;
+
+    font-size: 7.5px;
+  }
+
+  :host ::ng-deep .sj-location-marker-pin {
+    width: 27px;
+    height: 27px;
+  }
+
+  :host ::ng-deep .sj-location-marker-pin i {
+    font-size: 13px;
+  }
+
+  :host ::ng-deep .leaflet-popup-content {
+    width: 205px !important;
+  }
+
+  .map-controls {
+    top: 8px;
+    right: 8px;
+  }
+
+  .map-control-button {
+    min-width: 50px;
+    height: 34px;
+
+    padding: 0 8px;
+
+    font-size: 10px;
+  }
+}
+
+/* =====================================================
+   REDUCE MOTION
+===================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  :host ::ng-deep .leaflet-container {
+    transition: none;
+  }
+
+  :host ::ng-deep .sj-category-marker-pin,
+  :host ::ng-deep .sj-location-marker-pin,
+  :host ::ng-deep .sj-picker-marker-pin {
+    transition: none;
+  }
+
+  :host ::ng-deep .sj-picker-marker-pin::before {
+    animation: none;
+  }
+}

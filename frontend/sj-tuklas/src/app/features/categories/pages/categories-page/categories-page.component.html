@@ -1,0 +1,255 @@
+<section class="categories-page">
+  <div class="container">
+    <!-- =========================
+         HEADER
+    ========================== -->
+
+    <header class="page-header">
+      <div class="header-copy">
+        <span class="eyebrow"> SJ TUKLAS </span>
+
+        <h1>Business Categories</h1>
+
+        <p>
+          Discover local businesses on SJ Tuklas and explore the features
+          available to each type of business.
+        </p>
+      </div>
+
+      <div class="header-count">
+        <strong>
+          {{ categories.length }}
+        </strong>
+
+        <span> Categories </span>
+      </div>
+    </header>
+
+    <!-- =========================
+         SEARCH
+    ========================== -->
+
+    <div class="search-wrapper">
+      <app-search-bar
+        [value]="searchTerm()"
+        placeholder="Search category, business type, or feature..."
+        ariaLabel="Search categories"
+        (valueChange)="searchTerm.set($event)"
+      />
+    </div>
+
+    <!-- =========================
+         CATEGORY FILTER
+    ========================== -->
+
+    <nav class="category-filter" aria-label="Business categories">
+      <button
+        type="button"
+        [class.active]="activeCategory() === 'all'"
+        (click)="setCategory('all')"
+      >
+        <span class="filter-icon">
+          <i class="bx bx-grid-alt"></i>
+        </span>
+
+        <span> All </span>
+      </button>
+
+      @for (category of categories; track category.name) {
+        <button
+          type="button"
+          [class.active]="activeCategory() === category.name"
+          (click)="setCategory(category.name)"
+        >
+          <span class="filter-icon">
+            <i [class]="category.icon"></i>
+          </span>
+
+          <span>
+            {{ category.name }}
+          </span>
+        </button>
+      }
+    </nav>
+
+    <!-- =========================
+         RESULTS BAR
+    ========================== -->
+
+    <div class="results-bar">
+      <div class="results-info">
+        <span class="results-label"> EXPLORE </span>
+
+        <strong>
+          @if (activeCategory() === "all") {
+            All business categories
+          } @else {
+            {{ activeCategory() }}
+          }
+        </strong>
+      </div>
+
+      <span class="results-count">
+        {{ filteredCategories().length }}
+
+        {{ filteredCategories().length === 1 ? "category" : "categories" }}
+      </span>
+    </div>
+
+    <!-- =========================
+         CATEGORY SECTIONS
+    ========================== -->
+
+    <div class="category-sections">
+      @for (category of filteredCategories(); track category.name) {
+        <section class="category-section">
+          <!-- =========================
+               CATEGORY HEADER
+          ========================== -->
+
+          <div class="category-heading">
+            <div class="category-icon">
+              <i [class]="category.icon"></i>
+            </div>
+
+            <div class="category-info">
+              <span class="category-label"> BUSINESS CATEGORY </span>
+
+              <h2>
+                {{ category.name }}
+              </h2>
+
+              <p>
+                {{ category.description }}
+              </p>
+            </div>
+
+            <div class="type-count">
+              <strong>
+                {{ category.types.length }}
+              </strong>
+
+              <span>
+                {{ category.types.length === 1 ? "Type" : "Types" }}
+              </span>
+            </div>
+          </div>
+
+          <!-- =========================
+               BUSINESS TYPES
+          ========================== -->
+
+          <div class="types-grid">
+            @for (type of category.types; track type.name) {
+              <article class="type-card">
+                <!-- CARD HEADER -->
+
+                <div class="type-card-header">
+                  <div class="type-number">
+                    {{ ($index + 1).toString().padStart(2, "0") }}
+                  </div>
+
+                  <div class="type-title">
+                    <h3>
+                      {{ type.name }}
+                    </h3>
+
+                    <span> Business Type </span>
+                  </div>
+                </div>
+
+                <!-- BUSINESS DESCRIPTION -->
+
+                <p class="type-description">
+                  Customers can discover and connect with this type of business,
+                  while business owners can use SJ Tuklas Pro features to
+                  promote and manage their business.
+                </p>
+                <!-- =========================
+                     FEATURES
+                ========================== -->
+
+                <div class="features">
+                  <div class="features-heading">
+                    <div class="features-label">
+                      <span class="pro-icon">
+                        <i class="bx bx-crown"></i>
+                      </span>
+
+                      <div>
+                        <strong> Pro features </strong>
+
+                        <span> Available to Pro businesses </span>
+                      </div>
+                    </div>
+
+                    <span class="pro-badge"> PRO </span>
+                  </div>
+
+                  <!-- FEATURE LIST -->
+
+                  <div class="feature-list">
+                    @for (feature of type.features; track feature) {
+                      <span class="feature">
+                        <span class="feature-check">
+                          <i class="bx bx-check"></i>
+                        </span>
+
+                        {{ feature }}
+                      </span>
+                    }
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- =========================
+           EMPTY STATE
+      ========================== -->
+
+      @if (filteredCategories().length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">
+            <i class="bx bx-search-alt"></i>
+          </div>
+
+          <span class="empty-label"> NO RESULTS </span>
+
+          <h2>No categories found</h2>
+
+          <p>Try searching for another category, business type, or feature.</p>
+
+          <button type="button" (click)="clearSearch(); setCategory('all')">
+            Clear filters
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- =========================
+         BUSINESS OWNER CTA
+    ========================== -->
+
+    <section class="owner-cta">
+      <div class="owner-cta-copy">
+        <span class="owner-label"> FOR BUSINESS OWNERS </span>
+
+        <h2>Want more features for your business?</h2>
+
+        <p>
+          Upgrade your SJ Tuklas business profile to access tools that help
+          customers discover, contact, and interact with your business.
+        </p>
+      </div>
+
+      <button type="button" class="owner-cta-button">
+        <span> Explore Pro </span>
+
+        <i class="bx bx-right-arrow-alt"></i>
+      </button>
+    </section>
+  </div>
+</section>

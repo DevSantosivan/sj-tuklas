@@ -1,0 +1,76 @@
+<section class="hero">
+  <div class="hero-background"></div>
+  <div class="hero-overlay"></div>
+
+  <div class="container hero-container">
+    <!-- HERO COPY -->
+    <div class="hero-copy">
+      <span class="eyebrow">SAN JOSE, OCCIDENTAL MINDORO</span>
+
+      <h1>
+        Discover what's
+        <span>around you.</span>
+      </h1>
+
+      <p>
+        Find local businesses, services, places, and experiences around San
+        Jose.
+      </p>
+    </div>
+
+    <!-- SEARCH -->
+    <form class="search-panel" (submit)="$event.preventDefault(); search()">
+      <!-- WHAT -->
+      <div class="search-main">
+        <i class="bx bx-search"></i>
+
+        <div class="field-content">
+          <label for="hero-search">What are you looking for?</label>
+
+          <input
+            id="hero-search"
+            type="text"
+            name="search"
+            [(ngModel)]="searchTerm"
+            placeholder="Restaurants, shops, services..."
+            autocomplete="off"
+          />
+        </div>
+      </div>
+
+      <!-- LOCATION -->
+      <div class="search-location">
+        <i class="bx bx-map-pin"></i>
+
+        <div class="field-content">
+          <label>Location</label>
+
+          <strong>San Jose</strong>
+        </div>
+      </div>
+
+      <!-- BUTTON -->
+      <button type="submit" class="search-button">
+        <span>Search</span>
+        <i class="bx bx-right-arrow-alt"></i>
+      </button>
+    </form>
+
+    <!-- POPULAR SEARCHES -->
+    <div class="popular-searches">
+      <span class="popular-label">Popular:</span>
+
+      <a routerLink="/search" [queryParams]="{ category: 'Foods & Drinks' }">
+        Foods & Drinks
+      </a>
+
+      <a routerLink="/search" [queryParams]="{ category: 'Shops' }"> Shops </a>
+
+      <a routerLink="/search" [queryParams]="{ category: 'Hotels' }">Hotels </a>
+
+      <a routerLink="/search" [queryParams]="{ category: 'Boarding house' }">
+        Boarding Houses
+      </a>
+    </div>
+  </div>
+</section>

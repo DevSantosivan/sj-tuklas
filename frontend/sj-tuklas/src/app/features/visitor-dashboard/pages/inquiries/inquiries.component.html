@@ -1,0 +1,217 @@
+<section class="inquiries-page">
+  <!-- =====================================================
+       HEADER
+  ====================================================== -->
+
+  <header class="inquiries-header">
+    <div class="header-copy">
+      <span class="eyebrow">MESSAGES</span>
+
+      <h1>Inquiries</h1>
+
+      <p>
+        Chat with businesses and keep track of your questions and conversations.
+      </p>
+    </div>
+
+    <div class="inquiry-count">
+      <i class="bx bx-message-rounded-dots"></i>
+
+      <div>
+        <strong>{{ inquiries.length }}</strong>
+        <span>Conversations</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- =====================================================
+       CHAT LAYOUT
+  ====================================================== -->
+
+  <div class="inquiries-layout" [class.mobile-chat-open]="selectedInquiry">
+    <!-- ===================================================
+         CONVERSATION LIST
+    ==================================================== -->
+
+    <aside class="conversation-panel">
+      <div class="panel-header">
+        <div>
+          <span class="section-label">CONVERSATIONS</span>
+          <h2>Messages</h2>
+        </div>
+
+        <span class="message-count">
+          {{ filteredInquiries.length }}
+        </span>
+      </div>
+
+      <!-- SEARCH -->
+
+      <div class="search-box">
+        <i class="bx bx-search"></i>
+
+        <input
+          type="text"
+          placeholder="Search conversations..."
+          [(ngModel)]="searchTerm"
+        />
+      </div>
+
+      <!-- CONVERSATIONS -->
+
+      <div class="conversation-list">
+        <button
+          type="button"
+          class="conversation-item"
+          *ngFor="let inquiry of filteredInquiries"
+          [class.active]="selectedInquiry?.id === inquiry.id"
+          (click)="selectInquiry(inquiry)"
+        >
+          <div class="conversation-image">
+            <img [src]="inquiry.businessImage" [alt]="inquiry.businessName" />
+
+            <span
+              class="online-dot"
+              *ngIf="inquiry.status === 'replied'"
+            ></span>
+          </div>
+
+          <div class="conversation-content">
+            <div class="conversation-top">
+              <strong>
+                {{ inquiry.businessName }}
+              </strong>
+
+              <span>
+                {{ inquiry.lastMessageTime }}
+              </span>
+            </div>
+
+            <div class="conversation-subject">
+              {{ inquiry.subject }}
+            </div>
+
+            <div class="conversation-bottom">
+              <p>
+                {{ inquiry.lastMessage }}
+              </p>
+
+              <span class="unread-badge" *ngIf="inquiry.unread > 0">
+                {{ inquiry.unread }}
+              </span>
+            </div>
+          </div>
+        </button>
+
+        <!-- EMPTY -->
+
+        <div class="empty-conversations" *ngIf="filteredInquiries.length === 0">
+          <i class="bx bx-search-alt"></i>
+
+          <strong>No conversations found</strong>
+
+          <span> Try searching for another business. </span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===================================================
+         CHAT
+    ==================================================== -->
+
+    <main class="chat-panel" *ngIf="selectedInquiry">
+      <!-- CHAT HEADER -->
+
+      <header class="chat-header">
+        <!-- MOBILE BACK -->
+
+        <button
+          type="button"
+          class="mobile-back-button"
+          (click)="selectedInquiry = null"
+        >
+          <i class="bx bx-arrow-back"></i>
+        </button>
+
+        <div class="chat-business">
+          <div class="chat-avatar">
+            <img
+              [src]="selectedInquiry.businessImage"
+              [alt]="selectedInquiry.businessName"
+            />
+          </div>
+
+          <div>
+            <strong>
+              {{ selectedInquiry.businessName }}
+            </strong>
+
+            <span>
+              {{ selectedInquiry.subject }}
+            </span>
+          </div>
+        </div>
+
+        <span
+          class="status-badge"
+          [class.new]="selectedInquiry.status === 'new'"
+          [class.replied]="selectedInquiry.status === 'replied'"
+          [class.closed]="selectedInquiry.status === 'closed'"
+        >
+          {{ getStatusLabel(selectedInquiry.status) }}
+        </span>
+      </header>
+
+      <!-- CHAT BODY -->
+
+      <div class="chat-body">
+        <div class="chat-date">
+          <span>Conversation</span>
+        </div>
+
+        <div
+          class="message-row"
+          *ngFor="let message of selectedInquiry.messages"
+          [class.visitor]="message.sender === 'visitor'"
+          [class.business]="message.sender === 'business'"
+        >
+          <div class="message-avatar" *ngIf="message.sender === 'business'">
+            <img
+              [src]="selectedInquiry.businessImage"
+              [alt]="selectedInquiry.businessName"
+            />
+          </div>
+
+          <div class="message-wrapper">
+            <div class="message-bubble">
+              {{ message.message }}
+            </div>
+
+            <span class="message-time">
+              {{ message.time }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MESSAGE INPUT -->
+
+      <div class="chat-composer">
+        <input
+          type="text"
+          placeholder="Write a message..."
+          [(ngModel)]="messageText"
+          (keyup.enter)="sendMessage()"
+        />
+
+        <button
+          type="button"
+          (click)="sendMessage()"
+          [disabled]="!messageText.trim()"
+        >
+          <i class="bx bx-send"></i>
+        </button>
+      </div>
+    </main>
+  </div>
+</section>

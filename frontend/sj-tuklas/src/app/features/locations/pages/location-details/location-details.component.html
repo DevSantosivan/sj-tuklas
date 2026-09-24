@@ -1,0 +1,524 @@
+<section class="location-details-page">
+  <div class="container">
+    <!-- =====================================================
+     BACK
+====================================================== -->
+
+    <!-- <a routerLink="/locations" class="back-link">
+      <i class="bx bx-arrow-back"></i>
+      Back to locations
+    </a> -->
+
+    @if (location(); as currentLocation) {
+      <!-- =====================================================
+       LOCATION HERO
+  ====================================================== -->
+
+      <header class="location-hero">
+        <div class="location-hero-image">
+          <img [src]="currentLocation.image" [alt]="currentLocation.name" />
+
+          <div class="hero-overlay"></div>
+
+          <div class="hero-content">
+            <div class="location-label">
+              <i class="bx bx-map"></i>
+              SJ TUKLAS
+            </div>
+
+            <h1>
+              {{ currentLocation.name }}
+            </h1>
+
+            <p>
+              Explore the local area, discover places, and find businesses
+              around {{ currentLocation.name }}, San Jose.
+            </p>
+
+            <div class="location-meta">
+              <span>
+                <i class="bx bx-store"></i>
+
+                {{ businessCount() }}
+
+                {{ businessCount() === 1 ? "business" : "businesses" }}
+              </span>
+
+              @if (verifiedCount() > 0) {
+                <span>
+                  <i class="bx bxs-check-circle"></i>
+
+                  {{ verifiedCount() }}
+
+                  verified
+                </span>
+              }
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- =====================================================
+       LOCATION STATS
+  ====================================================== -->
+
+      <section class="location-stats">
+        <!-- BUSINESSES -->
+
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="bx bx-store"></i>
+          </div>
+
+          <div class="stat-content">
+            <strong>
+              {{ businessCount() }}
+            </strong>
+
+            <span> Businesses </span>
+          </div>
+        </div>
+
+        <!-- CATEGORIES -->
+
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="bx bx-category"></i>
+          </div>
+
+          <div class="stat-content">
+            <strong>
+              {{ categoryCount() }}
+            </strong>
+
+            <span> Categories </span>
+          </div>
+        </div>
+
+        <!-- SERVICES -->
+
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="bx bx-briefcase"></i>
+          </div>
+
+          <div class="stat-content">
+            <strong>
+              {{ servicesCount() }}
+            </strong>
+
+            <span> Services </span>
+          </div>
+        </div>
+
+        <!-- VERIFIED -->
+
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="bx bx-check-shield"></i>
+          </div>
+
+          <div class="stat-content">
+            <strong>
+              {{ verifiedCount() }}
+            </strong>
+
+            <span> Verified </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================
+       LOCATION MAP
+  ====================================================== -->
+
+      <section class="location-map-section">
+        <div class="section-heading map-heading">
+          <div>
+            <span class="section-label"> LOCATION </span>
+
+            <h2>Explore {{ currentLocation.name }}</h2>
+
+            <p>
+              View this local area on the map and explore places around the
+              barangay.
+            </p>
+          </div>
+
+          <div class="coordinates">
+            <span>
+              <i class="bx bx-map-pin"></i>
+
+              {{ currentLocation.latitude }}
+            </span>
+
+            <span>
+              {{ currentLocation.longitude }}
+            </span>
+          </div>
+        </div>
+
+        <!-- =================================================
+         REAL LEAFLET MAP
+
+         Business markers appear only when businesses
+         exist. The location page itself still remains
+         available even when there are zero businesses.
+    ================================================== -->
+
+        <div class="location-map">
+          @if (locationBusinesses().length > 0) {
+            <app-business-map
+              [businesses]="locationBusinesses()"
+              (businessSelected)="onBusinessSelected($event)"
+            ></app-business-map>
+          } @else {
+            <div class="location-map-empty">
+              <div class="location-map-empty-icon">
+                <i class="bx bx-map"></i>
+              </div>
+
+              <div class="location-map-empty-content">
+                <span class="section-label">
+                  {{ currentLocation.name }}
+                </span>
+
+                <h3>Location profile</h3>
+
+                <p>No business listings are available in this area yet.</p>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- =====================================================
+       BUSINESS DIRECTORY
+  ====================================================== -->
+
+      <section class="businesses-section">
+        <div class="section-heading">
+          <div>
+            <span class="section-label"> LOCAL DIRECTORY </span>
+
+            <h2>Businesses in {{ currentLocation.name }}</h2>
+          </div>
+
+          @if (businessCount() > 0) {
+            <span class="result-count">
+              {{ filteredBusinessCount() }}
+
+              {{ filteredBusinessCount() === 1 ? "business" : "businesses" }}
+            </span>
+          }
+        </div>
+
+        <!-- =================================================
+         WHEN BUSINESSES EXIST
+    ================================================== -->
+
+        @if (businessCount() > 0) {
+          <!-- =================================================
+           SEARCH
+      ================================================== -->
+
+          <div class="business-tools">
+            <div class="business-search">
+              <i class="bx bx-search"></i>
+
+              <input
+                type="search"
+                placeholder="Search businesses in this area..."
+                [value]="searchTerm()"
+                (input)="onSearch($event)"
+              />
+
+              @if (searchTerm()) {
+                <button
+                  type="button"
+                  class="clear-search"
+                  aria-label="Clear search"
+                  (click)="clearFilters()"
+                >
+                  <i class="bx bx-x"></i>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- =================================================
+           CATEGORY FILTER
+      ================================================== -->
+
+          @if (categories().length > 1) {
+            <div class="category-filter">
+              <span class="filter-label"> Browse by </span>
+
+              <div class="category-list">
+                @for (category of categories(); track category) {
+                  <button
+                    type="button"
+                    class="category-button"
+                    [class.active]="selectedCategory() === category"
+                    (click)="selectCategory(category)"
+                  >
+                    {{ category }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- =================================================
+           BUSINESS RESULTS
+      ================================================== -->
+
+          @if (filteredBusinesses().length > 0) {
+            <div class="business-grid">
+              @for (business of filteredBusinesses(); track business.id) {
+                <a
+                  class="business-card"
+                  [routerLink]="['/business', business.id]"
+                >
+                  <!-- BUSINESS IMAGE -->
+
+                  <div class="business-image">
+                    <img
+                      [src]="getBusinessImage(business)"
+                      [alt]="business.name"
+                    />
+
+                    @if (business.isPro) {
+                      <span class="pro-badge">
+                        <i class="bx bxs-badge-check"></i>
+
+                        PRO
+                      </span>
+                    }
+
+                    @if (business.verified) {
+                      <span class="verified-badge">
+                        <i class="bx bxs-check-circle"></i>
+                      </span>
+                    }
+                  </div>
+
+                  <!-- BUSINESS CONTENT -->
+
+                  <div class="business-content">
+                    <div class="business-category">
+                      {{ business.category }}
+                    </div>
+
+                    <h3>
+                      {{ business.name }}
+                    </h3>
+
+                    <p class="business-type">
+                      {{ business.businessType }}
+                    </p>
+
+                    <div class="business-location">
+                      <i class="bx bx-map-pin"></i>
+
+                      <span>
+                        {{ business.location }}
+                      </span>
+                    </div>
+
+                    <div class="business-footer">
+                      <div class="rating">
+                        <i class="bx bxs-star"></i>
+
+                        <strong>
+                          {{ business.rating }}
+                        </strong>
+
+                        <span> ({{ business.reviews }}) </span>
+                      </div>
+
+                      <span class="view-link">
+                        View
+
+                        <i class="bx bx-right-arrow-alt"></i>
+                      </span>
+                    </div>
+                  </div>
+                </a>
+              }
+            </div>
+          } @else {
+            <!-- =================================================
+             SEARCH / FILTER EMPTY
+        ================================================== -->
+
+            <div class="empty-state">
+              <div class="empty-icon">
+                <i class="bx bx-search-alt"></i>
+              </div>
+
+              <h3>No matching businesses</h3>
+
+              <p>
+                We couldn't find a business matching your current search or
+                category filter.
+              </p>
+
+              <button
+                type="button"
+                class="empty-action"
+                (click)="clearFilters()"
+              >
+                Clear filters
+
+                <i class="bx bx-reset"></i>
+              </button>
+            </div>
+          }
+        } @else {
+          <!-- =================================================
+           NO BUSINESS YET
+           ONLY APPEARS HERE
+      ================================================== -->
+
+          <div class="no-business-state">
+            <div class="no-business-icon">
+              <i class="bx bx-store-alt"></i>
+            </div>
+
+            <div class="no-business-content">
+              <span class="section-label"> DIRECTORY </span>
+
+              <h3>No businesses listed yet</h3>
+
+              <p>
+                There are currently no businesses registered in
+                {{ currentLocation.name }} on SJ Tuklas.
+              </p>
+            </div>
+
+            <a routerLink="/business/register" class="no-business-action">
+              Add a business
+
+              <i class="bx bx-right-arrow-alt"></i>
+            </a>
+          </div>
+        }
+      </section>
+
+      <!-- =====================================================
+       EXPLORE NEARBY
+  ====================================================== -->
+
+      @if (nearbyLocations().length > 0) {
+        <section class="nearby-section">
+          <div class="section-heading">
+            <div>
+              <span class="section-label"> EXPLORE NEARBY </span>
+
+              <h2>Other local areas</h2>
+            </div>
+
+            <a routerLink="/locations" class="view-all-link">
+              View all
+
+              <i class="bx bx-right-arrow-alt"></i>
+            </a>
+          </div>
+
+          <div class="nearby-grid">
+            @for (nearby of nearbyLocations(); track nearby.id) {
+              <a class="nearby-card" [routerLink]="['/locations', nearby.slug]">
+                <!-- IMAGE -->
+
+                <div class="nearby-image">
+                  <img [src]="nearby.image" [alt]="nearby.name" />
+
+                  <div class="nearby-overlay"></div>
+
+                  <span class="nearby-distance">
+                    {{
+                      nearby.distance < 1
+                        ? (nearby.distance * 1000).toFixed(0) + " m"
+                        : nearby.distance.toFixed(1) + " km"
+                    }}
+                  </span>
+                </div>
+
+                <!-- CONTENT -->
+
+                <div class="nearby-content">
+                  <div>
+                    <span class="nearby-label"> LOCAL AREA </span>
+
+                    <h3>
+                      {{ nearby.name }}
+                    </h3>
+                  </div>
+
+                  <span class="nearby-business-count">
+                    {{ nearby.businessCount }}
+
+                    {{ nearby.businessCount === 1 ? "business" : "businesses" }}
+
+                    <i class="bx bx-right-arrow-alt"></i>
+                  </span>
+                </div>
+              </a>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- =====================================================
+       ADD BUSINESS CTA
+  ====================================================== -->
+
+      <section class="business-cta">
+        <div class="cta-icon">
+          <i class="bx bx-store"></i>
+        </div>
+
+        <div class="cta-content">
+          <span class="section-label"> LOCAL BUSINESS </span>
+
+          <h2>
+            Know a business in
+            {{ currentLocation.name }}?
+          </h2>
+
+          <p>
+            Help grow the SJ Tuklas directory by adding a local business to this
+            area.
+          </p>
+        </div>
+
+        <a routerLink="/business/register" class="cta-button">
+          Add a business
+
+          <i class="bx bx-right-arrow-alt"></i>
+        </a>
+      </section>
+    } @else {
+      <!-- =====================================================
+       LOCATION NOT FOUND
+  ====================================================== -->
+
+      <div class="empty-state location-not-found">
+        <div class="empty-icon">
+          <i class="bx bx-map-alt"></i>
+        </div>
+
+        <h3>Location not found</h3>
+
+        <p>The barangay you're looking for doesn't exist.</p>
+
+        <a routerLink="/locations" class="empty-action">
+          Back to locations
+
+          <i class="bx bx-arrow-back"></i>
+        </a>
+      </div>
+    }
+  </div>
+</section>

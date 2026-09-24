@@ -1,0 +1,433 @@
+@if (business(); as business) {
+  <section class="rooms-page">
+    <div class="container">
+      <a [routerLink]="['/business', business.id]" class="back-link">
+        <i class="bx bx-left-arrow-alt"></i>
+        Back to business
+      </a>
+
+      <!-- PAGE HEADER -->
+
+      <div class="page-header">
+        <span class="eyebrow">
+          <i class="bx bx-home-alt-2"></i>
+          ROOMS & AVAILABILITY
+        </span>
+
+        <h1>Available rooms</h1>
+
+        <p>
+          View room options, monthly rates, and current availability at
+          {{ business.name }}.
+        </p>
+      </div>
+
+      <!-- SUMMARY -->
+
+      <div class="availability-summary">
+        <div class="summary-card">
+          <div class="summary-icon">
+            <i class="bx bx-home"></i>
+          </div>
+
+          <div>
+            <span class="summary-label">TOTAL ROOMS</span>
+            <strong>{{ roomAvailability().length }}</strong>
+          </div>
+        </div>
+
+        <div class="summary-card">
+          <div class="summary-icon">
+            <i class="bx bx-door-open"></i>
+          </div>
+
+          <div>
+            <span class="summary-label">AVAILABLE SLOTS</span>
+            <strong>{{ totalAvailableSlots() }}</strong>
+          </div>
+        </div>
+
+        <div class="summary-card">
+          <div class="summary-icon">
+            <i class="bx bx-user"></i>
+          </div>
+
+          <div>
+            <span class="summary-label">OCCUPIED SLOTS</span>
+            <strong>{{ totalOccupiedSlots() }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROOMS -->
+
+      <div class="rooms-section">
+        <div class="rooms-heading">
+          <div>
+            <span class="eyebrow">ROOM OPTIONS</span>
+            <h2>Choose a room</h2>
+          </div>
+
+          <span class="room-count">
+            {{ roomAvailability().length }}
+            room{{ roomAvailability().length > 1 ? "s" : "" }}
+          </span>
+        </div>
+
+        <div class="rooms-grid">
+          @for (room of roomAvailability(); track room.id) {
+            <article
+              class="room-card"
+              [class.selected]="selectedRoom() === room.id"
+            >
+              <!-- IMAGE -->
+
+              <div class="room-image">
+                <div class="room-placeholder">
+                  <i class="bx bx-bed"></i>
+                </div>
+
+                @if (room.isAvailable) {
+                  <span class="availability available">
+                    <i class="bx bx-check"></i>
+                    Available
+                  </span>
+                } @else {
+                  <span class="availability full">
+                    <i class="bx bx-lock"></i>
+                    Fully occupied
+                  </span>
+                }
+              </div>
+
+              <!-- CONTENT -->
+
+              <div class="room-content">
+                <div class="room-top">
+                  <div>
+                    <span class="room-label">ROOM</span>
+                    <h3>{{ room.name }}</h3>
+                  </div>
+
+                  <div class="room-price">
+                    <strong>₱{{ room.monthlyRate | number }}</strong>
+                    <span>/ month</span>
+                  </div>
+                </div>
+
+                <p class="room-description">
+                  {{ room.description }}
+                </p>
+
+                <!-- OCCUPANCY -->
+
+                <div class="occupancy">
+                  <div class="occupancy-top">
+                    <span>Occupancy</span>
+
+                    <strong>
+                      {{ room.occupiedSlots }} /
+                      {{ room.totalSlots }}
+                    </strong>
+                  </div>
+
+                  <div class="progress">
+                    <div
+                      class="progress-value"
+                      [style.width.%]="
+                        (room.occupiedSlots / room.totalSlots) * 100
+                      "
+                    ></div>
+                  </div>
+
+                  <div class="slot-status">
+                    @if (room.isAvailable) {
+                      <i class="bx bx-check-circle"></i>
+
+                      <span>
+                        {{ room.availableSlots }}
+                        slot{{ room.availableSlots > 1 ? "s" : "" }}
+                        available
+                      </span>
+                    } @else {
+                      <i class="bx bx-x-circle"></i>
+
+                      <span> No available slots </span>
+                    }
+                  </div>
+                </div>
+
+                <!-- INFO -->
+
+                <div class="room-info">
+                  <div>
+                    <i class="bx bx-bed"></i>
+                    <span>{{ room.beds }}</span>
+                  </div>
+
+                  <div>
+                    <i class="bx bx-group"></i>
+                    <span> {{ room.totalSlots }} occupants max </span>
+                  </div>
+                </div>
+
+                <!-- AMENITIES -->
+
+                <div class="amenities">
+                  <span class="amenities-label"> AMENITIES </span>
+
+                  <div class="amenities-list">
+                    @for (amenity of room.amenities; track amenity) {
+                      <span>{{ amenity }}</span>
+                    }
+                  </div>
+                </div>
+
+                <!-- ACTIONS -->
+
+                <div class="room-actions">
+                  <button
+                    type="button"
+                    class="secondary-button"
+                    (click)="
+                      selectedRoom() === room.id
+                        ? clearSelection()
+                        : selectRoom(room.id)
+                    "
+                  >
+                    @if (selectedRoom() === room.id) {
+                      <i class="bx bx-check"></i>
+                      Selected
+                    } @else {
+                      <i class="bx bx-show"></i>
+                      View details
+                    }
+                  </button>
+
+                  @if (room.isAvailable) {
+                    <a
+                      [routerLink]="['/business', business.id, 'inquire']"
+                      [queryParams]="{
+                        room: room.name,
+                      }"
+                      class="primary-button"
+                    >
+                      Inquire
+                      <i class="bx bx-right-arrow-alt"></i>
+                    </a>
+                  } @else {
+                    <button type="button" class="disabled-button" disabled>
+                      Fully occupied
+                    </button>
+                  }
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================
+       ROOM SIDE MODAL
+  ========================== -->
+
+  @if (selectedRoomData(); as room) {
+    <div class="room-modal-backdrop" (click)="clearSelection()">
+      <aside
+        class="room-modal"
+        role="dialog"
+        aria-modal="true"
+        (click)="$event.stopPropagation()"
+      >
+        <!-- MODAL HEADER -->
+
+        <div class="room-modal-header">
+          <div>
+            <span class="eyebrow">
+              <i class="bx bx-home-alt-2"></i>
+              ROOM DETAILS
+            </span>
+
+            <h2>{{ room.name }}</h2>
+          </div>
+
+          <button
+            type="button"
+            class="close-button"
+            (click)="clearSelection()"
+            aria-label="Close room details"
+          >
+            <i class="bx bx-x"></i>
+          </button>
+        </div>
+
+        <!-- ROOM PREVIEW -->
+
+        <div class="room-modal-preview">
+          <div class="room-modal-icon">
+            <i class="bx bx-bed"></i>
+          </div>
+
+          @if (room.isAvailable) {
+            <span class="modal-status available">
+              <i class="bx bx-check"></i>
+              Available
+            </span>
+          } @else {
+            <span class="modal-status full">
+              <i class="bx bx-lock"></i>
+              Fully occupied
+            </span>
+          }
+        </div>
+
+        <!-- DESCRIPTION -->
+
+        <div class="room-modal-body">
+          <p class="modal-description">
+            {{ room.description }}
+          </p>
+
+          <!-- ROOM DETAILS -->
+
+          <div class="modal-details">
+            <div class="modal-detail">
+              <span>Monthly rate</span>
+
+              <strong> ₱{{ room.monthlyRate | number }} </strong>
+            </div>
+
+            <div class="modal-detail">
+              <span>Occupancy</span>
+
+              <strong>
+                {{ room.occupiedSlots }} /
+                {{ room.totalSlots }}
+              </strong>
+            </div>
+
+            <div class="modal-detail">
+              <span>Available</span>
+
+              <strong>
+                {{ room.availableSlots }}
+                slot{{ room.availableSlots > 1 ? "s" : "" }}
+              </strong>
+            </div>
+
+            <div class="modal-detail">
+              <span>Beds</span>
+
+              <strong>
+                {{ room.beds }}
+              </strong>
+            </div>
+          </div>
+
+          <!-- OCCUPANCY -->
+
+          <div class="modal-occupancy">
+            <div class="modal-occupancy-top">
+              <span>Current occupancy</span>
+
+              <strong>
+                {{ room.occupiedSlots }} /
+                {{ room.totalSlots }}
+              </strong>
+            </div>
+
+            <div class="modal-progress">
+              <div
+                class="modal-progress-value"
+                [style.width.%]="(room.occupiedSlots / room.totalSlots) * 100"
+              ></div>
+            </div>
+          </div>
+
+          <!-- AMENITIES -->
+
+          <div class="modal-amenities">
+            <span class="modal-section-label"> AMENITIES </span>
+
+            <div class="modal-amenities-list">
+              @for (amenity of room.amenities; track amenity) {
+                <span>
+                  <i class="bx bx-check"></i>
+                  {{ amenity }}
+                </span>
+              }
+            </div>
+          </div>
+
+          <!-- MESSAGE -->
+
+          <div class="details-message">
+            <i class="bx bx-info-circle"></i>
+
+            <p>
+              @if (room.isAvailable) {
+                Interested in this room? Contact the owner to ask about
+                requirements, move-in date, and reservation details.
+              } @else {
+                This room is currently fully occupied. You may still contact the
+                owner to ask about future availability.
+              }
+            </p>
+          </div>
+        </div>
+
+        <!-- MODAL FOOTER -->
+
+        <div class="room-modal-footer">
+          @if (room.isAvailable) {
+            <a
+              [routerLink]="['/business', business.id, 'inquire']"
+              [queryParams]="{
+                room: room.name,
+              }"
+              class="primary-button"
+            >
+              <i class="bx bx-message-rounded"></i>
+              Inquire about this room
+            </a>
+          } @else {
+            <a
+              [routerLink]="['/business', business.id, 'inquire']"
+              [queryParams]="{
+                room: room.name,
+                subject: 'Future availability',
+              }"
+              class="secondary-button"
+            >
+              <i class="bx bx-message-rounded"></i>
+              Ask about future availability
+            </a>
+          }
+        </div>
+      </aside>
+    </div>
+  }
+} @else {
+  <section class="rooms-page">
+    <div class="container">
+      <div class="unavailable-state">
+        <div class="empty-icon">
+          <i class="bx bx-home-alt-2"></i>
+        </div>
+
+        <span class="eyebrow"> ROOM INFORMATION </span>
+
+        <h1>Boarding house not found</h1>
+
+        <p>We couldn't find the boarding house you're looking for.</p>
+
+        <a routerLink="/search" class="primary-button">
+          <i class="bx bx-search"></i>
+          Back to search
+        </a>
+      </div>
+    </div>
+  </section>
+}

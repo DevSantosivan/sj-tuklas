@@ -1,0 +1,355 @@
+<section class="favorites-page">
+  <!-- =====================================================
+       PAGE HEADER
+  ====================================================== -->
+
+  <header class="favorites-header">
+    <div class="header-copy">
+      <span class="eyebrow"> MY DASHBOARD </span>
+
+      <div class="title-row">
+        <div class="title-copy">
+          <h1>Favorites</h1>
+
+          <p>Businesses and places you've saved for later.</p>
+        </div>
+
+        <!-- FAVORITE COUNT -->
+
+        <div class="favorite-count">
+          <div class="count-icon">
+            <i class="bx bxs-heart"></i>
+          </div>
+
+          <div class="count-copy">
+            <strong>
+              {{ favorites.length }}
+            </strong>
+
+            <span>
+              {{
+                favorites.length === 1 ? "saved business" : "saved businesses"
+              }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =====================================================
+       LOADING STATE
+  ====================================================== -->
+
+  <section *ngIf="isLoading" class="favorites-loading">
+    <div class="loading-card">
+      <div class="loading-icon">
+        <i class="bx bx-loader-alt bx-spin"></i>
+      </div>
+
+      <div class="loading-copy">
+        <strong> Loading your favorites </strong>
+
+        <span> Please wait while we load your saved businesses. </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       MAIN CONTENT
+  ====================================================== -->
+
+  <ng-container *ngIf="!isLoading">
+    <!-- ===================================================
+         TOOLBAR
+    ==================================================== -->
+
+    <section *ngIf="favorites.length > 0" class="favorites-toolbar">
+      <div class="toolbar-left">
+        <div class="search-box">
+          <i class="bx bx-search"></i>
+
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            placeholder="Search your favorites..."
+            aria-label="Search favorites"
+          />
+
+          <button
+            *ngIf="searchTerm"
+            type="button"
+            class="clear-search"
+            (click)="clearSearch()"
+            aria-label="Clear search"
+          >
+            <i class="bx bx-x"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="toolbar-right">
+        <span class="toolbar-count">
+          <strong>
+            {{ filteredFavorites.length }}
+          </strong>
+
+          {{ filteredFavorites.length === 1 ? "business" : "businesses" }}
+        </span>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         CATEGORY FILTER
+    ==================================================== -->
+
+    <section *ngIf="favorites.length > 0" class="category-section">
+      <div class="category-heading">
+        <div>
+          <span class="section-label"> BROWSE BY CATEGORY </span>
+
+          <h2>
+            {{ selectedCategoryName }}
+          </h2>
+        </div>
+
+        <span class="result-count">
+          {{ filteredFavorites.length }}
+
+          {{ filteredFavorites.length === 1 ? "business" : "businesses" }}
+        </span>
+      </div>
+
+      <div class="category-list">
+        <!-- ALL -->
+
+        <button
+          type="button"
+          class="category-chip"
+          [class.active]="selectedCategory === 'all'"
+          (click)="selectCategory('all')"
+        >
+          <span class="chip-icon">
+            <i class="bx bx-grid-alt"></i>
+          </span>
+
+          <span> All </span>
+        </button>
+
+        <!-- DYNAMIC CATEGORIES -->
+
+        <button
+          *ngFor="let category of categories"
+          type="button"
+          class="category-chip"
+          [class.active]="selectedCategory === category.id"
+          (click)="selectCategory(category.id)"
+        >
+          <span class="chip-icon">
+            <i class="bx" [ngClass]="category.icon"></i>
+          </span>
+
+          <span>
+            {{ category.name }}
+          </span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         FAVORITES CONTENT
+    ==================================================== -->
+
+    <section *ngIf="favorites.length > 0" class="favorites-content">
+      <!-- =================================================
+           BUSINESS GRID
+      ================================================== -->
+
+      <div *ngIf="filteredFavorites.length > 0" class="favorites-grid">
+        <article
+          *ngFor="let business of filteredFavorites; trackBy: trackByBusiness"
+          class="favorite-card"
+        >
+          <!-- =================================================
+               BUSINESS IMAGE
+          ================================================== -->
+
+          <div class="business-image">
+            <img [src]="business.image" [alt]="business.name" loading="lazy" />
+
+            <div class="image-overlay"></div>
+
+            <!-- CATEGORY -->
+
+            <div class="business-category">
+              <i
+                class="bx"
+                [ngClass]="getCategoryIcon(business.categoryId)"
+              ></i>
+
+              <span>
+                {{ getCategory(business.categoryId)?.name || "Business" }}
+              </span>
+            </div>
+
+            <!-- FAVORITE BUTTON -->
+
+            <button
+              type="button"
+              class="remove-button"
+              title="Remove from favorites"
+              aria-label="Remove from favorites"
+              [disabled]="isRemoving"
+              (click)="removeFavorite(business.id, $event)"
+            >
+              <i class="bx bxs-heart"></i>
+            </button>
+          </div>
+
+          <!-- =================================================
+               BUSINESS BODY
+          ================================================== -->
+
+          <div class="business-body">
+            <!-- TITLE -->
+
+            <div class="business-title-row">
+              <div class="business-title">
+                <h3>
+                  {{ business.name }}
+                </h3>
+
+                <span class="business-type">
+                  <i
+                    class="bx"
+                    [ngClass]="
+                      getBusinessTypeIcon(business.categoryId, business.typeId)
+                    "
+                  ></i>
+
+                  {{
+                    getBusinessTypeName(business.categoryId, business.typeId)
+                  }}
+                </span>
+              </div>
+
+              <!-- STATUS -->
+
+              <span class="status" [class.closed]="!business.isOpen">
+                <span class="status-dot"></span>
+
+                {{ business.isOpen ? "Open" : "Closed" }}
+              </span>
+            </div>
+
+            <!-- LOCATION -->
+
+            <div class="business-location">
+              <i class="bx bx-map"></i>
+
+              <span>
+                {{ business.location }}
+              </span>
+            </div>
+
+            <!-- DESCRIPTION -->
+
+            <p class="business-description">
+              {{ business.description }}
+            </p>
+
+            <!-- META -->
+
+            <div class="business-meta">
+              <!-- RATING -->
+
+              <div class="rating">
+                <i class="bx bxs-star"></i>
+
+                <strong>
+                  {{ business.rating | number: "1.1-1" }}
+                </strong>
+
+                <span> ({{ business.reviews }}) </span>
+              </div>
+
+              <!-- VIEW -->
+
+              <button type="button" class="view-button">
+                <span> View business </span>
+
+                <i class="bx bx-right-arrow-alt"></i>
+              </button>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- =================================================
+           SEARCH / FILTER EMPTY
+      ================================================== -->
+
+      <div
+        *ngIf="filteredFavorites.length === 0"
+        class="empty-state search-empty"
+      >
+        <div class="empty-icon">
+          <i class="bx bx-search"></i>
+        </div>
+
+        <span class="empty-eyebrow"> NO MATCHES </span>
+
+        <h3>No favorites found</h3>
+
+        <p>
+          We couldn't find any saved businesses matching your search or selected
+          category.
+        </p>
+
+        <button
+          type="button"
+          class="reset-button"
+          (click)="selectCategory('all'); clearSearch()"
+        >
+          <i class="bx bx-refresh"></i>
+
+          Reset filters
+        </button>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         NO FAVORITES
+    ==================================================== -->
+
+    <section *ngIf="favorites.length === 0" class="favorites-empty-page">
+      <div class="empty-card">
+        <!-- ICON -->
+
+        <div class="empty-icon large">
+          <i class="bx bx-heart"></i>
+        </div>
+
+        <!-- TEXT -->
+
+        <span class="empty-eyebrow"> YOUR SAVED PLACES </span>
+
+        <h2>No favorite businesses yet</h2>
+
+        <p>
+          You haven't saved any businesses yet. Discover local businesses and
+          save your favorites so you can easily find them again from your
+          dashboard.
+        </p>
+
+        <!-- ACTION -->
+
+        <a routerLink="/search" class="discover-button">
+          <span> Discover businesses </span>
+
+          <i class="bx bx-right-arrow-alt"></i>
+        </a>
+      </div>
+    </section>
+  </ng-container>
+</section>

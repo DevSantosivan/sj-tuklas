@@ -1,0 +1,339 @@
+<section class="locations-page">
+  <div class="container">
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <header class="locations-header">
+      <div class="header-copy">
+        <span class="section-label"> SJ TUKLAS </span>
+
+        <h1>Explore local areas</h1>
+
+        <p>
+          Discover businesses, services, food spots, and places across San Jose,
+          Occidental Mindoro.
+        </p>
+      </div>
+
+      <div class="header-stat">
+        <strong>
+          {{ locations.length }}
+        </strong>
+
+        <span> Barangays </span>
+      </div>
+    </header>
+
+    <!-- =====================================================
+         SEARCH
+    ====================================================== -->
+
+    <section class="search-section">
+      <app-search-bar
+        [value]="searchTerm()"
+        placeholder="Search barangay or area..."
+        ariaLabel="Search a barangay or area"
+        (valueChange)="searchTerm.set($event)"
+      />
+    </section>
+
+    <!-- =====================================================
+         CONTENT
+    ====================================================== -->
+
+    <div class="locations-content">
+      <!-- ===================================================
+           SIDEBAR
+      ==================================================== -->
+
+      <aside class="area-sidebar">
+        <div class="area-sidebar-header">
+          <div>
+            <span class="filter-label"> LOCATION </span>
+
+            <h2>San Jose Areas</h2>
+          </div>
+
+          <span class="area-count">
+            {{ filteredLocations().length }}
+          </span>
+        </div>
+
+        <div class="area-sidebar-body">
+          <div class="area-summary">
+            <div class="summary-icon">
+              <i class="bx bx-map"></i>
+            </div>
+
+            <div>
+              <strong>
+                {{ locations.length }}
+              </strong>
+
+              <span> Barangays </span>
+            </div>
+          </div>
+
+          <p>Browse local areas and discover businesses around San Jose.</p>
+        </div>
+      </aside>
+
+      <!-- ===================================================
+           RESULTS
+      ==================================================== -->
+
+      <main class="results-area">
+        <!-- =================================================
+             RESULTS HEADER
+        ================================================== -->
+
+        <div class="results-header">
+          <div class="results-info">
+            <span class="results-count">
+              {{ filteredLocations().length }} areas
+            </span>
+
+            <span class="results-description"> in San Jose </span>
+          </div>
+
+          @if (searchTerm()) {
+            <button type="button" class="clear-button" (click)="clearSearch()">
+              <span> Clear </span>
+
+              <i class="bx bx-x"></i>
+            </button>
+          }
+        </div>
+
+        <!-- =================================================
+             MOBILE FILTERS
+        ================================================== -->
+
+        <div class="mobile-area-categories">
+          <button
+            type="button"
+            class="mobile-area-chip"
+            [class.active]="!searchTerm()"
+            (click)="clearSearch()"
+          >
+            <i class="bx bx-map"></i>
+
+            <span> All areas </span>
+          </button>
+
+          <button
+            type="button"
+            class="mobile-area-chip"
+            [class.active]="searchTerm() === 'Barangay'"
+            (click)="searchTerm.set('Barangay')"
+          >
+            <i class="bx bx-buildings"></i>
+
+            <span> Barangays </span>
+          </button>
+
+          <button
+            type="button"
+            class="mobile-area-chip"
+            (click)="searchTerm.set('San')"
+          >
+            <i class="bx bx-current-location"></i>
+
+            <span> San Jose </span>
+          </button>
+        </div>
+
+        <!-- =================================================
+             MAP
+        ================================================== -->
+
+        <section class="map-layout">
+          <div class="map-container">
+            <div class="map-overlay">
+              <div class="map-overlay-info">
+                <span class="map-label"> SAN JOSE </span>
+
+                <strong> Explore barangays </strong>
+              </div>
+
+              <div class="map-overlay-count">
+                {{ filteredMapLocations().length }}
+              </div>
+            </div>
+
+            <app-business-map
+              [businesses]="mapBusinesses"
+              [locations]="filteredMapLocations()"
+              (locationSelected)="exploreLocation($event)"
+            ></app-business-map>
+          </div>
+
+          <!-- =================================================
+               DESKTOP AREA LIST
+          ================================================== -->
+
+          <div class="map-results desktop-map-results">
+            <div class="map-results-header">
+              <div>
+                <span class="map-results-label"> LOCAL AREAS </span>
+
+                <h2>Barangays</h2>
+              </div>
+
+              <span class="map-results-count">
+                {{ filteredLocations().length }}
+              </span>
+            </div>
+
+            <div class="map-area-list">
+              @for (location of filteredLocations(); track location.id) {
+                <article
+                  class="map-area-item"
+                  (click)="exploreByLocation(location)"
+                >
+                  <div class="map-area-image">
+                    <img
+                      [src]="location.image"
+                      [alt]="location.name"
+                      loading="lazy"
+                    />
+
+                    <span class="map-area-number">
+                      {{ location.id.toString().padStart(2, "0") }}
+                    </span>
+                  </div>
+
+                  <div class="map-area-info">
+                    <span class="map-area-label"> BARANGAY </span>
+
+                    <h3>
+                      {{ location.name }}
+                    </h3>
+
+                    <p>Explore local businesses and services.</p>
+
+                    <div class="map-area-bottom">
+                      <span>
+                        <i class="bx bx-map-pin"></i>
+                        San Jose
+                      </span>
+
+                      <i class="bx bx-right-arrow-alt"></i>
+                    </div>
+                  </div>
+                </article>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- =================================================
+             ALL AREAS
+        ================================================== -->
+
+        <section class="areas-section">
+          <div class="areas-header">
+            <div>
+              <span class="section-label"> BROWSE </span>
+
+              <h2>All areas</h2>
+            </div>
+
+            <span class="areas-total">
+              {{ filteredLocations().length }}
+              locations
+            </span>
+          </div>
+
+          @if (filteredLocations().length > 0) {
+            <div class="areas-grid">
+              @for (location of filteredLocations(); track location.id) {
+                <article
+                  class="area-card"
+                  [routerLink]="['/locations', location.slug]"
+                >
+                  <div class="area-card-image">
+                    <img
+                      [src]="location.image"
+                      [alt]="location.name"
+                      loading="lazy"
+                    />
+
+                    <div class="area-image-overlay"></div>
+
+                    <span class="area-card-number">
+                      {{ location.id.toString().padStart(2, "0") }}
+                    </span>
+
+                    <span class="area-card-icon">
+                      <i class="bx bx-right-arrow-alt"></i>
+                    </span>
+                  </div>
+
+                  <div class="area-card-content">
+                    <span class="area-card-label"> BARANGAY </span>
+
+                    <div class="area-card-title">
+                      <h3>
+                        {{ location.name }}
+                      </h3>
+
+                      <i class="bx bx-right-arrow-alt"></i>
+                    </div>
+
+                    <p>Explore local businesses and services in this area.</p>
+                  </div>
+                </article>
+              }
+            </div>
+          } @else {
+            <div class="empty-state">
+              <div class="empty-icon">
+                <i class="bx bx-search"></i>
+              </div>
+
+              <h2>No area found</h2>
+
+              <p>No barangay matches "{{ searchTerm() }}".</p>
+
+              <button
+                type="button"
+                class="empty-button"
+                (click)="clearSearch()"
+              >
+                Show all areas
+              </button>
+            </div>
+          }
+        </section>
+
+        <!-- =================================================
+             BUSINESS OWNER CTA
+        ================================================== -->
+
+        <section class="owner-cta">
+          <div class="owner-cta-copy">
+            <span class="section-label"> FOR BUSINESS OWNERS </span>
+
+            <h2>
+              Make your business
+              <span>discoverable.</span>
+            </h2>
+
+            <p>
+              Add your local business to SJ Tuklas and help customers find you
+              around San Jose.
+            </p>
+          </div>
+
+          <a routerLink="/business/register" class="owner-cta-button">
+            <span> List your business </span>
+
+            <i class="bx bx-right-arrow-alt"></i>
+          </a>
+        </section>
+      </main>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,566 @@
+<section class="approval-details-page">
+  <div class="container">
+    <!-- =====================================================
+         LOADING
+    ====================================================== -->
+
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="loading-icon">
+          <i class="bx bx-loader-alt bx-spin"></i>
+        </div>
+
+        <strong> Loading application </strong>
+
+        <span> Please wait while we load the business information. </span>
+      </div>
+    } @else {
+      <!-- =====================================================
+           ERROR
+      ====================================================== -->
+
+      @if (errorMessage(); as error) {
+        <div class="error-message">
+          <div class="error-icon">
+            <i class="bx bx-error-circle"></i>
+          </div>
+
+          <div class="error-content">
+            <strong> Something went wrong </strong>
+
+            <span>
+              {{ error }}
+            </span>
+          </div>
+
+          <button type="button" class="error-close" (click)="loadBusiness()">
+            <i class="bx bx-refresh"></i>
+          </button>
+        </div>
+      } @else {
+        <!-- =====================================================
+             BUSINESS DETAILS
+        ====================================================== -->
+
+        @if (business(); as business) {
+          <!-- ===================================================
+               HEADER
+          ==================================================== -->
+
+          <header class="page-header">
+            <div class="header-left">
+              <button type="button" class="back-button" (click)="goBack()">
+                <i class="bx bx-arrow-back"></i>
+
+                <span> Back to Approvals </span>
+              </button>
+
+              <div class="header-copy">
+                <span class="eyebrow">
+                  <i class="bx bx-store"></i>
+
+                  ADMIN / APPROVALS / DETAILS
+                </span>
+
+                <h1>
+                  {{ business.name }}
+                </h1>
+
+                <p>
+                  Review the complete business registration before approving or
+                  rejecting the application.
+                </p>
+              </div>
+            </div>
+
+            <!-- STATUS -->
+
+            <div
+              class="status"
+              [class.pending]="business.status === 'pending'"
+              [class.approved]="business.status === 'approved'"
+              [class.rejected]="business.status === 'rejected'"
+            >
+              <span></span>
+
+              {{ business.status | titlecase }}
+            </div>
+          </header>
+
+          <!-- ===================================================
+               BUSINESS HERO
+          ==================================================== -->
+
+          <section class="business-hero">
+            <!-- BUSINESS IMAGE -->
+
+            <div class="business-image">
+              @if (business.image) {
+                <img [src]="business.image" [alt]="business.name" />
+              } @else {
+                <div class="image-placeholder">
+                  <i class="bx bx-store"></i>
+                </div>
+              }
+            </div>
+
+            <!-- HERO CONTENT -->
+
+            <div class="hero-content">
+              <span class="business-label"> BUSINESS APPLICATION </span>
+
+              <h2>
+                {{ business.name }}
+              </h2>
+
+              <p>
+                {{ business.businessType }}
+              </p>
+
+              <div class="hero-meta">
+                <!-- CATEGORY -->
+
+                <span>
+                  <i class="bx bx-category"></i>
+
+                  {{ business.category }}
+                </span>
+
+                <!-- BARANGAY -->
+
+                <span>
+                  <i class="bx bx-map"></i>
+
+                  {{ business.barangay || "Location not provided" }}
+                </span>
+
+                <!-- DATE -->
+
+                <span>
+                  <i class="bx bx-calendar"></i>
+
+                  {{ business.createdAt | date: "MMM d, y" }}
+                </span>
+              </div>
+            </div>
+          </section>
+
+          <!-- ===================================================
+               CONTENT LAYOUT
+          ==================================================== -->
+
+          <div class="details-layout">
+            <!-- =================================================
+                 MAIN CONTENT
+            ================================================== -->
+
+            <main class="details-main">
+              <!-- =================================================
+                   BUSINESS INFORMATION
+              ================================================== -->
+
+              <section class="details-card">
+                <div class="card-heading">
+                  <div>
+                    <span class="section-label"> BUSINESS </span>
+
+                    <h2>Business Information</h2>
+                  </div>
+
+                  <i class="bx bx-store"></i>
+                </div>
+
+                <div class="details-grid">
+                  <!-- BUSINESS NAME -->
+
+                  <div class="detail-item">
+                    <span> Business Name </span>
+
+                    <strong>
+                      {{ business.name }}
+                    </strong>
+                  </div>
+
+                  <!-- BUSINESS TYPE -->
+
+                  <div class="detail-item">
+                    <span> Business Type </span>
+
+                    <strong>
+                      {{ business.businessType }}
+                    </strong>
+                  </div>
+
+                  <!-- CATEGORY -->
+
+                  <div class="detail-item">
+                    <span> Category </span>
+
+                    <strong>
+                      {{ business.category }}
+                    </strong>
+                  </div>
+
+                  <!-- PHONE -->
+
+                  <div class="detail-item">
+                    <span> Phone </span>
+
+                    <strong>
+                      {{ business.phone || "Not provided" }}
+                    </strong>
+                  </div>
+
+                  <!-- DESCRIPTION -->
+
+                  <div class="detail-item full">
+                    <span> Description </span>
+
+                    <strong class="description">
+                      {{ business.description || "No description provided." }}
+                    </strong>
+                  </div>
+                </div>
+              </section>
+
+              <!-- =================================================
+                   BUSINESS LOCATION
+              ================================================== -->
+
+              <section class="details-card location-card">
+                <div class="card-heading">
+                  <div>
+                    <span class="section-label"> LOCATION </span>
+
+                    <h2>Business Location</h2>
+                  </div>
+
+                  <i class="bx bx-map"></i>
+                </div>
+
+                <!-- =================================================
+                     MAP
+                ================================================== -->
+
+                <div class="business-location-map">
+                  @if (
+                    business.latitude !== null &&
+                    business.longitude !== null &&
+                    business.latitude !== undefined &&
+                    business.longitude !== undefined
+                  ) {
+                    <app-business-map
+                      [businesses]="[business]"
+                      [showLegend]="false"
+                      [showControls]="true"
+                      [directionsMode]="false"
+                      [locationPicker]="false"
+                    />
+                  } @else {
+                    <div class="map-empty-state">
+                      <div class="map-empty-icon">
+                        <i class="bx bx-map-alt"></i>
+                      </div>
+
+                      <strong> Location not available </strong>
+
+                      <span>
+                        This business did not provide valid map coordinates.
+                      </span>
+                    </div>
+                  }
+                </div>
+
+                <!-- =================================================
+                     LOCATION DETAILS
+                ================================================== -->
+
+                <div class="location-details-grid">
+                  <!-- BARANGAY -->
+
+                  <div class="detail-item">
+                    <span> Barangay </span>
+
+                    <strong>
+                      {{ business.barangay || "Not provided" }}
+                    </strong>
+                  </div>
+
+                  <!-- LOCATION -->
+
+                  <div class="detail-item">
+                    <span> Location </span>
+
+                    <strong>
+                      {{ business.location || "Not provided" }}
+                    </strong>
+                  </div>
+
+                  <!-- LATITUDE -->
+
+                  <div class="detail-item">
+                    <span> Latitude </span>
+
+                    <strong>
+                      {{ business.latitude }}
+                    </strong>
+                  </div>
+
+                  <!-- LONGITUDE -->
+
+                  <div class="detail-item">
+                    <span> Longitude </span>
+
+                    <strong>
+                      {{ business.longitude }}
+                    </strong>
+                  </div>
+                </div>
+              </section>
+
+              <!-- =================================================
+                   BUSINESS HOURS
+              ================================================== -->
+
+              <section class="details-card">
+                <div class="card-heading">
+                  <div>
+                    <span class="section-label"> OPERATIONS </span>
+
+                    <h2>Business Schedule</h2>
+                  </div>
+
+                  <i class="bx bx-time"></i>
+                </div>
+
+                <div class="schedule-value">
+                  <i class="bx bx-time-five"></i>
+
+                  <span>
+                    {{ business.hours || "No business hours provided." }}
+                  </span>
+                </div>
+              </section>
+            </main>
+
+            <!-- =================================================
+                 SIDEBAR
+            ================================================== -->
+
+            <aside class="details-sidebar">
+              <!-- =================================================
+                   APPLICATION STATUS
+              ================================================== -->
+
+              <section class="side-card">
+                <div class="side-card-title">
+                  <i class="bx bx-shield-check"></i>
+
+                  <strong> Application Status </strong>
+                </div>
+
+                <div class="application-status">
+                  <span
+                    class="status-dot"
+                    [class.pending]="business.status === 'pending'"
+                    [class.approved]="business.status === 'approved'"
+                    [class.rejected]="business.status === 'rejected'"
+                  ></span>
+
+                  <div>
+                    <strong>
+                      {{ business.status | titlecase }}
+                    </strong>
+
+                    <span> Current application status </span>
+                  </div>
+                </div>
+              </section>
+
+              <!-- =================================================
+                   BUSINESS OWNER
+              ================================================== -->
+
+              <section class="side-card">
+                <div class="side-card-title">
+                  <i class="bx bx-user"></i>
+
+                  <strong> Business Owner </strong>
+                </div>
+
+                @if (owner(); as owner) {
+                  <!-- OWNER PROFILE -->
+
+                  <div class="owner-profile">
+                    <div class="owner-avatar">
+                      <i class="bx bx-user"></i>
+                    </div>
+
+                    <div class="owner-details">
+                      <strong>
+                        {{ owner.fullName || "Unnamed Owner" }}
+                      </strong>
+
+                      <span>
+                        {{ owner.email || "No email provided" }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- OWNER INFORMATION -->
+
+                  <div class="side-info owner-info">
+                    <!-- OWNER ID -->
+
+                    <div>
+                      <span> Owner ID </span>
+
+                      <strong>
+                        {{ business.ownerId }}
+                      </strong>
+                    </div>
+
+                    <!-- ROLE -->
+
+                    <div>
+                      <span> Account Role </span>
+
+                      <strong>
+                        {{ owner.role | titlecase }}
+                      </strong>
+                    </div>
+                  </div>
+                } @else {
+                  <!-- OWNER NOT FOUND -->
+
+                  <div class="owner-empty">
+                    <div class="owner-empty-icon">
+                      <i class="bx bx-user-x"></i>
+                    </div>
+
+                    <strong> Owner information unavailable </strong>
+
+                    <span> The owner account could not be loaded. </span>
+                  </div>
+                }
+              </section>
+
+              <!-- =================================================
+                   APPLICATION INFORMATION
+              ================================================== -->
+
+              <section class="side-card">
+                <div class="side-card-title">
+                  <i class="bx bx-info-circle"></i>
+
+                  <strong> Application Information </strong>
+                </div>
+
+                <div class="side-info">
+                  <!-- APPLICATION ID -->
+
+                  <div>
+                    <span> Application ID </span>
+
+                    <strong>
+                      {{ business.id }}
+                    </strong>
+                  </div>
+
+                  <!-- SUBMITTED -->
+
+                  <div>
+                    <span> Submitted </span>
+
+                    <strong>
+                      {{ business.createdAt | date: "MMM d, y h:mm a" }}
+                    </strong>
+                  </div>
+
+                  <!-- UPDATED -->
+
+                  <div>
+                    <span> Last Updated </span>
+
+                    <strong>
+                      {{ business.updatedAt | date: "MMM d, y h:mm a" }}
+                    </strong>
+                  </div>
+                </div>
+              </section>
+
+              <!-- =================================================
+                   ADMIN ACTION
+              ================================================== -->
+
+              @if (isPending()) {
+                <section class="side-card action-card">
+                  <div class="side-card-title">
+                    <i class="bx bx-shield"></i>
+
+                    <strong> Admin Action </strong>
+                  </div>
+
+                  <p>
+                    Review the business information before approving or
+                    rejecting this application.
+                  </p>
+
+                  <div class="action-buttons">
+                    <!-- REJECT -->
+
+                    <button
+                      type="button"
+                      class="reject-button"
+                      [disabled]="isProcessing()"
+                      (click)="rejectBusiness()"
+                    >
+                      @if (isProcessing() && actionType() === "reject") {
+                        <i class="bx bx-loader-alt bx-spin"></i>
+                      } @else {
+                        <i class="bx bx-x"></i>
+                      }
+
+                      <span> Reject </span>
+                    </button>
+
+                    <!-- APPROVE -->
+
+                    <button
+                      type="button"
+                      class="approve-button"
+                      [disabled]="isProcessing()"
+                      (click)="approveBusiness()"
+                    >
+                      @if (isProcessing() && actionType() === "approve") {
+                        <i class="bx bx-loader-alt bx-spin"></i>
+                      } @else {
+                        <i class="bx bx-check"></i>
+                      }
+
+                      <span> Approve </span>
+                    </button>
+                  </div>
+                </section>
+              }
+
+              <!-- =================================================
+                   ACTION MESSAGE
+              ================================================== -->
+
+              @if (actionMessage(); as message) {
+                <div class="success-message">
+                  <i class="bx bx-check-circle"></i>
+
+                  <span>
+                    {{ message }}
+                  </span>
+                </div>
+              }
+            </aside>
+          </div>
+        }
+      }
+    }
+  </div>
+</section>

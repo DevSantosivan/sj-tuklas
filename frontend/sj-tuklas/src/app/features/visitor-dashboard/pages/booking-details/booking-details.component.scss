@@ -1,0 +1,731 @@
+.booking-details-page {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 40px;
+  color: #111;
+}
+
+/* =====================================================
+HEADER
+===================================================== */
+
+.details-header {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.back-button {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #666;
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: 700;
+  transition: color 0.2s ease;
+}
+
+.back-button:hover {
+  color: #111;
+}
+
+.back-button i {
+  font-size: 15px;
+}
+
+.header-copy {
+  display: flex;
+  flex-direction: column;
+}
+
+.eyebrow {
+  display: inline-block;
+  margin-bottom: 7px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: #999;
+}
+
+.header-copy h1 {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.header-copy p {
+  max-width: 620px;
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #777;
+}
+
+/* =====================================================
+LAYOUT
+===================================================== */
+
+.details-layout {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 240px;
+  gap: 16px;
+  align-items: start;
+}
+
+.details-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* =====================================================
+BUSINESS CARD
+===================================================== */
+
+.business-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 14px;
+  border: 1px solid #e8e8e8;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.business-image {
+  width: 62px;
+  height: 62px;
+  flex: 0 0 62px;
+  overflow: hidden;
+  border-radius: 13px;
+  background: #f2f2f2;
+}
+
+.business-image img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.business-info {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.small-label,
+.section-label {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  color: #aaa;
+}
+
+.business-info h2 {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  color: #888;
+}
+
+.location i {
+  font-size: 11px;
+}
+
+.booking-status {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 9px;
+  border-radius: 8px;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.booking-status.upcoming {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.booking-status.pending {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.booking-status.completed {
+  background: #eaeaea;
+  color: #222;
+}
+
+.booking-status.cancelled {
+  background: #f7f7f7;
+  color: #777;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* =====================================================
+DETAILS CARD
+===================================================== */
+
+.details-card {
+  width: 100%;
+  padding: 18px;
+  border: 1px solid #e8e8e8;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.card-heading h2 {
+  margin: 5px 0 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.reference {
+  flex-shrink: 0;
+  padding: 6px 8px;
+  border-radius: 7px;
+  background: #f5f5f5;
+  color: #777;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+/* =====================================================
+INFO GRID
+===================================================== */
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding-top: 16px;
+}
+
+.info-item {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px;
+  border-radius: 11px;
+  background: #f7f7f7;
+}
+
+.info-icon {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #fff;
+  color: #555;
+  font-size: 14px;
+}
+
+.info-item > div:last-child {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.info-item span {
+  font-size: 8px;
+  color: #999;
+}
+
+.info-item strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 800;
+  color: #222;
+}
+
+/* =====================================================
+TIMELINE
+===================================================== */
+
+.status-timeline {
+  display: flex;
+  flex-direction: column;
+  padding-top: 16px;
+}
+
+.timeline-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  opacity: 0.45;
+}
+
+.timeline-item.active {
+  opacity: 1;
+}
+
+.timeline-icon {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #eeeeee;
+  color: #777;
+  font-size: 13px;
+}
+
+.timeline-item.active .timeline-icon {
+  background: #111;
+  color: #fff;
+}
+
+.timeline-item > div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-top: 2px;
+}
+
+.timeline-item strong {
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.timeline-item span {
+  font-size: 8px;
+  line-height: 1.5;
+  color: #999;
+}
+
+.timeline-line {
+  width: 1px;
+  height: 18px;
+  margin: 3px 0 3px 14px;
+  background: #dedede;
+}
+
+/* =====================================================
+SIDEBAR
+===================================================== */
+
+.details-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.action-card,
+.reference-card {
+  padding: 15px;
+  border: 1px solid #e8e8e8;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.action-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.primary-button,
+.secondary-button {
+  width: 100%;
+  min-height: 35px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 10px;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.primary-button {
+  border: 1px solid #111;
+  background: #111;
+  color: #fff;
+}
+
+.primary-button:hover {
+  background: #292929;
+}
+
+.secondary-button {
+  border: 1px solid #e2e2e2;
+  background: #fff;
+  color: #333;
+}
+
+.secondary-button:hover {
+  border-color: #111;
+  color: #111;
+}
+
+.reference-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.reference-icon {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 3px;
+  border-radius: 10px;
+  background: #f2f2f2;
+  color: #555;
+  font-size: 15px;
+}
+
+.reference-card > span {
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #aaa;
+}
+
+.reference-card strong {
+  font-size: 12px;
+  font-weight: 800;
+  color: #111;
+}
+
+.reference-card small {
+  font-size: 8px;
+  line-height: 1.5;
+  color: #999;
+}
+
+/* =====================================================
+NOT FOUND
+===================================================== */
+
+.not-found {
+  width: 100%;
+  min-height: 350px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  border: 1px dashed #dedede;
+  border-radius: 18px;
+  background: #fff;
+  text-align: center;
+}
+
+.not-found-icon {
+  width: 58px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  border-radius: 17px;
+  background: #f2f2f2;
+  color: #777;
+  font-size: 25px;
+}
+
+.not-found h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.not-found p {
+  max-width: 400px;
+  margin: 7px 0 16px;
+  font-size: 10px;
+  line-height: 1.6;
+  color: #888;
+}
+
+/* =====================================================
+TABLET
+===================================================== */
+
+@media (max-width: 850px) {
+  .details-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .details-sidebar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* =====================================================
+MOBILE
+===================================================== */
+
+@media (max-width: 620px) {
+  .booking-details-page {
+    gap: 18px;
+  }
+
+  .header-copy h1 {
+    font-size: 25px;
+  }
+
+  .header-copy p {
+    font-size: 11px;
+  }
+
+  .business-card {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    padding: 12px;
+  }
+
+  .business-image {
+    width: 50px;
+    height: 50px;
+    flex-basis: 50px;
+  }
+
+  .business-info h2 {
+    font-size: 12px;
+  }
+
+  .booking-status {
+    width: 100%;
+    justify-content: center;
+    margin-top: 2px;
+  }
+
+  .details-card {
+    padding: 13px;
+    border-radius: 14px;
+  }
+
+  .card-heading {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .details-sidebar {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =====================================================
+VERY SMALL
+===================================================== */
+
+@media (max-width: 400px) {
+  .header-copy h1 {
+    font-size: 23px;
+  }
+
+  .business-image {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+  }
+
+  .business-info h2 {
+    font-size: 11px;
+  }
+
+  .location {
+    font-size: 8px;
+  }
+
+  .details-card {
+    padding: 11px;
+  }
+
+  .info-item {
+    padding: 9px;
+  }
+}
+
+/* =====================================================
+   BACK BUTTON - HEADER
+===================================================== */
+
+.details-header {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* BACK BUTTON */
+
+.back-button {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+
+  padding: 9px 14px;
+
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+
+  background: #fff;
+  color: #111;
+
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+
+  text-decoration: none;
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.back-button i {
+  font-size: 17px;
+  line-height: 1;
+}
+
+/* HOVER */
+
+.back-button:hover {
+  background: #111;
+  border-color: #111;
+  color: #fff;
+
+  transform: translateX(-2px);
+
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* ACTIVE */
+
+.back-button:active {
+  transform: translateX(0);
+}
+
+/* =====================================================
+   HEADER COPY
+===================================================== */
+
+.header-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #888;
+}
+
+.header-copy h1 {
+  margin: 0;
+
+  font-size: 30px;
+  line-height: 1.15;
+  font-weight: 700;
+
+  color: #111;
+}
+
+.header-copy p {
+  margin: 0;
+
+  max-width: 620px;
+
+  font-size: 14px;
+  line-height: 1.6;
+
+  color: #777;
+}
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 768px) {
+  .details-header {
+    gap: 17px;
+  }
+
+  .back-button {
+    padding: 9px 12px;
+    font-size: 12px;
+  }
+
+  .back-button i {
+    font-size: 16px;
+  }
+
+  .header-copy h1 {
+    font-size: 24px;
+  }
+
+  .header-copy p {
+    font-size: 13px;
+  }
+}

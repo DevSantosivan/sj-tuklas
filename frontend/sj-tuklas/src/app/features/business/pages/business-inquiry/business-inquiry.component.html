@@ -1,0 +1,297 @@
+<section class="feature-page">
+  <div class="container">
+    <!-- =========================
+     BACK
+========================== -->
+    <a routerLink="../" class="back-link">
+      <i class="bx bx-left-arrow-alt"></i>
+      Back to business
+    </a>
+
+    @if (business(); as business) {
+      @if (!submitted()) {
+        <!-- =========================
+         HEADER
+    ========================== -->
+        <div class="page-header">
+          <span class="eyebrow"> CONTACT BUSINESS </span>
+
+          <h1>Send an inquiry</h1>
+
+          <p>
+            Have a question about
+            <strong>{{ business.name }}</strong
+            >? Send them a message directly through SJ Tuklas.
+          </p>
+        </div>
+
+        <!-- =========================
+         CONTENT
+    ========================== -->
+        <div class="content-grid">
+          <!-- =========================
+           FORM
+      ========================== -->
+          <main class="form-card">
+            <div class="card-heading">
+              <div class="icon">
+                <i class="bx bx-message-rounded"></i>
+              </div>
+
+              <div>
+                <h2>Your message</h2>
+
+                <p>Fill out the form below and send your inquiry.</p>
+              </div>
+            </div>
+
+            <form (submit)="$event.preventDefault(); submitInquiry()">
+              <!-- =========================
+               SUBJECT
+          ========================== -->
+              <div class="form-group">
+                <label for="subject"> Subject </label>
+
+                <input
+                  id="subject"
+                  type="text"
+                  placeholder="e.g. Room availability"
+                  [value]="subject()"
+                  (input)="onSubjectChange($event)"
+                />
+              </div>
+
+              <!-- =========================
+               MESSAGE
+          ========================== -->
+              <div class="form-group">
+                <label for="message"> Message </label>
+
+                <textarea
+                  id="message"
+                  rows="7"
+                  placeholder="Write your question here..."
+                  [value]="message()"
+                  (input)="onMessageChange($event)"
+                ></textarea>
+              </div>
+
+              <!-- =========================
+               NOTICE
+          ========================== -->
+              <div class="notice">
+                <i class="bx bx-info-circle"></i>
+
+                <p>
+                  The business will receive your inquiry and can respond through
+                  the contact information associated with their SJ Tuklas
+                  account.
+                </p>
+              </div>
+
+              <!-- =========================
+               SUBMIT
+          ========================== -->
+              <button
+                type="submit"
+                class="primary-button"
+                [disabled]="
+                  isSubmitting() || !subject().trim() || !message().trim()
+                "
+              >
+                @if (isSubmitting()) {
+                  <i class="bx bx-loader-alt bx-spin"></i>
+                  <span>Sending...</span>
+                } @else {
+                  <i class="bx bx-send"></i>
+                  <span>Send inquiry</span>
+                }
+              </button>
+            </form>
+          </main>
+
+          <!-- =========================
+           BUSINESS PROFILE
+      ========================== -->
+          <aside class="business-sidebar">
+            <div class="profile-card">
+              <!-- =========================
+               PROFILE HEADER
+          ========================== -->
+              <div class="profile-card-header">
+                <div>
+                  <span class="profile-label"> BUSINESS PROFILE </span>
+
+                  <h3>
+                    {{ business.name }}
+                  </h3>
+                </div>
+
+                @if (business.verified) {
+                  <div class="profile-verified">
+                    <i class="bx bx-check"></i>
+                  </div>
+                }
+              </div>
+
+              <!-- =========================
+               CATEGORY
+          ========================== -->
+              @if (business.category) {
+                <div class="profile-info-item">
+                  <div class="profile-info-icon">
+                    <i class="bx bx-category"></i>
+                  </div>
+
+                  <div class="profile-info-content">
+                    <span> Category </span>
+
+                    <strong>
+                      {{ business.category }}
+                    </strong>
+                  </div>
+                </div>
+              }
+
+              <!-- =========================
+               PHONE
+          ========================== -->
+              @if (business.phone) {
+                <div class="profile-info-item">
+                  <div class="profile-info-icon">
+                    <i class="bx bx-phone"></i>
+                  </div>
+
+                  <div class="profile-info-content">
+                    <span> Phone </span>
+
+                    <a [href]="'tel:' + business.phone">
+                      {{ business.phone }}
+                    </a>
+                  </div>
+                </div>
+              }
+
+              <!-- =========================
+               LOCATION
+          ========================== -->
+              @if (business.location) {
+                <div class="profile-info-item">
+                  <div class="profile-info-icon">
+                    <i class="bx bx-map"></i>
+                  </div>
+
+                  <div class="profile-info-content">
+                    <span> Location </span>
+
+                    <strong>
+                      {{ business.location }}
+                    </strong>
+                  </div>
+                </div>
+              }
+
+              <!-- =========================
+               INQUIRY
+          ========================== -->
+              <div class="profile-info-item">
+                <div class="profile-info-icon">
+                  <i class="bx bx-message-rounded-dots"></i>
+                </div>
+
+                <div class="profile-info-content">
+                  <span> Inquiry </span>
+
+                  <strong>
+                    Ask about services, pricing, availability, reservations, or
+                    anything else you'd like to know.
+                  </strong>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      } @else {
+        <!-- =========================
+         SUCCESS
+    ========================== -->
+        <section class="success-state">
+          <div class="success-icon">
+            <i class="bx bx-check"></i>
+          </div>
+
+          <span class="eyebrow"> INQUIRY SENT </span>
+
+          <h1>Message sent</h1>
+
+          <p>
+            Your inquiry has been sent to
+            <strong>{{ business.name }}</strong
+            >. The business can now respond to your request.
+          </p>
+
+          <!-- =========================
+           INQUIRY SUMMARY
+      ========================== -->
+          <div class="inquiry-summary">
+            <div>
+              <span> Subject </span>
+
+              <strong>
+                {{ subject() }}
+              </strong>
+            </div>
+
+            <div>
+              <span> Business </span>
+
+              <strong>
+                {{ business.name }}
+              </strong>
+            </div>
+          </div>
+
+          <!-- =========================
+           ACTIONS
+      ========================== -->
+          <div class="success-actions">
+            <a routerLink="../" class="secondary-button">
+              <i class="bx bx-left-arrow-alt"></i>
+              Back to business
+            </a>
+
+            <button
+              type="button"
+              class="primary-button"
+              (click)="makeAnotherInquiry()"
+            >
+              <i class="bx bx-message-rounded-add"></i>
+              Send another inquiry
+            </button>
+          </div>
+        </section>
+      }
+    } @else {
+      <!-- =========================
+       NOT FOUND
+  ========================== -->
+      <section class="empty-state">
+        <div class="empty-icon">
+          <i class="bx bx-store-alt"></i>
+        </div>
+
+        <h2>Business not found</h2>
+
+        <p>
+          The business you're looking for doesn't exist or may have been
+          removed.
+        </p>
+
+        <a routerLink="/search" class="primary-button">
+          <i class="bx bx-left-arrow-alt"></i>
+          Back to businesses
+        </a>
+      </section>
+    }
+  </div>
+</section>

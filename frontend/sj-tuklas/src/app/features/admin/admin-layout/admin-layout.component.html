@@ -1,0 +1,287 @@
+<div class="admin-layout">
+  <!-- =========================================================
+       SIDEBAR
+  ========================================================== -->
+
+  <aside class="admin-sidebar" [class.open]="sidebarOpen">
+    <!-- BRAND -->
+    <div class="sidebar-brand">
+      <a routerLink="/admin/dashboard" class="brand">
+        <span class="brand-mark">SJ</span>
+
+        <span class="brand-copy">
+          <strong>Tuklas</strong>
+          <small>ADMIN</small>
+        </span>
+      </a>
+
+      <button
+        type="button"
+        class="sidebar-close"
+        (click)="toggleSidebar()"
+        aria-label="Close sidebar"
+      >
+        <i class="bx bx-x"></i>
+      </button>
+    </div>
+
+    <!-- =======================================================
+     NAVIGATION
+======================================================== -->
+    <nav class="sidebar-nav">
+      <!-- OVERVIEW -->
+      <div class="nav-section">
+        <span class="nav-label">OVERVIEW</span>
+
+        <a
+          routerLink="/admin/dashboard"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="nav-item"
+          (click)="closeSidebarOnMobile()"
+        >
+          <i class="bx bx-grid-alt"></i>
+          <span>Dashboard</span>
+        </a>
+      </div>
+
+      <!-- MANAGEMENT -->
+      <div class="nav-section">
+        <span class="nav-label">MANAGEMENT</span>
+
+        <a
+          routerLink="/admin/approvals"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="closeSidebarOnMobile()"
+        >
+          <i class="bx bx-check-shield"></i>
+
+          <span>Approvals</span>
+
+          @if (pendingCount() > 0) {
+            <span class="nav-badge">
+              {{ pendingCount() }}
+            </span>
+          }
+        </a>
+
+        <a
+          routerLink="/admin/businesses"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="closeSidebarOnMobile()"
+        >
+          <i class="bx bx-store"></i>
+          <span>Businesses</span>
+        </a>
+
+        <a
+          routerLink="/admin/users"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="closeSidebarOnMobile()"
+        >
+          <i class="bx bx-group"></i>
+          <span>Users</span>
+        </a>
+
+        <a
+          routerLink="/admin/orders"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="closeSidebarOnMobile()"
+        >
+          <i class="bx bx-shopping-bag"></i>
+          <span>Orders</span>
+        </a>
+
+        <a
+          routerLink="/admin/bookings"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="closeSidebarOnMobile()"
+        >
+          <i class="bx bx-calendar"></i>
+          <span>Bookings</span>
+        </a>
+      </div>
+
+      <!-- SYSTEM -->
+      <div class="nav-section">
+        <span class="nav-label">SYSTEM</span>
+
+        <a
+          routerLink="/admin/reports"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="closeSidebarOnMobile()"
+        >
+          <i class="bx bx-bar-chart-alt-2"></i>
+          <span>Reports</span>
+        </a>
+
+        <a
+          routerLink="/admin/settings"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="closeSidebarOnMobile()"
+        >
+          <i class="bx bx-cog"></i>
+          <span>Settings</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- =======================================================
+     SIDEBAR FOOTER
+======================================================== -->
+    <div class="sidebar-footer">
+      <div class="admin-profile">
+        <!-- AVATAR -->
+        <div class="profile-avatar">
+          {{ userInitial }}
+        </div>
+
+        <!-- USER INFO -->
+        <div class="profile-info">
+          <strong>
+            {{ userName }}
+          </strong>
+
+          <span>
+            {{ userRole }}
+          </span>
+        </div>
+
+        <!-- PROFILE MENU -->
+        <button
+          type="button"
+          class="profile-menu"
+          title="Account menu"
+          aria-label="Account menu"
+          (click)="toggleProfileMenu()"
+        >
+          <i class="bx bx-dots-vertical-rounded"></i>
+        </button>
+      </div>
+
+      <!-- =====================================================
+       PROFILE DROPDOWN
+  ====================================================== -->
+      @if (profileMenuOpen) {
+        <div class="profile-dropdown">
+          <!-- USER -->
+          <div class="dropdown-user">
+            <div class="dropdown-avatar">
+              {{ userInitial }}
+            </div>
+
+            <div class="dropdown-user-info">
+              <strong>
+                {{ userName }}
+              </strong>
+
+              <span>
+                {{ userEmail }}
+              </span>
+            </div>
+          </div>
+
+          <!-- DIVIDER -->
+          <div class="dropdown-divider"></div>
+
+          <!-- LOGOUT -->
+          <button
+            type="button"
+            class="dropdown-item logout-item"
+            (click)="logout()"
+          >
+            <i class="bx bx-log-out"></i>
+
+            <span> Logout </span>
+          </button>
+        </div>
+      }
+    </div>
+  </aside>
+
+  <!-- =========================================================
+       MOBILE OVERLAY
+  ========================================================== -->
+
+  @if (sidebarOpen) {
+    <div class="sidebar-overlay" (click)="closeSidebar()"></div>
+  }
+
+  <!-- =========================================================
+       MAIN
+  ========================================================== -->
+
+  <div class="admin-main">
+    <!-- =======================================================
+     TOPBAR
+======================================================== -->
+    <header class="admin-topbar">
+      <!-- LEFT -->
+      <div class="topbar-left">
+        <button
+          type="button"
+          class="menu-button"
+          (click)="toggleSidebar()"
+          aria-label="Toggle sidebar"
+        >
+          <i class="bx bx-menu"></i>
+        </button>
+
+        <div class="topbar-title">
+          <span>ADMIN PANEL</span>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="topbar-right">
+        <!-- NOTIFICATION -->
+        <button
+          type="button"
+          class="topbar-icon"
+          title="Notifications"
+          aria-label="Notifications"
+        >
+          <i class="bx bx-bell"></i>
+
+          <span class="notification-dot"></span>
+        </button>
+
+        <!-- DIVIDER -->
+        <div class="topbar-divider"></div>
+
+        <!-- USER -->
+        <div class="topbar-user">
+          <div class="user-avatar">
+            {{ userInitial }}
+          </div>
+
+          <div class="user-details">
+            <strong>
+              {{ userName }}
+            </strong>
+
+            <span>
+              {{ userRole }}
+            </span>
+          </div>
+
+          <i class="bx bx-chevron-down"></i>
+        </div>
+      </div>
+    </header>
+
+    <!-- =======================================================
+     CONTENT
+======================================================== -->
+    <main class="admin-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

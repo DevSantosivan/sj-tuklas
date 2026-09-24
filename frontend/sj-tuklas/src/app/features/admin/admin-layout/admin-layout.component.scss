@@ -1,0 +1,933 @@
+/* =========================================================
+ADMIN LAYOUT
+========================================================= */
+
+.admin-layout {
+  width: 100%;
+  min-height: 100vh;
+
+  display: flex;
+
+  background: #f7f7f7;
+  color: #111;
+
+  overflow-x: hidden;
+}
+
+/* =========================================================
+SIDEBAR
+========================================================= */
+
+.admin-sidebar {
+  position: fixed;
+
+  top: 0;
+  left: 0;
+  bottom: 0;
+
+  z-index: 1000;
+
+  width: 260px;
+
+  display: flex;
+  flex-direction: column;
+
+  background: #fff;
+
+  border-right: 1px solid #e8e8e8;
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+/* =========================================================
+SIDEBAR BRAND
+========================================================= */
+
+.sidebar-brand {
+  height: 76px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 18px;
+
+  border-bottom: 1px solid #eeeeee;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  color: #111;
+  text-decoration: none;
+}
+
+.brand-mark {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  background: #111;
+  color: #fff;
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.brand-copy {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+.brand-copy strong {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.brand-copy small {
+  color: #999;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  letter-spacing: 0.14em;
+}
+
+.sidebar-close {
+  display: none;
+
+  width: 34px;
+  height: 34px;
+
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+  border-radius: 8px;
+
+  background: transparent;
+  color: #555;
+
+  cursor: pointer;
+}
+
+.sidebar-close:hover {
+  background: #f2f2f2;
+  color: #111;
+}
+
+.sidebar-close i {
+  font-size: 21px;
+}
+
+/* =========================================================
+NAVIGATION
+========================================================= */
+
+.sidebar-nav {
+  flex: 1;
+
+  padding: 22px 14px;
+
+  overflow-y: auto;
+}
+
+.nav-section {
+  margin-bottom: 26px;
+}
+
+.nav-label {
+  display: block;
+
+  margin: 0 10px 9px;
+
+  color: #a0a0a0;
+
+  font-size: 9px;
+  font-weight: 800;
+
+  letter-spacing: 0.13em;
+}
+
+.nav-item {
+  position: relative;
+
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  min-height: 44px;
+
+  padding: 0 12px;
+
+  margin-bottom: 3px;
+
+  border-radius: 10px;
+
+  color: #666;
+
+  text-decoration: none;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.nav-item i {
+  width: 20px;
+
+  display: flex;
+  justify-content: center;
+
+  font-size: 19px;
+}
+
+.nav-item:hover {
+  background: #f5f5f5;
+  color: #111;
+}
+
+.nav-item.active {
+  background: #111;
+  color: #fff;
+}
+
+.nav-item.active i {
+  color: #fff;
+}
+
+/* =========================================================
+NAV BADGE
+========================================================= */
+
+.nav-badge {
+  min-width: 20px;
+  height: 20px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-left: auto;
+
+  padding: 0 6px;
+
+  border-radius: 999px;
+
+  background: #111;
+  color: #fff;
+
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.nav-item.active .nav-badge {
+  background: #fff;
+  color: #111;
+}
+
+/* =========================================================
+SIDEBAR FOOTER
+========================================================= */
+
+.sidebar-footer {
+  position: relative;
+
+  padding: 14px;
+
+  border-top: 1px solid #eeeeee;
+}
+
+/* =========================================================
+ADMIN PROFILE
+========================================================= */
+
+.admin-profile {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 9px;
+
+  border-radius: 12px;
+
+  transition: background 0.2s ease;
+}
+
+.admin-profile:hover {
+  background: #f6f6f6;
+}
+
+/* =========================================================
+PROFILE AVATAR
+========================================================= */
+
+.profile-avatar {
+  width: 38px;
+  height: 38px;
+
+  min-width: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #111;
+  color: #fff;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  text-transform: uppercase;
+}
+
+/* =========================================================
+PROFILE INFO
+========================================================= */
+
+.profile-info {
+  min-width: 0;
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.profile-info strong {
+  overflow: hidden;
+
+  color: #111;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.profile-info span {
+  color: #999;
+
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* =========================================================
+PROFILE MENU
+========================================================= */
+
+.profile-menu {
+  width: 32px;
+  height: 32px;
+
+  min-width: 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+  border-radius: 8px;
+
+  background: transparent;
+  color: #777;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.profile-menu:hover {
+  background: #eaeaea;
+  color: #111;
+}
+
+.profile-menu i {
+  font-size: 19px;
+}
+
+/* =========================================================
+PROFILE DROPDOWN
+========================================================= */
+
+.profile-dropdown {
+  position: absolute;
+
+  left: 14px;
+  right: 14px;
+
+  bottom: calc(100% + 8px);
+
+  z-index: 1100;
+
+  padding: 8px;
+
+  background: #fff;
+
+  border: 1px solid #e7e7e7;
+
+  border-radius: 14px;
+
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.1),
+    0 4px 12px rgba(0, 0, 0, 0.05);
+
+  animation: profileDropdownIn 0.18s ease;
+}
+
+/* =========================================================
+DROPDOWN USER
+========================================================= */
+
+.dropdown-user {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 10px;
+}
+
+.dropdown-avatar {
+  width: 36px;
+  height: 36px;
+
+  min-width: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #111;
+  color: #fff;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.dropdown-user-info {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.dropdown-user-info strong {
+  max-width: 165px;
+
+  overflow: hidden;
+
+  color: #111;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dropdown-user-info span {
+  max-width: 165px;
+
+  overflow: hidden;
+
+  color: #999;
+
+  font-size: 10px;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* =========================================================
+DROPDOWN DIVIDER
+========================================================= */
+
+.dropdown-divider {
+  height: 1px;
+
+  margin: 5px 4px;
+
+  background: #eeeeee;
+}
+
+/* =========================================================
+DROPDOWN ITEM
+========================================================= */
+
+.dropdown-item {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 10px 11px;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: transparent;
+
+  font-family: inherit;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.dropdown-item i {
+  width: 18px;
+
+  display: flex;
+  justify-content: center;
+
+  font-size: 17px;
+}
+
+.logout-item {
+  color: #d92d20;
+}
+
+.logout-item:hover {
+  background: #fff1f0;
+  color: #c5221a;
+}
+
+/* =========================================================
+DROPDOWN ANIMATION
+========================================================= */
+
+@keyframes profileDropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================================
+MAIN
+========================================================= */
+
+.admin-main {
+  width: calc(100% - 260px);
+
+  min-height: 100vh;
+
+  margin-left: 260px;
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================================================
+TOPBAR
+========================================================= */
+
+.admin-topbar {
+  position: sticky;
+
+  top: 0;
+
+  z-index: 900;
+
+  height: 76px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 28px;
+
+  background: rgba(255, 255, 255, 0.96);
+
+  border-bottom: 1px solid #e9e9e9;
+
+  backdrop-filter: blur(10px);
+}
+
+/* =========================================================
+TOPBAR LEFT
+========================================================= */
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+}
+
+.menu-button {
+  display: none;
+
+  width: 38px;
+  height: 38px;
+
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #e6e6e6;
+  border-radius: 9px;
+
+  background: #fff;
+  color: #111;
+
+  cursor: pointer;
+}
+
+.menu-button:hover {
+  background: #f5f5f5;
+}
+
+.menu-button i {
+  font-size: 21px;
+}
+
+.topbar-title span {
+  color: #888;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  letter-spacing: 0.14em;
+}
+
+/* =========================================================
+TOPBAR RIGHT
+========================================================= */
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+}
+
+/* =========================================================
+TOPBAR ICON
+========================================================= */
+
+.topbar-icon {
+  position: relative;
+
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: transparent;
+  color: #555;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.topbar-icon:hover {
+  background: #f3f3f3;
+  color: #111;
+}
+
+.topbar-icon i {
+  font-size: 20px;
+}
+
+.notification-dot {
+  position: absolute;
+
+  top: 8px;
+  right: 8px;
+
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background: #111;
+
+  border: 1px solid #fff;
+}
+
+/* =========================================================
+TOPBAR DIVIDER
+========================================================= */
+
+.topbar-divider {
+  width: 1px;
+  height: 30px;
+
+  background: #e7e7e7;
+}
+
+/* =========================================================
+TOPBAR USER
+========================================================= */
+
+.topbar-user {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 5px 7px;
+
+  border-radius: 10px;
+
+  cursor: default;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #111;
+  color: #fff;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.user-details {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+.user-details strong {
+  max-width: 150px;
+
+  overflow: hidden;
+
+  color: #111;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.user-details span {
+  color: #999;
+
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.topbar-user > i {
+  color: #888;
+
+  font-size: 16px;
+}
+
+/* =========================================================
+CONTENT
+========================================================= */
+
+.admin-content {
+  flex: 1;
+
+  width: 100%;
+
+  padding: 28px;
+}
+
+/* =========================================================
+MOBILE OVERLAY
+========================================================= */
+
+.sidebar-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 950;
+
+  background: rgba(0, 0, 0, 0.35);
+
+  backdrop-filter: blur(2px);
+
+  animation: overlayIn 0.2s ease;
+}
+
+@keyframes overlayIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* =========================================================
+TABLET
+========================================================= */
+
+@media (max-width: 1100px) {
+  .admin-sidebar {
+    width: 230px;
+  }
+
+  .admin-main {
+    width: calc(100% - 230px);
+
+    margin-left: 230px;
+  }
+
+  .admin-content {
+    padding: 24px;
+  }
+}
+
+/* =========================================================
+MOBILE
+========================================================= */
+
+@media (max-width: 900px) {
+  .admin-sidebar {
+    width: 270px;
+
+    transform: translateX(-100%);
+
+    box-shadow: none;
+  }
+
+  .admin-sidebar.open {
+    transform: translateX(0);
+
+    box-shadow: 12px 0 35px rgba(0, 0, 0, 0.12);
+  }
+
+  .sidebar-close {
+    display: flex;
+  }
+
+  .admin-main {
+    width: 100%;
+
+    margin-left: 0;
+  }
+
+  .menu-button {
+    display: flex;
+  }
+
+  .admin-topbar {
+    height: 68px;
+
+    padding: 0 18px;
+  }
+
+  .admin-content {
+    padding: 20px 18px;
+  }
+}
+
+/* =========================================================
+SMALL MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+  .admin-topbar {
+    padding: 0 14px;
+  }
+
+  .topbar-title {
+    display: none;
+  }
+
+  .topbar-divider {
+    display: none;
+  }
+
+  .topbar-right {
+    gap: 5px;
+  }
+
+  .topbar-user {
+    padding: 4px;
+  }
+
+  .user-details {
+    display: none;
+  }
+
+  .topbar-user > i {
+    display: none;
+  }
+
+  .admin-content {
+    padding: 16px 14px;
+  }
+
+  .sidebar-footer {
+    padding: 12px;
+  }
+
+  .profile-dropdown {
+    left: 12px;
+    right: 12px;
+  }
+}

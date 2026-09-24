@@ -1,0 +1,254 @@
+.promotions-page {
+  padding: 35px 0 100px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  margin-bottom: 35px;
+
+  color: var(--text-secondary);
+  font-size: 13px;
+
+  &:hover {
+    color: var(--text);
+  }
+}
+
+.page-header {
+  padding-bottom: 35px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  margin-bottom: 10px;
+
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.page-header h1 {
+  margin: 0;
+
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: clamp(36px, 5vw, 52px);
+  letter-spacing: -2px;
+}
+
+.page-header p {
+  margin-top: 10px;
+
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.promotions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+
+  padding-top: 35px;
+}
+
+.promotion-card {
+  overflow: hidden;
+
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    border-color: var(--text);
+  }
+}
+
+.promotion-image {
+  position: relative;
+
+  height: 230px;
+
+  overflow: hidden;
+
+  background: var(--surface-muted);
+}
+
+.promotion-image img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+
+  transition: transform 0.3s ease;
+}
+
+.promotion-card:hover .promotion-image img {
+  transform: scale(1.03);
+}
+
+.offer-badge {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+
+  padding: 6px 9px;
+
+  background: rgba(255, 255, 255, 0.94);
+
+  border-radius: 7px;
+
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.promotion-content {
+  padding: 20px;
+}
+
+.promotion-label {
+  color: var(--text-muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+}
+
+.promotion-content h2 {
+  margin: 7px 0;
+
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 20px;
+  letter-spacing: -0.5px;
+}
+
+.promotion-content p {
+  min-height: 42px;
+
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.promotion-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-top: 18px;
+  padding-top: 15px;
+
+  border-top: 1px solid var(--border);
+}
+
+.promotion-footer span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.promotion-footer button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  padding: 8px 10px;
+
+  background: var(--text);
+  color: var(--background);
+
+  border: 0;
+  border-radius: 7px;
+
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.unavailable-state {
+  min-height: 65vh;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+}
+
+.empty-icon {
+  width: 62px;
+  height: 62px;
+
+  margin-bottom: 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--surface-muted);
+  border-radius: 15px;
+
+  i {
+    font-size: 28px;
+  }
+}
+
+.unavailable-state h1 {
+  margin: 0 0 10px;
+
+  font-family: "Plus Jakarta Sans", sans-serif;
+}
+
+.unavailable-state p {
+  max-width: 430px;
+  margin: 0 0 22px;
+
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.primary-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  padding: 11px 15px;
+
+  background: var(--primary);
+  color: white;
+
+  border-radius: 9px;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (max-width: 700px) {
+  .promotions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .promotion-image {
+    height: 210px;
+  }
+}

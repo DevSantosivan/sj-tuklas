@@ -1,0 +1,713 @@
+<section class="search-page">
+  <div class="container">
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <header class="search-header">
+      <div class="header-copy">
+        <span class="section-label"> DISCOVER </span>
+
+        <h1>Find local businesses</h1>
+
+        <p>Search businesses, services, and places around San Jose.</p>
+      </div>
+    </header>
+
+    <!-- =====================================================
+         SEARCH
+    ====================================================== -->
+
+    <div class="search-section">
+      <app-search-bar
+        [value]="searchTerm()"
+        placeholder="Search businesses, types, services..."
+        ariaLabel="Search businesses"
+        [showShortcut]="true"
+        [showClear]="true"
+        (valueChange)="onSearch($event)"
+      />
+    </div>
+
+    <!-- =====================================================
+         MAIN CONTENT
+    ====================================================== -->
+
+    <div class="search-content">
+      <!-- ===================================================
+           DESKTOP FILTER SIDEBAR
+      ==================================================== -->
+
+      <aside class="filter-sidebar">
+        <!-- SIDEBAR HEADER -->
+
+        <div class="filter-sidebar-header">
+          <div>
+            <span class="filter-label"> FILTERS </span>
+
+            <h2>Refine results</h2>
+          </div>
+
+          @if (hasActiveFilters()) {
+            <button
+              type="button"
+              class="clear-filter-button"
+              (click)="clearFilters()"
+            >
+              Clear
+            </button>
+          }
+        </div>
+
+        <!-- =================================================
+             CATEGORY
+        ================================================== -->
+
+        <div class="filter-block">
+          <div class="filter-title">Category</div>
+
+          <div class="filter-options">
+            <!-- ALL -->
+
+            <button
+              type="button"
+              class="filter-option"
+              [class.active]="selectedCategory() === 'all'"
+              (click)="setCategory('all')"
+            >
+              <span> All categories </span>
+
+              @if (selectedCategory() === "all") {
+                <i class="bx bx-check"></i>
+              }
+            </button>
+
+            <!-- CATEGORIES -->
+
+            @for (category of categories; track category) {
+              <button
+                type="button"
+                class="filter-option"
+                [class.active]="selectedCategory() === category"
+                (click)="setCategory(category)"
+              >
+                <span>
+                  {{ category }}
+                </span>
+
+                @if (selectedCategory() === category) {
+                  <i class="bx bx-check"></i>
+                }
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- =================================================
+             BUSINESS TYPE
+        ================================================== -->
+
+        @if (selectedCategory() !== "all") {
+          <div class="filter-block">
+            <div class="filter-title">Business type</div>
+
+            <div class="filter-options">
+              <!-- ALL TYPES -->
+
+              <button
+                type="button"
+                class="filter-option"
+                [class.active]="selectedType() === 'all'"
+                (click)="setType('all')"
+              >
+                <span> All types </span>
+
+                @if (selectedType() === "all") {
+                  <i class="bx bx-check"></i>
+                }
+              </button>
+
+              <!-- TYPES -->
+
+              @for (type of availableTypes(); track type) {
+                <button
+                  type="button"
+                  class="filter-option"
+                  [class.active]="selectedType() === type"
+                  (click)="setType(type)"
+                >
+                  <span>
+                    {{ type }}
+                  </span>
+
+                  @if (selectedType() === type) {
+                    <i class="bx bx-check"></i>
+                  }
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- =================================================
+             LOCATION
+        ================================================== -->
+
+        <div class="filter-block">
+          <div class="filter-title">Location</div>
+
+          <div class="filter-options">
+            <!-- ALL -->
+
+            <button
+              type="button"
+              class="filter-option"
+              [class.active]="selectedLocation() === 'all'"
+              (click)="setLocation('all')"
+            >
+              <span> All locations </span>
+
+              @if (selectedLocation() === "all") {
+                <i class="bx bx-check"></i>
+              }
+            </button>
+
+            <!-- LOCATIONS -->
+
+            @for (location of locations; track location) {
+              <button
+                type="button"
+                class="filter-option"
+                [class.active]="selectedLocation() === location"
+                (click)="setLocation(location)"
+              >
+                <span>
+                  {{ location }}
+                </span>
+
+                @if (selectedLocation() === location) {
+                  <i class="bx bx-check"></i>
+                }
+              </button>
+            }
+          </div>
+        </div>
+      </aside>
+
+      <!-- =====================================================
+           RESULTS
+      ====================================================== -->
+
+      <main class="results-area">
+        <!-- =================================================
+             RESULTS HEADER
+        ================================================== -->
+
+        <div class="results-header">
+          <!-- RESULT COUNT -->
+
+          <div class="results-info">
+            <span class="results-count">
+              {{ resultCount() }}
+              {{ resultCount() === 1 ? "business" : "businesses" }}
+            </span>
+
+            <span class="results-description"> matching your search </span>
+          </div>
+
+          <!-- ACTIONS -->
+
+          <div class="results-actions">
+            <!-- LIST / MAP -->
+
+            <div class="view-toggle" role="group" aria-label="Change view">
+              <!-- LIST -->
+
+              <button
+                type="button"
+                [class.active]="viewMode() === 'list'"
+                (click)="setViewMode('list')"
+                aria-label="List view"
+                [attr.aria-pressed]="viewMode() === 'list'"
+              >
+                <i class="bx bx-list-ul"></i>
+
+                <span> List </span>
+              </button>
+
+              <!-- MAP -->
+
+              <button
+                type="button"
+                [class.active]="viewMode() === 'map'"
+                (click)="setViewMode('map')"
+                aria-label="Map view"
+                [attr.aria-pressed]="viewMode() === 'map'"
+              >
+                <i class="bx bx-map"></i>
+
+                <span> Map </span>
+              </button>
+            </div>
+
+            <!-- SORT -->
+
+            <button type="button" class="sort-button">
+              <i class="bx bx-sort-alt-2"></i>
+
+              <span> Recommended </span>
+
+              <i class="bx bx-chevron-down"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- =================================================
+             MOBILE MAP CATEGORY BAR
+        ================================================== -->
+
+        @if (viewMode() === "map") {
+          <div class="mobile-map-categories" aria-label="Business categories">
+            <!-- ALL -->
+
+            <button
+              type="button"
+              class="mobile-category-chip"
+              [class.active]="selectedCategory() === 'all'"
+              (click)="setCategory('all')"
+            >
+              <i class="bx bx-grid-alt"></i>
+
+              <span> All </span>
+            </button>
+
+            <!-- CATEGORIES -->
+
+            @for (category of categories; track category) {
+              <button
+                type="button"
+                class="mobile-category-chip"
+                [class.active]="selectedCategory() === category"
+                (click)="setCategory(category)"
+              >
+                <i class="bx bx-store"></i>
+
+                <span>
+                  {{ category }}
+                </span>
+              </button>
+            }
+          </div>
+        }
+
+        <!-- =================================================
+             ACTIVE FILTERS
+        ================================================== -->
+
+        @if (hasActiveFilters()) {
+          <div class="active-filters">
+            <!-- SEARCH -->
+
+            @if (searchTerm()) {
+              <button type="button" class="filter-chip" (click)="onSearch('')">
+                <span> "{{ searchTerm() }}" </span>
+
+                <i class="bx bx-x"></i>
+              </button>
+            }
+
+            <!-- CATEGORY -->
+
+            @if (selectedCategory() !== "all") {
+              <button
+                type="button"
+                class="filter-chip"
+                (click)="setCategory('all')"
+              >
+                <span>
+                  {{ selectedCategory() }}
+                </span>
+
+                <i class="bx bx-x"></i>
+              </button>
+            }
+
+            <!-- TYPE -->
+
+            @if (selectedType() !== "all") {
+              <button
+                type="button"
+                class="filter-chip"
+                (click)="setType('all')"
+              >
+                <span>
+                  {{ selectedType() }}
+                </span>
+
+                <i class="bx bx-x"></i>
+              </button>
+            }
+
+            <!-- LOCATION -->
+
+            @if (selectedLocation() !== "all") {
+              <button
+                type="button"
+                class="filter-chip"
+                (click)="setLocation('all')"
+              >
+                <span>
+                  {{ selectedLocation() }}
+                </span>
+
+                <i class="bx bx-x"></i>
+              </button>
+            }
+
+            <!-- CLEAR -->
+
+            <button
+              type="button"
+              class="clear-all-filters"
+              (click)="clearFilters()"
+            >
+              Clear all
+            </button>
+          </div>
+        }
+
+        <!-- =================================================
+             LOADING
+        ================================================== -->
+        @if (loading()) {
+          <div class="search-loading">
+            <div class="loading-spinner"></div>
+
+            <div class="search-loading-content">
+              <h2>Finding local businesses</h2>
+              <p>Searching for businesses around San Jose...</p>
+            </div>
+          </div>
+        }
+
+        <!-- =================================================
+             ERROR
+        ================================================== -->
+
+        @else if (error()) {
+          <div class="search-error">
+            <div class="error-icon">
+              <i class="bx bx-error-circle"></i>
+            </div>
+
+            <h2>Something went wrong</h2>
+
+            <p>
+              {{ error() }}
+            </p>
+
+            <button type="button" (click)="loadBusinesses()">Try again</button>
+          </div>
+        }
+
+        <!-- =================================================
+             CONTENT
+        ================================================== -->
+
+        @else {
+          <!-- =================================================
+               LIST VIEW
+          ================================================== -->
+
+          @if (viewMode() === "list") {
+            @if (resultCount() > 0) {
+              <div class="business-list">
+                @for (business of filteredBusinesses(); track business.id) {
+                  <app-business-card [business]="business" />
+                }
+              </div>
+            } @else {
+              <!-- EMPTY LIST -->
+
+              <div class="empty-state">
+                <div class="empty-icon">
+                  <i class="bx bx-search-alt-2"></i>
+                </div>
+
+                <h2>No businesses found</h2>
+
+                <p>Try changing your search or removing some filters.</p>
+
+                @if (hasActiveFilters()) {
+                  <button
+                    type="button"
+                    class="empty-button"
+                    (click)="clearFilters()"
+                  >
+                    Clear filters
+                  </button>
+                }
+              </div>
+            }
+          }
+
+          <!-- =================================================
+               MAP VIEW
+          ================================================== -->
+
+          @if (viewMode() === "map") {
+            <div class="map-layout">
+              <!-- =================================================
+                   MAP
+              ================================================== -->
+              <div class="map-container">
+                <!-- =====================================================
+       MAP
+  ====================================================== -->
+
+                <app-business-map
+                  [businesses]="filteredBusinesses()"
+                  [directionsMode]="false"
+                  [locationPicker]="false"
+                  [showNearbyBusinesses]="false"
+                  [showControls]="true"
+                  [showLegend]="true"
+                  [enable3D]="true"
+                  (businessSelected)="openBusiness($event)"
+                />
+
+                <!-- =====================================================
+       3D CONTROL
+  ====================================================== -->
+
+                <div class="search-map-controls">
+                  <button
+                    type="button"
+                    class="search-map-control-button"
+                    [class.active]="is3D()"
+                    (click)="toggle3D()"
+                    [attr.aria-pressed]="is3D()"
+                    [attr.aria-label]="
+                      is3D() ? 'Disable 3D map' : 'Enable 3D map'
+                    "
+                  >
+                    <i
+                      class="bx"
+                      [class.bx-cube]="!is3D()"
+                      [class.bx-map-alt]="is3D()"
+                    ></i>
+
+                    <span>
+                      {{ is3D() ? "2D" : "3D" }}
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- =================================================
+                   MAP BUSINESS RESULTS
+              ================================================== -->
+
+              <aside class="map-results" [class.expanded]="nearbyExpanded()">
+                <!-- =================================================
+                     DRAG / TOGGLE HANDLE
+                ================================================== -->
+
+                <button
+                  type="button"
+                  class="map-results-handle"
+                  (click)="toggleNearbyBusinesses()"
+                  [attr.aria-expanded]="nearbyExpanded()"
+                  aria-label="Toggle nearby businesses"
+                >
+                  <span></span>
+                </button>
+
+                <!-- =================================================
+                     MAP RESULTS HEADER
+                ================================================== -->
+
+                <button
+                  type="button"
+                  class="map-results-header"
+                  (click)="toggleNearbyBusinesses()"
+                  [attr.aria-expanded]="nearbyExpanded()"
+                >
+                  <div class="map-results-heading">
+                    <span class="map-results-label"> NEARBY </span>
+
+                    <h2>Nearby businesses</h2>
+
+                    @if (!nearbyExpanded()) {
+                      <p>Tap to view businesses</p>
+                    }
+                  </div>
+
+                  <div class="map-results-header-right">
+                    <span class="map-results-count">
+                      {{ resultCount() }}
+                    </span>
+
+                    <i
+                      class="bx"
+                      [class.bx-chevron-up]="nearbyExpanded()"
+                      [class.bx-chevron-down]="!nearbyExpanded()"
+                    ></i>
+                  </div>
+                </button>
+
+                <!-- =================================================
+                     BUSINESS RESULTS
+                ================================================== -->
+
+                <div class="map-results-content">
+                  @if (resultCount() > 0) {
+                    <div class="map-business-list">
+                      @for (
+                        business of filteredBusinesses();
+                        track business.id
+                      ) {
+                        <article
+                          class="map-business-item"
+                          role="button"
+                          tabindex="0"
+                          (click)="openBusiness(business)"
+                          (keydown.enter)="openBusiness(business)"
+                          (keydown.space)="openBusiness(business)"
+                        >
+                          <!-- =================================================
+                               IMAGE
+                          ================================================================================================================================================================== -->
+
+                          <div class="map-business-image">
+                            @if (
+                              business.image && !imageError().has(business.id)
+                            ) {
+                              <img
+                                [src]="business.image"
+                                [alt]="business.name"
+                                loading="lazy"
+                                (error)="onImageError(business.id)"
+                              />
+                            } @else {
+                              <img
+                                src="https://scontent.fpag2-1.fna.fbcdn.net/v/t39.30808-6/704229271_1795953418248429_1562206046226465196_n.jpg?stp=dst-jpg_tt6&cstp=mx1254x1254&ctp=s1254x1254&_nc_cat=104&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeGnV9hUrBDwoVwhxYhVkNnVmQwrDM07yu-ZDCsMzTvK78zbGxo9tvA_xAPQhPS2B2C0_PATJkMyyryk8AqV_RNR&_nc_ohc=uUCeFjkpzh8Q7kNvwF0AdSU&_nc_oc=AdrfXdyBePqmOwjWKLOji43KneFbYwm7ItjfmZtGaG0b-tezrLSkvi3aGz_L1Q2ZoYA&_nc_zt=23&_nc_ht=scontent.fpag2-1.fna&_nc_gid=hP8AYIdcaPNycI-oi2PzRQ&_nc_ss=7b2a8&oh=00_AQJLiM4gMAyfXRcR-xg3dQ5rZq7r7_GNYTaT6_4LVKA4Mw&oe=6ABA671F"
+                                [alt]="business.name"
+                                loading="lazy"
+                              />
+                              <!-- <div class="map-business-image-placeholder">
+                                <i class="bx bx-store-alt"></i>
+                              </div> -->
+                            }
+
+                            <!-- VERIFIED -->
+
+                            @if (business.verified) {
+                              <span
+                                class="verified-badge"
+                                title="Verified business"
+                              >
+                                <i class="bx bx-check"></i>
+                              </span>
+                            }
+                          </div>
+
+                          <!-- =================================================
+                               CONTENT
+                          ================================================== -->
+
+                          <div class="map-business-info">
+                            <!-- TOP -->
+
+                            <div class="map-business-top">
+                              <span class="map-business-category">
+                                {{ business.category }}
+                              </span>
+
+                              @if (business.isPro) {
+                                <span class="pro-badge">
+                                  <i class="bx bx-crown"></i>
+                                  PRO
+                                </span>
+                              }
+                            </div>
+
+                            <!-- NAME -->
+
+                            <h3>
+                              {{ business.name }}
+                            </h3>
+
+                            <!-- TYPE -->
+
+                            <p class="map-business-type">
+                              {{ business.businessType }}
+                            </p>
+
+                            <!-- LOCATION -->
+
+                            <div class="map-business-meta">
+                              <span [title]="business.location">
+                                <i class="bx bx-map"></i>
+
+                                <span>
+                                  {{ business.location }}
+                                </span>
+                              </span>
+                            </div>
+
+                            <!-- BOTTOM -->
+
+                            <div class="map-business-bottom">
+                              <!-- RATING -->
+
+                              <span class="map-rating">
+                                <i class="bx bxs-star"></i>
+
+                                <strong>
+                                  {{ business.rating.toFixed(1) }}
+                                </strong>
+
+                                <span> ({{ business.reviews }}) </span>
+                              </span>
+
+                              <!-- ARROW -->
+
+                              <i
+                                class="bx bx-right-arrow-alt map-business-arrow"
+                              ></i>
+                            </div>
+                          </div>
+                        </article>
+                      }
+                    </div>
+                  } @else {
+                    <!-- =================================================
+                         MAP EMPTY
+                    ================================================== -->
+
+                    <div class="map-empty">
+                      <div class="map-empty-icon">
+                        <i class="bx bx-map-alt"></i>
+                      </div>
+
+                      <h3>No businesses found</h3>
+
+                      <p>Try changing your filters.</p>
+
+                      @if (hasActiveFilters()) {
+                        <button type="button" (click)="clearFilters()">
+                          Clear filters
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              </aside>
+            </div>
+          }
+        }
+      </main>
+    </div>
+  </div>
+</section>

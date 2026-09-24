@@ -1,0 +1,21 @@
+<section class="section popular-section">
+  <div class="container">
+    <div class="section-header-row">
+      <div>
+        <span class="section-label"> TRENDING </span>
+
+        <h2 class="section-title">Popular this week</h2>
+
+        <p class="section-subtitle">
+          Businesses getting attention from local users.
+        </p>
+      </div>
+    </div>
+
+    <div class="business-grid">
+      @for (business of businesses; track business.id) {
+        <app-business-card [business]="business" />
+      }
+    </div>
+  </div>
+</section>

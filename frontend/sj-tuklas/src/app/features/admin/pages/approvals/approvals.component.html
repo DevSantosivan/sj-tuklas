@@ -1,0 +1,413 @@
+<section class="approvals-page">
+  <div class="container">
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <header class="page-header">
+      <div class="header-content">
+        <span class="eyebrow">
+          <i class="bx bx-store"></i>
+          ADMIN / APPROVALS
+        </span>
+
+        <h1>Business Approvals</h1>
+
+        <p>
+          Review and manage businesses submitted to
+          <strong>SJ Tuklas</strong>.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="refresh-button"
+        [disabled]="isRefreshing()"
+        (click)="refresh()"
+      >
+        <i
+          class="bx"
+          [class.bx-refresh]="!isRefreshing()"
+          [class.bx-loader-alt]="isRefreshing()"
+        ></i>
+
+        <span>
+          {{ isRefreshing() ? "Refreshing..." : "Refresh" }}
+        </span>
+      </button>
+    </header>
+
+    <!-- =====================================================
+         ERROR
+    ====================================================== -->
+
+    @if (errorMessage(); as error) {
+      <div class="error-message">
+        <div class="error-icon">
+          <i class="bx bx-error-circle"></i>
+        </div>
+
+        <div class="error-content">
+          <strong>Something went wrong</strong>
+          <span>{{ error }}</span>
+        </div>
+
+        <button
+          type="button"
+          class="error-close"
+          (click)="errorMessage.set(null)"
+        >
+          <i class="bx bx-x"></i>
+        </button>
+      </div>
+    }
+
+    <!-- =====================================================
+         CONTENT
+    ====================================================== -->
+
+    <div class="approval-layout">
+      <main class="approval-main">
+        <!-- =================================================
+             STATS
+        ================================================== -->
+
+        <section class="approval-stats">
+          <article class="stat-card">
+            <div class="stat-icon">
+              <i class="bx bx-time-five"></i>
+            </div>
+
+            <div class="stat-content">
+              <span>Pending</span>
+              <strong>{{ pendingBusinesses().length }}</strong>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-icon">
+              <i class="bx bx-check"></i>
+            </div>
+
+            <div class="stat-content">
+              <span>Approved</span>
+              <strong>{{ approvedCount() }}</strong>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-icon">
+              <i class="bx bx-x"></i>
+            </div>
+
+            <div class="stat-content">
+              <span>Rejected</span>
+              <strong>{{ rejectedCount() }}</strong>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-icon">
+              <i class="bx bx-store"></i>
+            </div>
+
+            <div class="stat-content">
+              <span>Total Businesses</span>
+              <strong>{{ totalCount() }}</strong>
+            </div>
+          </article>
+        </section>
+
+        <!-- =================================================
+             PENDING APPLICATIONS
+        ================================================== -->
+
+        <section class="approval-section">
+          <div class="section-heading">
+            <span> BUSINESS REGISTRATION </span>
+
+            <div class="section-title-row">
+              <h2>Pending Applications</h2>
+
+              <span class="application-count">
+                {{ pendingBusinesses().length }}
+              </span>
+            </div>
+          </div>
+
+          <!-- =================================================
+               LOADING
+          ================================================== -->
+
+          @if (isLoading()) {
+            <div class="loading-state">
+              <div class="loading-icon">
+                <i class="bx bx-loader-alt"></i>
+              </div>
+
+              <strong> Loading applications </strong>
+
+              <span>
+                Please wait while we load the business applications.
+              </span>
+            </div>
+          } @else {
+            <!-- =================================================
+                 LIST
+            ================================================== -->
+
+            @if (pendingBusinesses().length > 0) {
+              <div class="approval-list">
+                @for (business of pendingBusinesses(); track business.id) {
+                  <article class="business-card">
+                    <!-- BUSINESS -->
+                    <div class="business-main">
+                      <div class="business-image">
+                        @if (business.image) {
+                          <img [src]="business.image" [alt]="business.name" />
+                        } @else {
+                          <div class="image-placeholder">
+                            <i class="bx bx-store"></i>
+                          </div>
+                        }
+                      </div>
+
+                      <div class="business-info">
+                        <div class="business-heading">
+                          <div class="business-heading-copy">
+                            <span class="business-label">
+                              BUSINESS APPLICATION
+                            </span>
+
+                            <h3>
+                              {{ business.name }}
+                            </h3>
+                          </div>
+
+                          <span class="status pending">
+                            <span></span>
+                            Pending
+                          </span>
+                        </div>
+
+                        <p class="business-type">
+                          {{ business.businessType || business.category }}
+                        </p>
+
+                        <div class="business-meta">
+                          <span>
+                            <i class="bx bx-category"></i>
+                            {{ business.category }}
+                          </span>
+
+                          <span>
+                            <i class="bx bx-map"></i>
+                            {{ business.barangay || business.location }}
+                          </span>
+
+                          <span>
+                            <i class="bx bx-calendar"></i>
+                            {{ business.createdAt | date: "MMM d, y" }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- =================================================
+                         ACTIONS
+                    ================================================== -->
+
+                    <div class="business-actions">
+                      <!-- VIEW -->
+                      <button
+                        type="button"
+                        class="view-button"
+                        (click)="viewBusiness(business)"
+                      >
+                        <i class="bx bx-show"></i>
+                        <span>View</span>
+                      </button>
+
+                      <!-- REJECT -->
+                      <button
+                        type="button"
+                        class="reject-button"
+                        [disabled]="actionBusinessId() !== null"
+                        (click)="rejectBusiness(business)"
+                      >
+                        @if (isProcessing(business.id)) {
+                          <i class="bx bx-loader-alt"></i>
+                        } @else {
+                          <i class="bx bx-x"></i>
+                        }
+
+                        <span> Reject </span>
+                      </button>
+
+                      <!-- APPROVE -->
+                      <button
+                        type="button"
+                        class="approve-button"
+                        [disabled]="actionBusinessId() !== null"
+                        (click)="approveBusiness(business)"
+                      >
+                        @if (isProcessing(business.id)) {
+                          <i class="bx bx-loader-alt"></i>
+                        } @else {
+                          <i class="bx bx-check"></i>
+                        }
+
+                        <span> Approve </span>
+                      </button>
+                    </div>
+                  </article>
+                }
+              </div>
+            } @else {
+              <!-- EMPTY -->
+
+              <div class="empty-state">
+                <div class="empty-icon">
+                  <i class="bx bx-check-circle"></i>
+                </div>
+
+                <span class="eyebrow"> ALL CLEAR </span>
+
+                <h3>No pending applications</h3>
+
+                <p>
+                  New business registrations will appear here when they are
+                  submitted.
+                </p>
+              </div>
+            }
+          }
+
+          <!-- FOOTER -->
+
+          @if (!isLoading() && pendingBusinesses().length > 0) {
+            <footer class="table-footer">
+              <span>
+                Showing
+
+                <strong>
+                  {{ pendingBusinesses().length }}
+                </strong>
+
+                pending application{{
+                  pendingBusinesses().length === 1 ? "" : "s"
+                }}
+              </span>
+            </footer>
+          }
+        </section>
+      </main>
+
+      <!-- =====================================================
+           SIDEBAR
+      ====================================================== -->
+
+      <aside class="approval-sidebar">
+        <div class="info-card">
+          <div class="card-title">
+            <i class="bx bx-bar-chart-alt-2"></i>
+
+            <strong> Approval overview </strong>
+          </div>
+
+          <div class="info-item">
+            <i class="bx bx-time-five"></i>
+
+            <div>
+              <span> Pending review </span>
+
+              <strong>
+                {{ pendingBusinesses().length }}
+                application{{ pendingBusinesses().length === 1 ? "" : "s" }}
+              </strong>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <i class="bx bx-check-circle"></i>
+
+            <div>
+              <span> Approved businesses </span>
+
+              <strong>
+                {{ approvedCount() }}
+              </strong>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <i class="bx bx-x-circle"></i>
+
+            <div>
+              <span> Rejected businesses </span>
+
+              <strong>
+                {{ rejectedCount() }}
+              </strong>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <i class="bx bx-store"></i>
+
+            <div>
+              <span> Total businesses </span>
+
+              <strong>
+                {{ totalCount() }}
+              </strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="notice-card">
+          <i class="bx bx-check-circle"></i>
+
+          <div>
+            <strong> Approval workflow </strong>
+
+            <p>
+              Open an application to review the complete business information
+              before making a decision.
+            </p>
+          </div>
+        </div>
+
+        <div class="info-card secondary-card">
+          <div class="card-title">
+            <i class="bx bx-info-circle"></i>
+
+            <strong> Admin information </strong>
+          </div>
+
+          <div class="admin-note">
+            <span>
+              <i class="bx bx-show"></i>
+              View complete application
+            </span>
+
+            <span>
+              <i class="bx bx-check"></i>
+              Approve verified businesses
+            </span>
+
+            <span>
+              <i class="bx bx-x"></i>
+              Reject incomplete applications
+            </span>
+
+            <span>
+              <i class="bx bx-refresh"></i>
+              Refresh to get latest records
+            </span>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>

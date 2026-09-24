@@ -1,0 +1,130 @@
+<section class="login-page">
+  <div class="login-container">
+    <!-- HEADER -->
+    <div class="login-header">
+      <!-- <a routerLink="/" class="brand">
+        <span class="brand-mark">SJ</span>
+        <span class="brand-name">Tuklas</span>
+      </a> -->
+
+      <div class="header-text">
+        <span class="eyebrow">WELCOME BACK</span>
+
+        <h1>Sign in to SJ Tuklas.</h1>
+
+        <p>
+          Access your account, manage your activity, and continue discovering
+          local businesses around San Jose.
+        </p>
+      </div>
+    </div>
+
+    <!-- FORM CARD -->
+    <div class="login-card">
+      <div class="card-heading">
+        <div>
+          <span class="section-label">ACCOUNT ACCESS</span>
+          <h2>Sign in</h2>
+        </div>
+      </div>
+
+      <form (submit)="onLogin(); $event.preventDefault()">
+        <!-- EMAIL -->
+        <div class="form-group">
+          <label for="email"> Email address </label>
+
+          <input
+            id="email"
+            name="email"
+            type="email"
+            [(ngModel)]="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+            [disabled]="isLoading"
+          />
+        </div>
+
+        <!-- PASSWORD -->
+        <div class="form-group">
+          <div class="label-row">
+            <label for="password"> Password </label>
+
+            <a routerLink="/forgot-password"> Forgot password? </a>
+          </div>
+
+          <div class="password-field">
+            <input
+              id="password"
+              name="password"
+              [type]="showPassword ? 'text' : 'password'"
+              [(ngModel)]="password"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+              [disabled]="isLoading"
+            />
+
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="showPassword = !showPassword"
+              [disabled]="isLoading"
+              [attr.aria-label]="
+                showPassword ? 'Hide password' : 'Show password'
+              "
+            >
+              <i
+                class="bx"
+                [class.bx-show]="!showPassword"
+                [class.bx-hide]="showPassword"
+              ></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- ERROR -->
+        @if (errorMessage) {
+          <div class="form-error">
+            <i class="bx bx-error-circle"></i>
+
+            <span>
+              {{ errorMessage }}
+            </span>
+          </div>
+        }
+
+        <!-- LOGIN -->
+        <button type="submit" class="submit-button" [disabled]="isLoading">
+          @if (isLoading) {
+            <i class="bx bx-loader-alt bx-spin"></i>
+            Signing in...
+          } @else {
+            Sign in
+            <i class="bx bx-right-arrow-alt"></i>
+          }
+        </button>
+      </form>
+
+      <!-- CUSTOMER REGISTER -->
+      <div class="register-footer">
+        <span> Don't have a customer account? </span>
+
+        <a routerLink="/register"> Create account </a>
+      </div>
+
+      <!-- BUSINESS OWNER -->
+      <div class="business-footer">
+        <span> Are you a business owner? </span>
+
+        <a routerLink="/business/register"> List your business </a>
+      </div>
+    </div>
+
+    <!-- VISITOR -->
+    <div class="visitor-link">
+      <a routerLink="/">
+        <i class="bx bx-arrow-back"></i>
+        Continue as visitor
+      </a>
+    </div>
+  </div>
+</section>

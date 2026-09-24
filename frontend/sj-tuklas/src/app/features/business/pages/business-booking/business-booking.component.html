@@ -1,0 +1,235 @@
+@if (business(); as business) {
+  <section class="booking-page">
+    <div class="container">
+      <a [routerLink]="['/business', business.id]" class="back-link">
+        <i class="bx bx-left-arrow-alt"></i>
+        Back to business
+      </a>
+
+      @if (bookingEnabled()) {
+        <!-- HEADER -->
+        <div class="page-header">
+          <div class="header-content">
+            <span class="eyebrow">
+              <i class="bx bx-calendar"></i>
+              BOOKING
+            </span>
+
+            <h1>Book an appointment</h1>
+
+            <p>
+              Choose your preferred date and time with
+              <strong>{{ business.name }}</strong
+              >.
+            </p>
+          </div>
+
+          <div class="business-mini">
+            <img [src]="business.image" [alt]="business.name" />
+
+            <div>
+              <strong>{{ business.name }}</strong>
+
+              <span>
+                <i class="bx bx-map"></i>
+                {{ business.location }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- BOOKING CARD -->
+        <div class="booking-layout">
+          <main class="booking-card">
+            <div class="section-heading">
+              <span>APPOINTMENT</span>
+              <h2>Select your schedule</h2>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="date"> Date </label>
+
+                <div class="input-wrapper">
+                  <i class="bx bx-calendar"></i>
+
+                  <input id="date" type="date" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="time"> Time </label>
+
+                <div class="input-wrapper">
+                  <i class="bx bx-time-five"></i>
+
+                  <select id="time">
+                    <option value="">Select a time</option>
+
+                    <option>9:00 AM</option>
+                    <option>10:00 AM</option>
+                    <option>11:00 AM</option>
+                    <option>1:00 PM</option>
+                    <option>2:00 PM</option>
+                    <option>3:00 PM</option>
+                    <option>4:00 PM</option>
+                    <option>5:00 PM</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="service"> Service </label>
+
+              <div class="input-wrapper">
+                <i class="bx bx-briefcase"></i>
+
+                <select id="service">
+                  <option value="">Select a service</option>
+
+                  <option>General Appointment</option>
+                  <option>Consultation</option>
+                  <option>Standard Service</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <div class="section-heading small">
+              <span>YOUR INFORMATION</span>
+              <h2>Contact details</h2>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="name"> Full name </label>
+
+                <div class="input-wrapper">
+                  <i class="bx bx-user"></i>
+
+                  <input id="name" type="text" placeholder="Your full name" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="phone"> Phone number </label>
+
+                <div class="input-wrapper">
+                  <i class="bx bx-phone"></i>
+
+                  <input id="phone" type="tel" placeholder="09XX XXX XXXX" />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="notes">
+                Additional notes
+                <span>Optional</span>
+              </label>
+
+              <textarea
+                id="notes"
+                rows="4"
+                placeholder="Anything you'd like the business to know?"
+              ></textarea>
+            </div>
+
+            <button type="button" class="submit-button">
+              <i class="bx bx-calendar-check"></i>
+              Request booking
+            </button>
+          </main>
+
+          <!-- SIDEBAR -->
+          <aside>
+            <div class="info-card">
+              <div class="card-title">
+                <i class="bx bx-info-circle"></i>
+                <strong>Booking information</strong>
+              </div>
+
+              <div class="info-item">
+                <i class="bx bx-time-five"></i>
+
+                <div>
+                  <span>Business hours</span>
+                  <strong>
+                    {{ business.hours || "Hours not available" }}
+                  </strong>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <i class="bx bx-map"></i>
+
+                <div>
+                  <span>Location</span>
+                  <strong>{{ business.location }}</strong>
+                </div>
+              </div>
+
+              @if (business.phone) {
+                <div class="info-item">
+                  <i class="bx bx-phone"></i>
+
+                  <div>
+                    <span>Contact</span>
+                    <strong>{{ business.phone }}</strong>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <div class="notice-card">
+              <i class="bx bx-check-circle"></i>
+
+              <div>
+                <strong>How it works</strong>
+
+                <p>
+                  Submit your preferred schedule and wait for the business to
+                  confirm your booking.
+                </p>
+              </div>
+            </div>
+          </aside>
+        </div>
+      } @else {
+        <div class="unavailable-state">
+          <div class="empty-icon">
+            <i class="bx bx-calendar-x"></i>
+          </div>
+
+          <span class="eyebrow"> BOOKING UNAVAILABLE </span>
+
+          <h1>Online booking isn't available</h1>
+
+          <p>
+            {{ business.name }} does not currently offer online booking through
+            SJ Tuklas.
+          </p>
+
+          <a [routerLink]="['/business', business.id]" class="primary-action">
+            <i class="bx bx-left-arrow-alt"></i>
+            Back to business
+          </a>
+        </div>
+      }
+    </div>
+  </section>
+} @else {
+  <section class="unavailable-state">
+    <div class="container">
+      <div class="empty-icon">
+        <i class="bx bx-store-alt"></i>
+      </div>
+
+      <h1>Business not found</h1>
+
+      <a routerLink="/search" class="primary-action"> Back to businesses </a>
+    </div>
+  </section>
+}

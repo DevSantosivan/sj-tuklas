@@ -1,0 +1,381 @@
+<section class="bookings-page">
+  <!-- =====================================================
+       PAGE HEADER
+  ====================================================== -->
+
+  <header class="bookings-header">
+    <div class="header-copy">
+      <span class="eyebrow">MY DASHBOARD</span>
+
+      <div class="title-row">
+        <div class="title-content">
+          <h1>Bookings</h1>
+
+          <p>
+            Keep track of your appointments, reservations, and booking requests.
+          </p>
+        </div>
+
+        <div class="booking-count">
+          <i class="bx bx-calendar-check"></i>
+
+          <div>
+            <strong>{{ totalBookings }}</strong>
+            <span>Total bookings</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =====================================================
+       BOOKING OVERVIEW
+  ====================================================== -->
+
+  <section class="booking-overview">
+    <div class="overview-card">
+      <div class="overview-icon upcoming-icon">
+        <i class="bx bx-calendar-event"></i>
+      </div>
+
+      <div class="overview-content">
+        <span>Upcoming</span>
+        <strong>{{ upcomingCount }}</strong>
+        <small>Scheduled bookings</small>
+      </div>
+    </div>
+
+    <div class="overview-card">
+      <div class="overview-icon pending-icon">
+        <i class="bx bx-time-five"></i>
+      </div>
+
+      <div class="overview-content">
+        <span>Pending</span>
+        <strong>{{ pendingCount }}</strong>
+        <small>Awaiting confirmation</small>
+      </div>
+    </div>
+
+    <div class="overview-card">
+      <div class="overview-icon completed-icon">
+        <i class="bx bx-check-circle"></i>
+      </div>
+
+      <div class="overview-content">
+        <span>Completed</span>
+        <strong>{{ completedCount }}</strong>
+        <small>Finished bookings</small>
+      </div>
+    </div>
+
+    <div class="overview-card">
+      <div class="overview-icon cancelled-icon">
+        <i class="bx bx-x-circle"></i>
+      </div>
+
+      <div class="overview-content">
+        <span>Cancelled</span>
+        <strong>{{ cancelledCount }}</strong>
+        <small>Cancelled bookings</small>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       SEARCH
+  ====================================================== -->
+
+  <section class="toolbar">
+    <div class="search-box">
+      <i class="bx bx-search"></i>
+
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="Search bookings, businesses, services..."
+        aria-label="Search bookings"
+      />
+
+      <button
+        *ngIf="searchTerm"
+        type="button"
+        class="clear-search"
+        (click)="clearSearch()"
+        aria-label="Clear search"
+      >
+        <i class="bx bx-x"></i>
+      </button>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       STATUS FILTER
+  ====================================================== -->
+
+  <section class="status-section">
+    <div class="section-heading">
+      <div>
+        <span class="section-label">YOUR BOOKINGS</span>
+
+        <h2>
+          {{ selectedStatusName }}
+        </h2>
+      </div>
+
+      <span class="result-count">
+        {{ filteredBookings.length }}
+        {{ filteredBookings.length === 1 ? "booking" : "bookings" }}
+      </span>
+    </div>
+
+    <div class="status-list">
+      <button
+        *ngFor="let option of statusOptions"
+        type="button"
+        class="status-chip"
+        [class.active]="selectedStatus === option.id"
+        [class.status-upcoming]="option.id === 'upcoming'"
+        [class.status-pending]="option.id === 'pending'"
+        [class.status-completed]="option.id === 'completed'"
+        [class.status-cancelled]="option.id === 'cancelled'"
+        (click)="selectStatus(option.id)"
+      >
+        <span class="chip-icon">
+          <i class="bx" [ngClass]="option.icon"></i>
+        </span>
+
+        <span>{{ option.name }}</span>
+
+        <strong>
+          {{
+            option.id === "all"
+              ? totalBookings
+              : option.id === "upcoming"
+                ? upcomingCount
+                : option.id === "pending"
+                  ? pendingCount
+                  : option.id === "completed"
+                    ? completedCount
+                    : cancelledCount
+          }}
+        </strong>
+      </button>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       BOOKINGS
+  ====================================================== -->
+
+  <section class="bookings-content">
+    <!-- ===================================================
+         BOOKING GRID
+    ==================================================== -->
+
+    <div *ngIf="filteredBookings.length > 0" class="bookings-grid">
+      <article
+        *ngFor="let booking of filteredBookings; trackBy: trackByBooking"
+        class="booking-card"
+      >
+        <!-- ===============================================
+             CARD HEADER
+        ================================================ -->
+
+        <div class="booking-card-header">
+          <div class="booking-business">
+            <div class="business-avatar">
+              <img [src]="booking.image" [alt]="booking.businessName" />
+            </div>
+
+            <div class="business-info">
+              <h3>
+                {{ booking.businessName }}
+              </h3>
+
+              <span>
+                <i class="bx bx-map"></i>
+                {{ booking.location }}
+              </span>
+            </div>
+          </div>
+
+          <div
+            class="booking-status"
+            [class.upcoming]="booking.status === 'upcoming'"
+            [class.pending]="booking.status === 'pending'"
+            [class.completed]="booking.status === 'completed'"
+            [class.cancelled]="booking.status === 'cancelled'"
+          >
+            <span class="status-dot"></span>
+
+            {{ getStatusLabel(booking.status) }}
+          </div>
+        </div>
+
+        <!-- ===============================================
+             SERVICE
+        ================================================ -->
+
+        <div class="booking-service">
+          <span class="service-label"> SERVICE </span>
+
+          <strong>
+            {{ booking.service }}
+          </strong>
+
+          <span class="booking-reference"> #{{ booking.reference }} </span>
+        </div>
+
+        <!-- ===============================================
+             DATE / TIME
+        ================================================ -->
+
+        <div class="booking-schedule">
+          <div class="schedule-item">
+            <div class="schedule-icon">
+              <i class="bx bx-calendar"></i>
+            </div>
+
+            <div>
+              <span>Date</span>
+
+              <strong>
+                {{ booking.date }}
+              </strong>
+            </div>
+          </div>
+
+          <div class="schedule-divider"></div>
+
+          <div class="schedule-item">
+            <div class="schedule-icon">
+              <i class="bx bx-time-five"></i>
+            </div>
+
+            <div>
+              <span>Time</span>
+
+              <strong>
+                {{ booking.time }}
+              </strong>
+            </div>
+          </div>
+
+          <div class="schedule-divider"></div>
+
+          <div class="schedule-item">
+            <div class="schedule-icon">
+              <i class="bx bx-group"></i>
+            </div>
+
+            <div>
+              <span>Guests</span>
+
+              <strong>
+                {{ booking.guests }}
+                {{ booking.guests === 1 ? "person" : "people" }}
+              </strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===============================================
+             CREATED
+        ================================================ -->
+
+        <div class="booking-created">
+          <span>
+            <i class="bx bx-history"></i>
+            Booked {{ booking.createdAt }}
+          </span>
+        </div>
+
+        <!-- ===============================================
+             ACTIONS
+        ================================================ -->
+
+        <div class="booking-actions">
+          <button
+            type="button"
+            class="view-button"
+            (click)="viewBooking(booking)"
+          >
+            <span>View booking</span>
+            <i class="bx bx-right-arrow-alt"></i>
+          </button>
+
+          <button
+            *ngIf="
+              booking.status === 'upcoming' || booking.status === 'pending'
+            "
+            type="button"
+            class="cancel-button"
+            (click)="cancelBooking(booking)"
+          >
+            Cancel
+          </button>
+
+          <button
+            *ngIf="booking.status === 'completed'"
+            type="button"
+            class="book-again-button"
+            (click)="bookAgain(booking)"
+          >
+            Book again
+          </button>
+        </div>
+      </article>
+    </div>
+
+    <!-- ===================================================
+         SEARCH EMPTY
+    ==================================================== -->
+
+    <div
+      *ngIf="bookings.length > 0 && filteredBookings.length === 0"
+      class="empty-state"
+    >
+      <div class="empty-icon">
+        <i class="bx bx-search"></i>
+      </div>
+
+      <span class="empty-eyebrow"> NO MATCHES </span>
+
+      <h3>No bookings found</h3>
+
+      <p>
+        We couldn't find any bookings matching your search or selected status.
+      </p>
+
+      <button type="button" class="reset-button" (click)="resetFilters()">
+        <i class="bx bx-refresh"></i>
+        Reset filters
+      </button>
+    </div>
+
+    <!-- ===================================================
+         NO BOOKINGS
+    ==================================================== -->
+
+    <div *ngIf="bookings.length === 0" class="empty-state empty-bookings">
+      <div class="empty-icon large">
+        <i class="bx bx-calendar"></i>
+      </div>
+
+      <span class="empty-eyebrow"> YOUR BOOKINGS </span>
+
+      <h3>No bookings yet</h3>
+
+      <p>
+        Book a service, reserve a table, schedule an appointment, or find a
+        place to stay.
+      </p>
+
+      <a routerLink="/search" class="discover-button">
+        Discover businesses
+        <i class="bx bx-right-arrow-alt"></i>
+      </a>
+    </div>
+  </section>
+</section>

@@ -1,0 +1,16 @@
+<a
+  class="category-card"
+  [routerLink]="['/search']"
+  [queryParams]="{ category: category().slug }"
+>
+  <div class="icon">
+    <i [class]="category().icon"></i>
+  </div>
+
+  <div class="content">
+    <strong>{{ category().name }}</strong>
+    <span>{{ category().count }} businesses</span>
+  </div>
+
+  <i class="bx bx-right-arrow-alt arrow"></i>
+</a>

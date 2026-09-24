@@ -1,0 +1,1438 @@
+@if (isLoading()) {
+  <app-empty-state
+    [loading]="true"
+    message="Please wait while we load the business details."
+  />
+} @else {
+  @if (business(); as business) {
+    <section class="details-page">
+      <div class="container">
+        <!-- =====================================================
+             BACK
+        ====================================================== -->
+
+        <a routerLink="/search" class="back-link">
+          <i class="bx bx-left-arrow-alt"></i>
+          <span>Back to results</span>
+        </a>
+
+        <!-- =====================================================
+             BUSINESS HERO
+        ====================================================== -->
+
+        <section class="business-profile-hero">
+          <!-- COVER -->
+          <div class="business-cover">
+            @if (business.image) {
+              <img [src]="business.coverImage" />
+            } @else {
+              <!-- <img
+                src="https://scontent.fpag2-1.fna.fbcdn.net/v/t39.30808-6/705018751_1795954424914995_7627024806753910760_n.jpg?stp=dst-jpg_tt6&cstp=mx1942x809&ctp=s1942x809&_nc_cat=111&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=cc71e4&_nc_eui2=AeGu4lESyvnmeerVMFJlZ-2U_RKBatd87uT9EoFq13zu5N5cGBSyaXHcTPfDv6Zb3mA1r6Ee6Q82hsc4XrJ1pygZ&_nc_ohc=WC_Atvpt1YIQ7kNvwHyNe3r&_nc_oc=AdqWHLb-IqnYeFIyW7n_s9frU8cWbA1Vq5pvxwErD_3vzElPooIgUaLrM8Xb9VPPHaE&_nc_zt=23&_nc_ht=scontent.fpag2-1.fna&_nc_gid=gVHSE_pT1V1WTN1jGF-oIg&_nc_ss=7b2a8&oh=00_AQJcDIFHnaJrWg2iYtJVNaX-X80_aOUNEJ9OxXzpYZ5GQQ&oe=6AB8BE14"
+              /> -->
+            }
+
+            <div class="cover-overlay"></div>
+
+            <!-- COVER TOP -->
+
+            <div class="cover-top">
+              <span class="cover-location">
+                <i class="bx bx-map"></i>
+                San Jose, Occidental Mindoro
+              </span>
+
+              @if (isOpenToday()) {
+                <span class="business-status is-open">
+                  <span class="status-dot"></span>
+                  Open today
+                </span>
+              } @else {
+                <span class="business-status is-closed">
+                  <span class="status-dot"></span>
+                  Closed today
+                </span>
+              }
+            </div>
+
+            <!-- COVER BOTTOM -->
+
+            <div class="cover-bottom">
+              <div class="cover-category">
+                {{ business.category }}
+              </div>
+
+              <div class="cover-title">
+                {{ business.name }}
+              </div>
+            </div>
+          </div>
+
+          <!-- ===================================================
+               BUSINESS PROFILE
+          ==================================================== -->
+
+          <div class="business-profile-content">
+            <div class="business-profile-main">
+              <!-- PROFILE IMAGE -->
+
+              <div class="profile-image-wrapper">
+                @if (business.image) {
+                  <img
+                    [src]="business.profileImage"
+                    [alt]="business.name + ' profile photo'"
+                    class="profile-image"
+                  />
+                } @else {
+                  <img
+                    src="https://scontent.fpag2-1.fna.fbcdn.net/v/t39.30808-6/704229271_1795953418248429_1562206046226465196_n.jpg?stp=dst-jpg_tt6&cstp=mx1254x1254&ctp=s1254x1254&_nc_cat=104&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeGnV9hUrBDwoVwhxYhVkNnVmQwrDM07yu-ZDCsMzTvK78zbGxo9tvA_xAPQhPS2B2C0_PATJkMyyryk8AqV_RNR&_nc_ohc=uUCeFjkpzh8Q7kNvwGBDlq1&_nc_oc=AdoBrXolW-c0AFk5JXM2ovM7QPLNcrrGfQ6j3oKQ6DASqsIX035AqytrAIe64j-ZAQs&_nc_zt=23&_nc_ht=scontent.fpag2-1.fna&_nc_gid=fYifAcugehPwb_m3Ksunwg&_nc_ss=7b2a8&oh=00_AQKOh29-2GuY75vnZfsPLjG61HLwhnhZ_gCw6xiCwdpYKw&oe=6AB8A51F"
+                    [alt]="business.name + ' default profile'"
+                    class="profile-image"
+                  />
+                }
+
+                @if (business.verified) {
+                  <span class="profile-verified-badge">
+                    <i class="bx bx-check"></i>
+                  </span>
+                }
+              </div>
+
+              <!-- BUSINESS INFO -->
+
+              <div class="business-profile-info">
+                <!-- BADGES -->
+
+                <div class="top-row">
+                  <span class="category">
+                    {{ business.category }}
+                  </span>
+
+                  @if (business.verified) {
+                    <span class="verified">
+                      <i class="bx bx-check"></i>
+                      Verified
+                    </span>
+                  }
+
+                  @if (business.isPro) {
+                    <span class="pro-badge">
+                      <i class="bx bxs-bolt"></i>
+                      PRO
+                    </span>
+                  }
+                </div>
+
+                <!-- NAME -->
+
+                <h1>
+                  {{ business.name }}
+                </h1>
+
+                <!-- RATING -->
+
+                <div class="rating-row">
+                  <span class="rating">
+                    <i class="bx bxs-star"></i>
+                    {{ business.rating }}
+                  </span>
+
+                  <span class="rating-divider"></span>
+
+                  <span>
+                    {{ business.reviews }}
+                    {{ business.reviews === 1 ? "review" : "reviews" }}
+                  </span>
+                </div>
+
+                <!-- LOCATION -->
+
+                <div class="location">
+                  <i class="bx bx-map"></i>
+
+                  <span>
+                    {{ business.location }}
+                  </span>
+                </div>
+
+                <!-- ACTIONS -->
+
+                <div class="actions">
+                  @if (business.phone) {
+                    <a class="primary-action" [href]="'tel:' + business.phone">
+                      <i class="bx bx-phone"></i>
+                      <span>Contact</span>
+                    </a>
+                  }
+
+                  <button
+                    type="button"
+                    class="secondary-action"
+                    (click)="openDirections()"
+                  >
+                    <i class="bx bx-navigation"></i>
+                    <span>Directions</span>
+                  </button>
+
+                  <!-- FAVORITE -->
+
+                  <button
+                    type="button"
+                    class="favorite-action"
+                    [class.is-favorite]="isFavorite()"
+                    [attr.aria-label]="
+                      isFavorite()
+                        ? 'Remove from favorites'
+                        : 'Add to favorites'
+                    "
+                    (click)="toggleFavorite()"
+                  >
+                    <i
+                      class="bx"
+                      [class.bxs-heart]="isFavorite()"
+                      [class.bx-heart]="!isFavorite()"
+                    ></i>
+
+                    <span>
+                      {{ isFavorite() ? "Favorited" : "Favorite" }}
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =====================================================
+             TAB BAR
+        ====================================================== -->
+
+        <nav class="business-tabs" aria-label="Business sections">
+          <!-- OVERVIEW -->
+
+          <button
+            type="button"
+            class="business-tab"
+            [class.active]="activeTab() === 'overview'"
+            (click)="setActiveTab('overview')"
+          >
+            <i class="bx bx-home-alt"></i>
+            <span>Overview</span>
+          </button>
+
+          <!-- REVIEWS -->
+
+          <button
+            type="button"
+            class="business-tab"
+            [class.active]="activeTab() === 'reviews'"
+            (click)="setActiveTab('reviews')"
+          >
+            <i class="bx bx-star"></i>
+            <span>Reviews</span>
+          </button>
+
+          <!-- PHOTOS -->
+
+          <button
+            type="button"
+            class="business-tab"
+            [class.active]="activeTab() === 'photos'"
+            (click)="setActiveTab('photos')"
+          >
+            <i class="bx bx-images"></i>
+            <span>Photos</span>
+          </button>
+
+          <!-- ABOUT -->
+
+          <button
+            type="button"
+            class="business-tab"
+            [class.active]="activeTab() === 'about'"
+            (click)="setActiveTab('about')"
+          >
+            <i class="bx bx-info-circle"></i>
+            <span>About</span>
+          </button>
+        </nav>
+
+        <!-- =====================================================
+             OVERVIEW TAB
+
+             ORDER:
+             1. FEATURES
+             2. PHOTOS
+             3. ABOUT
+             4. LOCATION
+             5. REVIEWS
+        ====================================================== -->
+
+        @if (activeTab() === "overview") {
+          <div class="tab-section">
+            <!-- =================================================
+                 1. FEATURES
+            ================================================== -->
+
+            @if (business.isPro && features().length > 0) {
+              <section class="overview-card">
+                <div class="card-heading">
+                  <div>
+                    <span>FEATURES</span>
+
+                    <h3>Explore {{ business.name }}</h3>
+                  </div>
+                </div>
+
+                <div class="features-grid">
+                  @for (feature of features(); track feature.key) {
+                    <a class="feature-card" [routerLink]="feature.route">
+                      <div class="feature-icon">
+                        <i [class]="'bx ' + feature.icon"></i>
+                      </div>
+
+                      <div class="feature-content">
+                        <strong>
+                          {{ feature.title }}
+                        </strong>
+
+                        <span>
+                          {{ feature.description }}
+                        </span>
+                      </div>
+
+                      <i class="bx bx-right-arrow-alt feature-arrow"></i>
+                    </a>
+                  }
+                </div>
+              </section>
+            }
+
+            <!-- =================================================
+                 2. PHOTOS
+            ================================================== -->
+
+            <section class="overview-card photos-section">
+              <div class="card-heading">
+                <div>
+                  <span>PHOTOS</span>
+
+                  <h3>Photos from {{ business.name }}</h3>
+                </div>
+
+                <button
+                  type="button"
+                  class="card-link"
+                  (click)="setActiveTab('photos')"
+                >
+                  View all
+                  <i class="bx bx-right-arrow-alt"></i>
+                </button>
+              </div>
+
+              <p class="section-description">
+                Explore photos and get a better look at this business.
+              </p>
+
+              <div class="photo-gallery">
+                <!-- PHOTO 1 -->
+
+                <div class="photo-item photo-large">
+                  @if (business.image) {
+                    <img
+                      [src]="business.image"
+                      [alt]="business.name + ' photo'"
+                      loading="lazy"
+                    />
+                  } @else {
+                    <img
+                      src="https://scontent.fpag2-1.fna.fbcdn.net/v/t39.30808-6/705745432_122095780635341323_7558080393911335436_n.jpg?stp=dst-jpg_tt6&cstp=mx1254x1254&ctp=s1254x1254&_nc_cat=111&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=127cfc&_nc_eui2=AeF9Ds0PyNvK-d5tGTkZr4zpkVpqpM9YR1uRWmqkz1hHW_MOJMglqfExW7ibTpPMLd6yoaOLEi7_AFSuRVc9R5UI&_nc_ohc=NCSUAmpmSp4Q7kNvwHDn1qD&_nc_oc=AdpD8HIE_CY6byoEtBhwdK4UsyMDGLKzKFeruz2m9FNz5_OKQTVH3ECe1tjIf8lJ0UU&_nc_zt=23&_nc_ht=scontent.fpag2-1.fna&_nc_gid=gczy6_b-z36RkDwEbA2jZw&_nc_ss=7b2a8&oh=00_AQK3c4scFlWATX4Vr-GhYxmGkRqCbr6orAB82_K8-qD2Zg&oe=6ABA2F07"
+                      [alt]="business.name + ' photo'"
+                      loading="lazy"
+                    />
+                  }
+
+                  <div class="photo-overlay">
+                    <i class="bx bx-image"></i>
+                    <span>Business photo</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <br />
+
+            <!-- =================================================
+                 3. ABOUT
+            ================================================== -->
+
+            <section class="overview-card about-section">
+              <div class="card-heading">
+                <div>
+                  <span>ABOUT</span>
+
+                  <h3>About {{ business.name }}</h3>
+                </div>
+
+                <button
+                  type="button"
+                  class="card-link"
+                  (click)="setActiveTab('about')"
+                >
+                  View more
+                  <i class="bx bx-right-arrow-alt"></i>
+                </button>
+              </div>
+
+              <div class="about-layout">
+                <div class="about-main">
+                  <p class="about-description">
+                    {{ business.description }}
+                  </p>
+
+                  <p class="about-description">
+                    This business profile is part of SJ Tuklas, a local
+                    discovery platform for businesses, services, places and
+                    establishments around San Jose, Occidental Mindoro.
+                  </p>
+                </div>
+
+                <div class="about-details">
+                  <!-- CATEGORY -->
+
+                  <div class="about-detail">
+                    <i class="bx bx-category"></i>
+
+                    <div>
+                      <span>Category</span>
+
+                      <strong>
+                        {{ business.category }}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <!-- LOCATION -->
+
+                  <div class="about-detail">
+                    <i class="bx bx-map"></i>
+
+                    <div>
+                      <span>Location</span>
+
+                      <strong>
+                        {{ business.location }}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <!-- PHONE -->
+
+                  @if (business.phone) {
+                    <div class="about-detail">
+                      <i class="bx bx-phone"></i>
+
+                      <div>
+                        <span>Phone</span>
+
+                        <a [href]="'tel:' + business.phone">
+                          {{ business.phone }}
+                        </a>
+                      </div>
+                    </div>
+                  }
+
+                  <!-- HOURS -->
+
+                  @if (business.hours) {
+                    <div class="about-detail">
+                      <i class="bx bx-time-five"></i>
+
+                      <div>
+                        <span>Hours</span>
+
+                        <strong>
+                          {{ business.hours }}
+                        </strong>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            </section>
+            <br />
+
+            <!-- =================================================
+                 4. LOCATION
+            ================================================== -->
+
+            <section class="overview-card">
+              <div class="card-heading">
+                <div>
+                  <span>LOCATION</span>
+
+                  <h3>Find this business</h3>
+                </div>
+              </div>
+
+              <div class="overview-location">
+                <div class="location-icon">
+                  <i class="bx bx-map"></i>
+                </div>
+
+                <div>
+                  <strong>
+                    {{ business.location }}
+                  </strong>
+
+                  <span> San Jose, Occidental Mindoro </span>
+                </div>
+              </div>
+
+              @if (mapUrl(); as map) {
+                <div class="overview-map">
+                  <iframe
+                    title="Business location map"
+                    [src]="map"
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                  ></iframe>
+
+                  <div class="map-overlay">
+                    <div class="map-overlay-pin">
+                      <i class="bx bxs-map"></i>
+                    </div>
+
+                    <div>
+                      <strong>
+                        {{ business.name }}
+                      </strong>
+
+                      <span>
+                        {{ business.location }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              }
+
+              <a
+                class="map-button"
+                [href]="directionsUrl()"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <i class="bx bx-navigation"></i>
+
+                <span> Open in Google Maps </span>
+
+                <i class="bx bx-right-arrow-alt"></i>
+              </a>
+            </section>
+            <br />
+
+            <!-- =================================================
+                 5. REVIEWS
+            ================================================== -->
+
+            <section class="overview-card reviews-section">
+              <!-- REVIEW SUMMARY -->
+
+              <div class="reviews-summary">
+                <div class="reviews-summary-header">
+                  <div>
+                    <span class="section-eyebrow"> REVIEWS </span>
+
+                    <h2>Customer reviews</h2>
+                  </div>
+
+                  <button
+                    type="button"
+                    class="reviews-help"
+                    aria-label="About reviews"
+                  >
+                    <i class="bx bx-help-circle"></i>
+                  </button>
+                </div>
+
+                <div class="reviews-summary-content">
+                  <!-- RATING BREAKDOWN -->
+
+                  <div class="rating-breakdown">
+                    @for (rating of [5, 4, 3, 2, 1]; track rating) {
+                      <div class="rating-breakdown-row">
+                        <span class="rating-number">
+                          {{ rating }}
+                        </span>
+
+                        <div class="rating-bar">
+                          <div
+                            class="rating-bar-fill"
+                            [style.width.%]="
+                              rating === 5
+                                ? 78
+                                : rating === 4
+                                  ? 48
+                                  : rating === 3
+                                    ? 22
+                                    : rating === 2
+                                      ? 9
+                                      : 6
+                            "
+                          ></div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- OVERALL -->
+
+                  <div class="overall-rating">
+                    <strong class="overall-score">
+                      {{ business.rating }}
+                    </strong>
+
+                    <div class="overall-stars">
+                      @for (star of [1, 2, 3, 4, 5]; track star) {
+                        <i
+                          class="bx"
+                          [class.bxs-star]="star <= business.rating"
+                          [class.bx-star]="star > business.rating"
+                        ></i>
+                      }
+                    </div>
+
+                    <span class="overall-count">
+                      {{ business.reviews }}
+                      {{ business.reviews === 1 ? "review" : "reviews" }}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  class="write-review-button"
+                  (click)="reviewDialog.showModal()"
+                >
+                  <i class="bx bx-edit"></i>
+                  <span>Write a review</span>
+                </button>
+              </div>
+
+              <!-- ALL REVIEWS -->
+
+              <div class="all-reviews">
+                <div class="all-reviews-header">
+                  <h2>All reviews</h2>
+
+                  <button
+                    type="button"
+                    class="review-search-button"
+                    aria-label="Search reviews"
+                  >
+                    <i class="bx bx-search"></i>
+                  </button>
+                </div>
+
+                <div class="reviews-list">
+                  <!-- REVIEW 1 -->
+
+                  <article class="review-card">
+                    <div class="review-card-top">
+                      <div class="review-avatar">G</div>
+
+                      <div class="review-user">
+                        <strong> Guest User </strong>
+
+                        <span> Just now </span>
+                      </div>
+                    </div>
+
+                    <div class="review-card-rating">
+                      @for (star of [1, 2, 3, 4, 5]; track star) {
+                        <i class="bx bxs-star"></i>
+                      }
+                    </div>
+
+                    <p>
+                      Sample customer review will appear here. Actual reviews
+                      will be loaded from the database later.
+                    </p>
+                  </article>
+
+                  <!-- REVIEW 2 -->
+
+                  <article class="review-card">
+                    <div class="review-card-top">
+                      <div class="review-avatar">M</div>
+
+                      <div class="review-user">
+                        <strong> Maria S. </strong>
+
+                        <span> 2 days ago </span>
+                      </div>
+                    </div>
+
+                    <div class="review-card-rating">
+                      @for (star of [1, 2, 3, 4, 5]; track star) {
+                        <i
+                          class="bx"
+                          [class.bxs-star]="star <= 4"
+                          [class.bx-star]="star > 4"
+                        ></i>
+                      }
+                    </div>
+
+                    <p>
+                      Nice place and very helpful staff. Would definitely
+                      recommend this business.
+                    </p>
+                  </article>
+
+                  <!-- REVIEW 3 -->
+
+                  <article class="review-card">
+                    <div class="review-card-top">
+                      <div class="review-avatar">J</div>
+
+                      <div class="review-user">
+                        <strong> Juan D. </strong>
+
+                        <span> 5 days ago </span>
+                      </div>
+                    </div>
+
+                    <div class="review-card-rating">
+                      @for (star of [1, 2, 3, 4, 5]; track star) {
+                        <i class="bx bxs-star"></i>
+                      }
+                    </div>
+
+                    <p>
+                      Good experience overall. The service was fast and the
+                      staff were accommodating.
+                    </p>
+                  </article>
+                </div>
+
+                <!-- WRITE REVIEW -->
+
+                @if (!reviewSubmitted()) {
+                  <dialog #reviewDialog class="review-dialog">
+                    <button
+                      type="button"
+                      class="login-required-close"
+                      aria-label="Close review form"
+                      (click)="reviewDialog.close()"
+                    >
+                      <i class="bx bx-x"></i>
+                    </button>
+
+                    <div class="review-form-card">
+                      <div class="review-form-header">
+                        <span> SHARE YOUR EXPERIENCE </span>
+
+                        <h3>Write a review</h3>
+                      </div>
+
+                      <!-- RATING -->
+
+                      <div class="review-rating-field">
+                        <label> Your rating </label>
+
+                        <div class="rating-selector">
+                          @for (star of [1, 2, 3, 4, 5]; track star) {
+                            <button
+                              type="button"
+                              class="rating-star"
+                              [class.active]="star <= selectedRating()"
+                              (click)="setRating(star)"
+                              [attr.aria-label]="'Rate ' + star + ' out of 5'"
+                            >
+                              <i
+                                class="bx"
+                                [class.bxs-star]="star <= selectedRating()"
+                                [class.bx-star]="star > selectedRating()"
+                              ></i>
+                            </button>
+                          }
+                        </div>
+
+                        @if (selectedRating() === 0) {
+                          <span class="rating-hint"> Select a rating </span>
+                        } @else {
+                          <span class="rating-hint">
+                            {{
+                              selectedRating() === 1
+                                ? "Poor"
+                                : selectedRating() === 2
+                                  ? "Fair"
+                                  : selectedRating() === 3
+                                    ? "Good"
+                                    : selectedRating() === 4
+                                      ? "Very good"
+                                      : "Excellent"
+                            }}
+                          </span>
+                        }
+                      </div>
+
+                      <!-- COMMENT -->
+
+                      <div class="review-comment-field">
+                        <label for="reviewComment"> Your review </label>
+
+                        <textarea
+                          id="reviewComment"
+                          rows="5"
+                          maxlength="1000"
+                          placeholder="Tell others about your experience..."
+                          [value]="reviewText()"
+                          (input)="onReviewTextChange($event)"
+                        ></textarea>
+
+                        <div class="character-count">
+                          {{ reviewText().length }} / 1000
+                        </div>
+                      </div>
+
+                      <!-- SUBMIT -->
+
+                      <div class="review-form-actions">
+                        <button
+                          type="button"
+                          class="review-submit-button"
+                          [disabled]="
+                            selectedRating() === 0 || !reviewText().trim()
+                          "
+                          (click)="submitReview()"
+                        >
+                          <i class="bx bx-send"></i>
+
+                          <span> Submit review </span>
+                        </button>
+                      </div>
+                    </div>
+                  </dialog>
+                }
+
+                <!-- SUCCESS -->
+
+                @if (reviewSubmitted()) {
+                  <div class="review-success">
+                    <div class="review-success-icon">
+                      <i class="bx bx-check"></i>
+                    </div>
+
+                    <div class="review-success-content">
+                      <strong> Review submitted </strong>
+
+                      <p>Thanks for sharing your experience.</p>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="another-review-button"
+                      (click)="writeAnotherReview()"
+                    >
+                      Write another
+                    </button>
+                  </div>
+                }
+              </div>
+            </section>
+
+            <br />
+          </div>
+        }
+
+        <!-- =====================================================
+             REVIEWS TAB ONLY
+        ====================================================== -->
+
+        @if (activeTab() === "reviews") {
+          <section class="tab-section reviews-section">
+            <!-- SUMMARY -->
+
+            <div class="reviews-summary">
+              <div class="reviews-summary-header">
+                <div>
+                  <span class="section-eyebrow"> REVIEWS </span>
+
+                  <h2>Customer reviews</h2>
+                </div>
+
+                <button
+                  type="button"
+                  class="reviews-help"
+                  aria-label="About reviews"
+                >
+                  <i class="bx bx-help-circle"></i>
+                </button>
+              </div>
+
+              <div class="reviews-summary-content">
+                <div class="rating-breakdown">
+                  @for (rating of [5, 4, 3, 2, 1]; track rating) {
+                    <div class="rating-breakdown-row">
+                      <span class="rating-number">
+                        {{ rating }}
+                      </span>
+
+                      <div class="rating-bar">
+                        <div
+                          class="rating-bar-fill"
+                          [style.width.%]="
+                            rating === 5
+                              ? 78
+                              : rating === 4
+                                ? 48
+                                : rating === 3
+                                  ? 22
+                                  : rating === 2
+                                    ? 9
+                                    : 6
+                          "
+                        ></div>
+                      </div>
+                    </div>
+                  }
+                </div>
+
+                <div class="overall-rating">
+                  <strong class="overall-score">
+                    {{ business.rating }}
+                  </strong>
+
+                  <div class="overall-stars">
+                    @for (star of [1, 2, 3, 4, 5]; track star) {
+                      <i
+                        class="bx"
+                        [class.bxs-star]="star <= business.rating"
+                        [class.bx-star]="star > business.rating"
+                      ></i>
+                    }
+                  </div>
+
+                  <span class="overall-count">
+                    {{ business.reviews }}
+                    {{ business.reviews === 1 ? "review" : "reviews" }}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                class="write-review-button"
+                (click)="reviewDialog.showModal()"
+              >
+                <i class="bx bx-edit"></i>
+                <span>Write a review</span>
+              </button>
+            </div>
+
+            <!-- REVIEWS -->
+
+            <div class="all-reviews">
+              <div class="all-reviews-header">
+                <h2>All reviews</h2>
+
+                <button
+                  type="button"
+                  class="review-search-button"
+                  aria-label="Search reviews"
+                >
+                  <i class="bx bx-search"></i>
+                </button>
+              </div>
+
+              <div class="reviews-list">
+                <!-- REVIEW 1 -->
+
+                <article class="review-card">
+                  <div class="review-card-top">
+                    <div class="review-avatar">G</div>
+
+                    <div class="review-user">
+                      <strong> Guest User </strong>
+
+                      <span> Just now </span>
+                    </div>
+                  </div>
+
+                  <div class="review-card-rating">
+                    @for (star of [1, 2, 3, 4, 5]; track star) {
+                      <i class="bx bxs-star"></i>
+                    }
+                  </div>
+
+                  <p>
+                    Sample customer review will appear here. Actual reviews will
+                    be loaded from the database later.
+                  </p>
+                </article>
+
+                <!-- REVIEW 2 -->
+
+                <article class="review-card">
+                  <div class="review-card-top">
+                    <div class="review-avatar">M</div>
+
+                    <div class="review-user">
+                      <strong> Maria S. </strong>
+
+                      <span> 2 days ago </span>
+                    </div>
+                  </div>
+
+                  <div class="review-card-rating">
+                    @for (star of [1, 2, 3, 4, 5]; track star) {
+                      <i
+                        class="bx"
+                        [class.bxs-star]="star <= 4"
+                        [class.bx-star]="star > 4"
+                      ></i>
+                    }
+                  </div>
+
+                  <p>
+                    Nice place and very helpful staff. Would definitely
+                    recommend this business.
+                  </p>
+                </article>
+
+                <!-- REVIEW 3 -->
+
+                <article class="review-card">
+                  <div class="review-card-top">
+                    <div class="review-avatar">J</div>
+
+                    <div class="review-user">
+                      <strong> Juan D. </strong>
+
+                      <span> 5 days ago </span>
+                    </div>
+                  </div>
+
+                  <div class="review-card-rating">
+                    @for (star of [1, 2, 3, 4, 5]; track star) {
+                      <i class="bx bxs-star"></i>
+                    }
+                  </div>
+
+                  <p>
+                    Good experience overall. The service was fast and the staff
+                    were accommodating.
+                  </p>
+                </article>
+              </div>
+
+              <!-- REVIEW FORM -->
+
+              @if (!reviewSubmitted()) {
+                <dialog #reviewDialog class="review-dialog">
+                  <button
+                    type="button"
+                    class="login-required-close"
+                    aria-label="Close review form"
+                    (click)="reviewDialog.close()"
+                  >
+                    <i class="bx bx-x"></i>
+                  </button>
+
+                  <div class="review-form-card">
+                    <div class="review-form-header">
+                      <span> SHARE YOUR EXPERIENCE </span>
+
+                      <h3>Write a review</h3>
+                    </div>
+
+                    <div class="review-rating-field">
+                      <label> Your rating </label>
+
+                      <div class="rating-selector">
+                        @for (star of [1, 2, 3, 4, 5]; track star) {
+                          <button
+                            type="button"
+                            class="rating-star"
+                            [class.active]="star <= selectedRating()"
+                            (click)="setRating(star)"
+                            [attr.aria-label]="'Rate ' + star + ' out of 5'"
+                          >
+                            <i
+                              class="bx"
+                              [class.bxs-star]="star <= selectedRating()"
+                              [class.bx-star]="star > selectedRating()"
+                            ></i>
+                          </button>
+                        }
+                      </div>
+
+                      @if (selectedRating() === 0) {
+                        <span class="rating-hint"> Select a rating </span>
+                      } @else {
+                        <span class="rating-hint">
+                          {{
+                            selectedRating() === 1
+                              ? "Poor"
+                              : selectedRating() === 2
+                                ? "Fair"
+                                : selectedRating() === 3
+                                  ? "Good"
+                                  : selectedRating() === 4
+                                    ? "Very good"
+                                    : "Excellent"
+                          }}
+                        </span>
+                      }
+                    </div>
+
+                    <div class="review-comment-field">
+                      <label for="reviewComment"> Your review </label>
+
+                      <textarea
+                        id="reviewComment"
+                        rows="5"
+                        maxlength="1000"
+                        placeholder="Tell others about your experience..."
+                        [value]="reviewText()"
+                        (input)="onReviewTextChange($event)"
+                      ></textarea>
+
+                      <div class="character-count">
+                        {{ reviewText().length }} / 1000
+                      </div>
+                    </div>
+
+                    <div class="review-form-actions">
+                      <button
+                        type="button"
+                        class="review-submit-button"
+                        [disabled]="
+                          selectedRating() === 0 || !reviewText().trim()
+                        "
+                        (click)="submitReview()"
+                      >
+                        <i class="bx bx-send"></i>
+
+                        <span> Submit review </span>
+                      </button>
+                    </div>
+                  </div>
+                </dialog>
+              }
+
+              @if (reviewSubmitted()) {
+                <div class="review-success">
+                  <div class="review-success-icon">
+                    <i class="bx bx-check"></i>
+                  </div>
+
+                  <div class="review-success-content">
+                    <strong> Review submitted </strong>
+
+                    <p>Thanks for sharing your experience.</p>
+                  </div>
+
+                  <button
+                    type="button"
+                    class="another-review-button"
+                    (click)="writeAnotherReview()"
+                  >
+                    Write another
+                  </button>
+                </div>
+              }
+            </div>
+          </section>
+        }
+
+        <!-- =====================================================
+             PHOTOS TAB ONLY
+        ====================================================== -->
+
+        @if (activeTab() === "photos") {
+          <section class="tab-section photos-section">
+            <div class="section-heading">
+              <span> PHOTOS </span>
+
+              <h2>Photos from {{ business.name }}</h2>
+
+              <p class="section-description">
+                Explore photos and get a better look at this business.
+              </p>
+            </div>
+
+            <div class="photo-gallery">
+              <!-- PHOTO 1 -->
+
+              <div class="photo-item photo-large">
+                @if (business.image) {
+                  <img
+                    [src]="business.image"
+                    [alt]="business.name + ' photo'"
+                  />
+                } @else {
+                  <img
+                    src="https://scontent.fpag2-1.fna.fbcdn.net/v/t39.30808-6/705745432_122095780635341323_7558080393911335436_n.jpg?stp=dst-jpg_tt6&cstp=mx1254x1254&ctp=s1254x1254&_nc_cat=111&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=127cfc&_nc_eui2=AeF9Ds0PyNvK-d5tGTkZr4zpkVpqpM9YR1uRWmqkz1hHW_MOJMglqfExW7ibTpPMLd6yoaOLEi7_AFSuRVc9R5UI&_nc_ohc=NCSUAmpmSp4Q7kNvwHDn1qD&_nc_oc=AdpD8HIE_CY6byoEtBhwdK4UsyMDGLKzKFeruz2m9FNz5_OKQTVH3ECe1tjIf8lJ0UU&_nc_zt=23&_nc_ht=scontent.fpag2-1.fna&_nc_gid=gczy6_b-z36RkDwEbA2jZw&_nc_ss=7b2a8&oh=00_AQK3c4scFlWATX4Vr-GhYxmGkRqCbr6orAB82_K8-qD2Zg&oe=6ABA2F07"
+                    [alt]="business.name + ' photo'"
+                  />
+                }
+
+                <div class="photo-overlay">
+                  <i class="bx bx-image"></i>
+                  <span>Business photo</span>
+                </div>
+              </div>
+            </div>
+          </section>
+        }
+        <br />
+
+        <!-- =====================================================
+             ABOUT TAB ONLY
+        ====================================================== -->
+
+        @if (activeTab() === "about") {
+          <section class="tab-section about-section">
+            <div class="section-heading">
+              <span> ABOUT </span>
+
+              <h2>About {{ business.name }}</h2>
+            </div>
+
+            <div class="about-layout">
+              <div class="about-main">
+                <p class="about-description">
+                  {{ business.description }}
+                </p>
+
+                <p class="about-description">
+                  This business profile is part of SJ Tuklas, a local discovery
+                  platform for businesses, services, places and establishments
+                  around San Jose, Occidental Mindoro.
+                </p>
+              </div>
+
+              <div class="about-details">
+                <!-- CATEGORY -->
+
+                <div class="about-detail">
+                  <i class="bx bx-category"></i>
+
+                  <div>
+                    <span> Category </span>
+
+                    <strong>
+                      {{ business.category }}
+                    </strong>
+                  </div>
+                </div>
+
+                <!-- LOCATION -->
+
+                <div class="about-detail">
+                  <i class="bx bx-map"></i>
+
+                  <div>
+                    <span> Location </span>
+
+                    <strong>
+                      {{ business.location }}
+                    </strong>
+                  </div>
+                </div>
+
+                <!-- PHONE -->
+
+                @if (business.phone) {
+                  <div class="about-detail">
+                    <i class="bx bx-phone"></i>
+
+                    <div>
+                      <span> Phone </span>
+
+                      <a [href]="'tel:' + business.phone">
+                        {{ business.phone }}
+                      </a>
+                    </div>
+                  </div>
+                }
+
+                <!-- HOURS -->
+
+                @if (business.hours) {
+                  <div class="about-detail">
+                    <i class="bx bx-time-five"></i>
+
+                    <div>
+                      <span> Hours </span>
+
+                      <strong>
+                        {{ business.hours }}
+                      </strong>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </section>
+        }
+      </div>
+    </section>
+
+    <!-- =====================================================
+         FAVORITE MODAL
+    ====================================================== -->
+
+    @if (showFavoriteModal()) {
+      <div
+        class="login-required-backdrop"
+        role="presentation"
+        (click)="closeFavoriteModal()"
+      >
+        <div
+          class="login-required-modal favorite-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="favoriteModalTitle"
+          aria-describedby="favoriteModalDescription"
+          (click)="$event.stopPropagation()"
+        >
+          <!-- CLOSE -->
+
+          <button
+            type="button"
+            class="login-required-close"
+            aria-label="Close dialog"
+            (click)="closeFavoriteModal()"
+          >
+            <i class="bx bx-x"></i>
+          </button>
+
+          <!-- =================================================
+               LOGIN REQUIRED
+          ================================================== -->
+
+          @if (favoriteModalType() === "login") {
+            <div class="favorite-modal-content">
+              <div class="login-required-icon">
+                <i class="bx bx-heart"></i>
+              </div>
+
+              <div class="login-required-content">
+                <span class="login-required-eyebrow"> SAVE FAVORITES </span>
+
+                <h3 id="favoriteModalTitle">Save this business</h3>
+
+                <p id="favoriteModalDescription">
+                  Login to save
+                  <strong>{{ business.name }}</strong>
+                  to your favorites and easily find it again later.
+                </p>
+              </div>
+
+              <div class="login-required-actions">
+                <button
+                  type="button"
+                  class="login-required-secondary"
+                  (click)="closeFavoriteModal()"
+                >
+                  Maybe later
+                </button>
+
+                <button
+                  type="button"
+                  class="login-required-primary"
+                  (click)="goToLogin()"
+                >
+                  <i class="bx bx-log-in"></i>
+                  <span>Login</span>
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- =================================================
+               FAVORITE ADDED
+          ================================================== -->
+
+          @if (favoriteModalType() === "success") {
+            <div class="favorite-modal-content">
+              <div class="favorite-success-icon">
+                <i class="bx bxs-heart"></i>
+              </div>
+
+              <div class="login-required-content">
+                <span class="login-required-eyebrow"> FAVORITES </span>
+
+                <h3 id="favoriteModalTitle">Added to favorites</h3>
+
+                <p id="favoriteModalDescription">
+                  <strong>{{ business.name }}</strong>
+                  has been added to your favorites.
+                </p>
+              </div>
+
+              <div class="login-required-actions">
+                <button
+                  type="button"
+                  class="login-required-primary"
+                  (click)="closeFavoriteModal()"
+                >
+                  <i class="bx bx-check"></i>
+                  <span>Done</span>
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- =================================================
+               FAVORITE REMOVED
+          ================================================== -->
+
+          @if (favoriteModalType() === "removed") {
+            <div class="favorite-modal-content">
+              <div class="favorite-removed-icon">
+                <i class="bx bx-heart"></i>
+              </div>
+
+              <div class="login-required-content">
+                <span class="login-required-eyebrow"> FAVORITES </span>
+
+                <h3 id="favoriteModalTitle">Removed from favorites</h3>
+
+                <p id="favoriteModalDescription">
+                  <strong>{{ business.name }}</strong>
+                  has been removed from your favorites.
+                </p>
+              </div>
+
+              <div class="login-required-actions">
+                <button
+                  type="button"
+                  class="login-required-primary"
+                  (click)="closeFavoriteModal()"
+                >
+                  <i class="bx bx-check"></i>
+                  <span>Done</span>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  } @else {
+    <!-- =====================================================
+         BUSINESS NOT FOUND
+    ====================================================== -->
+
+    <app-empty-state
+      title="Business not found"
+      message="The business you're looking for doesn't exist or may have been removed."
+      icon="bx-store-alt"
+      buttonText="Back to businesses"
+      buttonLink="/search"
+    />
+  }
+}

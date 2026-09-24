@@ -1,0 +1,162 @@
+<a class="business-card" [routerLink]="['/business', business().id]">
+  <!-- =====================================================
+       COVER IMAGE
+  ====================================================== -->
+
+  <div class="business-image">
+    @if (business().coverImage && !imageError()) {
+      <img
+        class="cover-image"
+        [src]="business().coverImage!"
+        [alt]="business().name + ' cover'"
+        loading="lazy"
+        (error)="onImageError()"
+      />
+    } @else if (business().image && !imageError()) {
+      <!-- FALLBACK TO FEATURE IMAGE -->
+
+      <img
+        class="cover-image"
+        [src]="business().image!"
+        [alt]="business().name"
+        loading="lazy"
+        (error)="onImageError()"
+      />
+    } @else {
+      <div class="business-image-placeholder">
+        <i class="bx bx-store-alt"></i>
+      </div>
+    }
+
+    <!-- =================================================
+         IMAGE OVERLAY
+    ================================================== -->
+
+    <div class="image-overlay"></div>
+
+    <!-- =================================================
+         BADGES
+    ================================================== -->
+
+    @if (business().isPro || business().verified) {
+      <div class="badges">
+        @if (business().isPro) {
+          <span class="pro-badge">
+            <i class="bx bx-crown"></i>
+
+            PRO
+          </span>
+        }
+
+        @if (business().verified) {
+          <span class="verified-badge">
+            <i class="bx bx-check"></i>
+
+            Verified
+          </span>
+        }
+      </div>
+    }
+
+    <!-- =================================================
+         PROFILE IMAGE
+    ================================================== -->
+
+    <div class="profile-image-wrapper">
+      @if (business().profileImage) {
+        <img
+          class="profile-image"
+          [src]="business().profileImage!"
+          [alt]="business().name + ' profile'"
+          loading="lazy"
+        />
+      } @else {
+        <div class="profile-image-fallback">
+          <span>
+            {{
+              business().name ? business().name.charAt(0).toUpperCase() : "S"
+            }}
+          </span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- =====================================================
+       CONTENT
+  ====================================================== -->
+
+  <div class="business-content">
+    <!-- =================================================
+         TOP META
+    ================================================== -->
+
+    <div class="business-top">
+      <span class="category">
+        {{ business().category }}
+      </span>
+
+      <span class="rating">
+        <i class="bx bxs-star"></i>
+
+        {{ business().reviews === 1 ? "review" : "reviews" }}
+      </span>
+    </div>
+
+    <!-- =================================================
+         NAME
+    ================================================== -->
+
+    <h3>
+      {{ business().name }}
+    </h3>
+
+    <!-- =================================================
+         BUSINESS TYPE
+    ================================================== -->
+
+    @if (business().businessType) {
+      <p class="business-type">
+        <i class="bx bx-store"></i>
+
+        <span>
+          {{ business().businessType }}
+        </span>
+      </p>
+    }
+
+    <!-- =================================================
+         LOCATION
+    ================================================== -->
+
+    @if (business().location) {
+      <p class="location" [title]="business().location">
+        <i class="bx bx-map"></i>
+
+        <span>
+          {{ business().location }}
+        </span>
+      </p>
+    }
+
+    <!-- =================================================
+         FOOTER
+    ================================================== -->
+
+    <div class="business-footer">
+      <span class="reviews">
+        <i class="bx bx-message-rounded"></i>
+
+        {{ business().reviews }}
+
+        {{ business().reviews === 1 ? "review" : "reviews" }}
+      </span>
+
+      <span class="view-link">
+        View
+
+        <i class="bx bx-right-arrow-alt"></i>
+      </span>
+    </div>
+  </div>
+</a>

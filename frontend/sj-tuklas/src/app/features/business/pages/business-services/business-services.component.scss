@@ -1,0 +1,292 @@
+.services-page {
+  padding: 35px 0 100px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  margin-bottom: 35px;
+
+  color: var(--text-secondary);
+  font-size: 13px;
+
+  &:hover {
+    color: var(--text);
+  }
+}
+
+.page-header {
+  padding-bottom: 35px;
+  border-bottom: 1px solid var(--border);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  margin-bottom: 10px;
+
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.page-header h1 {
+  margin: 0;
+
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: clamp(36px, 5vw, 52px);
+  letter-spacing: -2px;
+}
+
+.page-header p {
+  margin-top: 10px;
+
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+
+  padding-top: 35px;
+}
+
+.service-card {
+  padding: 22px;
+
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    border-color: var(--text);
+  }
+}
+
+.service-icon {
+  width: 45px;
+  height: 45px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 20px;
+
+  background: var(--surface-muted);
+  border-radius: 11px;
+
+  i {
+    font-size: 21px;
+  }
+}
+
+.service-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  span {
+    color: var(--text-muted);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  strong {
+    font-size: 13px;
+  }
+}
+
+.service-content h3 {
+  margin: 7px 0;
+
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 18px;
+}
+
+.service-content p {
+  min-height: 52px;
+
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.service-content button {
+  width: 100%;
+
+  margin-top: 20px;
+  padding: 10px 12px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+
+  background: var(--text);
+  color: var(--background);
+
+  border: 0;
+  border-radius: 8px;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.contact-banner {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+
+  margin-top: 35px;
+  padding: 18px;
+
+  background: var(--surface-muted);
+  border-radius: var(--radius-md);
+}
+
+.banner-icon {
+  width: 40px;
+  height: 40px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--surface);
+  border-radius: 9px;
+
+  i {
+    font-size: 18px;
+  }
+}
+
+.contact-banner strong {
+  display: block;
+  font-size: 12px;
+}
+
+.contact-banner p {
+  margin-top: 3px;
+
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.contact-button {
+  margin-left: auto;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  padding: 9px 12px;
+
+  background: var(--text);
+  color: var(--background);
+
+  border-radius: 8px;
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.unavailable-state {
+  min-height: 65vh;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+}
+
+.empty-icon {
+  width: 62px;
+  height: 62px;
+
+  margin-bottom: 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--surface-muted);
+  border-radius: 15px;
+
+  i {
+    font-size: 28px;
+  }
+}
+
+.unavailable-state h1 {
+  margin: 0 0 10px;
+
+  font-family: "Plus Jakarta Sans", sans-serif;
+}
+
+.unavailable-state p {
+  max-width: 430px;
+  margin: 0 0 22px;
+
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.primary-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  padding: 11px 15px;
+
+  background: var(--primary);
+  color: white;
+
+  border-radius: 9px;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (max-width: 850px) {
+  .services-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-banner {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .contact-button {
+    width: 100%;
+    justify-content: center;
+    margin-left: 53px;
+  }
+}

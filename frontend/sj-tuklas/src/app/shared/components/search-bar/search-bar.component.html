@@ -1,0 +1,31 @@
+<div class="search-bar">
+  <!-- SEARCH ICON -->
+  <div class="search-leading" aria-hidden="true">
+    <i class="bx bx-search"></i>
+  </div>
+
+  <!-- INPUT -->
+  <div class="search-content">
+    <input
+      type="search"
+      [value]="value"
+      [placeholder]="placeholder"
+      [attr.aria-label]="ariaLabel"
+      (input)="onInput($event)"
+    />
+  </div>
+
+  <!-- CLEAR -->
+  @if (value && showClear) {
+    <div class="search-actions">
+      <button
+        type="button"
+        class="clear-button"
+        aria-label="Clear search"
+        (click)="clear()"
+      >
+        <i class="bx bx-x"></i>
+      </button>
+    </div>
+  }
+</div>

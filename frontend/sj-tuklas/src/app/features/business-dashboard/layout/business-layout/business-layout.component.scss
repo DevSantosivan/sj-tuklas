@@ -1,0 +1,1391 @@
+/* =========================================================
+   BUSINESS SHELL
+========================================================= */
+
+.business-shell {
+  min-height: 100vh;
+  display: flex;
+  background: var(--background);
+  color: var(--text);
+}
+
+/* =========================================================
+   SIDEBAR
+   APPROVED ONLY
+========================================================= */
+
+.sidebar {
+  width: 250px;
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  position: fixed;
+  inset: 0 auto 0 0;
+
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+
+  z-index: 10;
+}
+
+/* =========================================================
+   SIDEBAR BRAND
+========================================================= */
+
+.sidebar-brand {
+  height: 76px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+  padding: 0 22px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.brand-mark {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--text);
+  color: var(--background);
+
+  font-size: 13px;
+  font-weight: 800;
+
+  letter-spacing: -0.03em;
+
+  border-radius: var(--radius-sm);
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+
+  strong {
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  span {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+}
+
+/* =========================================================
+   SIDEBAR NAVIGATION
+========================================================= */
+
+.sidebar-nav {
+  flex: 1;
+
+  padding: 24px 14px;
+
+  overflow-y: auto;
+}
+
+.nav-section {
+  margin-bottom: 26px;
+}
+
+.nav-label {
+  display: block;
+
+  padding: 0 10px;
+  margin-bottom: 8px;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  letter-spacing: 0.12em;
+
+  color: var(--text-muted);
+}
+
+/* =========================================================
+   NAV ITEM
+========================================================= */
+
+.nav-item {
+  min-height: 42px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  padding: 0 10px;
+  margin-bottom: 3px;
+
+  color: var(--text-secondary);
+
+  text-decoration: none;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  border-radius: var(--radius-md);
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    opacity 0.15s ease;
+
+  i {
+    width: 18px;
+    flex-shrink: 0;
+
+    font-size: 18px;
+  }
+
+  &:hover {
+    background: var(--surface-muted);
+    color: var(--text);
+  }
+
+  &.active {
+    background: var(--text);
+    color: var(--background);
+  }
+}
+
+/* =========================================================
+   LOCKED BUSINESS TOOL
+========================================================= */
+
+.locked-item {
+  opacity: 0.55;
+  cursor: not-allowed;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+/* =========================================================
+   PRO BADGE
+========================================================= */
+
+.pro-badge {
+  margin-left: auto;
+
+  padding: 3px 6px;
+
+  border: 1px solid var(--border);
+  border-radius: 999px;
+
+  color: var(--text-muted);
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.06em;
+
+  white-space: nowrap;
+}
+
+/* =========================================================
+   UPGRADE ITEM
+========================================================= */
+
+.upgrade-item {
+  color: var(--text);
+
+  i {
+    color: var(--text);
+  }
+
+  &:hover {
+    background: var(--text);
+    color: var(--background);
+
+    i {
+      color: var(--background);
+    }
+  }
+}
+
+/* =========================================================
+   SIDEBAR FOOTER
+========================================================= */
+
+.sidebar-footer {
+  padding: 14px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  border-top: 1px solid var(--border);
+}
+
+.owner-profile {
+  min-width: 0;
+
+  flex: 1;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+}
+
+.owner-avatar {
+  width: 34px;
+  height: 34px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+
+  border-radius: 50%;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.owner-info {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+
+  strong {
+    font-size: 11px;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  span {
+    font-size: 10px;
+    color: var(--text-muted);
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+.logout-button {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+
+  background: transparent;
+  color: var(--text-muted);
+
+  cursor: pointer;
+
+  border-radius: var(--radius-md);
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    background: var(--surface-muted);
+    color: var(--text);
+  }
+
+  i {
+    font-size: 18px;
+  }
+}
+
+/* =========================================================
+   MAIN CONTENT
+========================================================= */
+
+.main-content {
+  min-width: 0;
+
+  flex: 1;
+
+  min-height: 100vh;
+
+  margin-left: 250px;
+}
+
+/* =========================================================
+   PENDING / REJECTED
+   NO SIDEBAR = FULL WIDTH
+========================================================= */
+
+.business-shell.pending-shell .main-content,
+.business-shell.rejected-shell .main-content {
+  width: 100%;
+  margin-left: 0;
+}
+
+/* =========================================================
+   TOPBAR
+   ALWAYS VISIBLE
+========================================================= */
+
+.topbar {
+  width: 100%;
+  min-height: 76px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding: 0 30px;
+
+  box-sizing: border-box;
+
+  background: var(--surface);
+
+  border-bottom: 1px solid var(--border);
+}
+
+/* =========================================================
+   TOPBAR LEFT
+========================================================= */
+
+.topbar-left {
+  min-width: 0;
+}
+
+.eyebrow {
+  display: block;
+
+  margin-bottom: 5px;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  letter-spacing: 0.12em;
+
+  color: var(--text-muted);
+}
+
+.topbar h1 {
+  margin: 0;
+
+  overflow: hidden;
+
+  font-size: 18px;
+  font-weight: 700;
+
+  letter-spacing: -0.02em;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* =========================================================
+   TOPBAR RIGHT
+========================================================= */
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+}
+
+/* =========================================================
+   NOTIFICATION BUTTON
+========================================================= */
+
+.icon-button {
+  width: 38px;
+  height: 38px;
+
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid var(--border);
+
+  background: var(--surface);
+  color: var(--text);
+
+  cursor: pointer;
+
+  border-radius: var(--radius-md);
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    background: var(--surface-muted);
+  }
+
+  i {
+    font-size: 19px;
+  }
+}
+
+/* =========================================================
+   NOTIFICATION DOT
+========================================================= */
+
+.notification-dot {
+  width: 6px;
+  height: 6px;
+
+  position: absolute;
+
+  top: 8px;
+  right: 8px;
+
+  border-radius: 50%;
+
+  background: var(--text);
+}
+
+/* =========================================================
+   BUSINESS STATUS
+========================================================= */
+
+.business-status {
+  min-height: 38px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  padding: 0 11px;
+
+  border: 1px solid var(--border);
+
+  background: var(--surface);
+  color: var(--text-secondary);
+
+  border-radius: var(--radius-md);
+
+  font-size: 11px;
+  font-weight: 600;
+
+  white-space: nowrap;
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    background: var(--text-muted);
+  }
+
+  i {
+    font-size: 15px;
+  }
+}
+
+/* =========================================================
+   PENDING STATUS
+========================================================= */
+
+.business-status.pending {
+  color: var(--text-secondary);
+
+  .status-dot {
+    background: var(--text-muted);
+  }
+}
+
+/* =========================================================
+   APPROVED STATUS
+========================================================= */
+
+.business-status.approved {
+  color: var(--text);
+
+  .status-dot {
+    background: var(--text);
+  }
+}
+
+/* =========================================================
+   REJECTED STATUS
+========================================================= */
+
+.business-status.rejected {
+  color: var(--text-secondary);
+
+  .status-dot {
+    background: var(--text-secondary);
+  }
+}
+
+/* =========================================================
+   PLAN INDICATOR
+========================================================= */
+
+.plan-indicator {
+  min-height: 38px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  padding: 0 10px;
+
+  font-size: 12px;
+
+  color: var(--text-secondary);
+
+  white-space: nowrap;
+}
+
+.plan-dot {
+  width: 7px;
+  height: 7px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: var(--text-muted);
+}
+
+.plan-indicator.pro-plan {
+  color: var(--text);
+
+  .plan-dot {
+    background: var(--text);
+  }
+}
+
+/* =========================================================
+   PAGE CONTENT
+========================================================= */
+
+.page-content {
+  min-width: 0;
+
+  padding: 30px;
+}
+
+/* =========================================================
+   PENDING STATE
+========================================================= */
+
+.pending-state {
+  width: min(100%, 680px);
+
+  min-height: 480px;
+
+  margin: 40px auto;
+
+  padding: 56px 48px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  text-align: center;
+
+  box-sizing: border-box;
+
+  background: var(--surface);
+
+  border: 1px solid var(--border);
+
+  border-radius: var(--radius-lg);
+}
+
+/* =========================================================
+   PENDING ICON
+========================================================= */
+
+.pending-icon {
+  width: 72px;
+  height: 72px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 24px;
+
+  background: var(--surface-muted);
+
+  border: 1px solid var(--border);
+
+  border-radius: 50%;
+
+  i {
+    font-size: 30px;
+    color: var(--text-secondary);
+  }
+}
+
+/* =========================================================
+   PENDING LABEL
+========================================================= */
+
+.pending-label {
+  margin-bottom: 12px;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  letter-spacing: 0.14em;
+
+  color: var(--text-muted);
+}
+
+/* =========================================================
+   PENDING TITLE
+========================================================= */
+
+.pending-state h2 {
+  margin: 0 0 14px;
+
+  font-size: clamp(26px, 4vw, 36px);
+
+  line-height: 1.15;
+
+  letter-spacing: -0.035em;
+}
+
+/* =========================================================
+   PENDING DESCRIPTION
+========================================================= */
+
+.pending-state > p {
+  max-width: 520px;
+
+  margin: 0;
+
+  color: var(--text-secondary);
+
+  font-size: 14px;
+
+  line-height: 1.7;
+}
+
+/* =========================================================
+   PENDING STATUS
+========================================================= */
+
+.pending-status {
+  margin-top: 28px;
+
+  min-height: 38px;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 9px;
+
+  padding: 0 14px;
+
+  border: 1px solid var(--border);
+
+  background: var(--surface-muted);
+
+  border-radius: 999px;
+
+  color: var(--text-secondary);
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pending-status .status-dot {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: var(--text-muted);
+}
+
+/* =========================================================
+   PENDING BUSINESS
+========================================================= */
+
+.pending-business {
+  width: 100%;
+
+  margin-top: 32px;
+  padding-top: 24px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  border-top: 1px solid var(--border);
+
+  text-align: left;
+}
+
+/* =========================================================
+   BUSINESS AVATAR
+========================================================= */
+
+.business-avatar {
+  width: 42px;
+  height: 42px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--surface-muted);
+
+  border: 1px solid var(--border);
+
+  border-radius: var(--radius-md);
+
+  i {
+    font-size: 19px;
+    color: var(--text-secondary);
+  }
+}
+
+/* =========================================================
+   BUSINESS INFO
+========================================================= */
+
+.business-info {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+
+  strong {
+    overflow: hidden;
+
+    font-size: 13px;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  span {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+}
+
+/* =========================================================
+   PENDING MESSAGE
+========================================================= */
+
+.pending-message {
+  width: 100%;
+
+  margin-top: 20px;
+
+  padding: 13px 15px;
+
+  display: flex;
+  align-items: flex-start;
+
+  gap: 10px;
+
+  box-sizing: border-box;
+
+  background: var(--surface-muted);
+
+  border: 1px solid var(--border);
+
+  border-radius: var(--radius-md);
+
+  text-align: left;
+
+  color: var(--text-secondary);
+
+  font-size: 11px;
+
+  line-height: 1.6;
+
+  i {
+    flex-shrink: 0;
+
+    margin-top: 1px;
+
+    font-size: 15px;
+  }
+}
+
+/* =========================================================
+   REJECTED STATE
+========================================================= */
+
+.rejected-state {
+  width: min(100%, 680px);
+
+  min-height: 480px;
+
+  margin: 40px auto;
+
+  padding: 56px 48px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  text-align: center;
+
+  box-sizing: border-box;
+
+  background: var(--surface);
+
+  border: 1px solid var(--border);
+
+  border-radius: var(--radius-lg);
+}
+
+/* =========================================================
+   REJECTED ICON
+========================================================= */
+
+.rejected-icon {
+  width: 72px;
+  height: 72px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 24px;
+
+  background: var(--surface-muted);
+
+  border: 1px solid var(--border);
+
+  border-radius: 50%;
+
+  i {
+    font-size: 30px;
+    color: var(--text-secondary);
+  }
+}
+
+/* =========================================================
+   REJECTED LABEL
+========================================================= */
+
+.rejected-label {
+  margin-bottom: 12px;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  letter-spacing: 0.14em;
+
+  color: var(--text-muted);
+}
+
+/* =========================================================
+   REJECTED TITLE
+========================================================= */
+
+.rejected-state h2 {
+  margin: 0 0 14px;
+
+  font-size: clamp(26px, 4vw, 36px);
+
+  line-height: 1.15;
+
+  letter-spacing: -0.035em;
+}
+
+/* =========================================================
+   REJECTED DESCRIPTION
+========================================================= */
+
+.rejected-state > p {
+  max-width: 520px;
+
+  margin: 0;
+
+  color: var(--text-secondary);
+
+  font-size: 14px;
+
+  line-height: 1.7;
+}
+
+/* =========================================================
+   REJECTED STATUS
+========================================================= */
+
+.rejected-status {
+  margin-top: 28px;
+
+  min-height: 38px;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 9px;
+
+  padding: 0 14px;
+
+  border: 1px solid var(--border);
+
+  background: var(--surface-muted);
+
+  border-radius: 999px;
+
+  color: var(--text-secondary);
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rejected-status .status-dot {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: var(--text-secondary);
+}
+
+/* =========================================================
+   REJECTED BUSINESS
+========================================================= */
+
+.rejected-business {
+  width: 100%;
+
+  margin-top: 32px;
+  padding-top: 24px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  border-top: 1px solid var(--border);
+
+  text-align: left;
+}
+
+/* =========================================================
+   LOADING PAGE
+========================================================= */
+
+.business-loading-page {
+  min-height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--background);
+
+  color: var(--text);
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: 12px;
+
+  color: var(--text-muted);
+
+  font-size: 12px;
+}
+
+.loading-icon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid var(--border);
+
+  border-radius: 50%;
+
+  background: var(--surface);
+
+  i {
+    font-size: 19px;
+  }
+}
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.empty-state {
+  min-height: 400px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  padding: 40px;
+}
+
+.empty-icon {
+  width: 64px;
+  height: 64px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 20px;
+
+  background: var(--surface-muted);
+
+  border: 1px solid var(--border);
+
+  border-radius: 50%;
+
+  i {
+    font-size: 26px;
+    color: var(--text-muted);
+  }
+}
+
+.empty-label {
+  margin-bottom: 8px;
+
+  font-size: 9px;
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+
+  color: var(--text-muted);
+}
+
+.empty-state h2 {
+  margin: 0 0 10px;
+
+  font-size: 22px;
+
+  letter-spacing: -0.025em;
+}
+
+.empty-state p {
+  max-width: 420px;
+
+  margin: 0;
+
+  color: var(--text-secondary);
+
+  font-size: 13px;
+
+  line-height: 1.6;
+}
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1000px) {
+  .sidebar {
+    width: 220px;
+  }
+
+  .main-content {
+    margin-left: 220px;
+  }
+
+  /*
+    Pending / rejected remain full width
+  */
+
+  .business-shell.pending-shell .main-content,
+  .business-shell.rejected-shell .main-content {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .topbar {
+    padding: 0 20px;
+  }
+
+  .page-content {
+    padding: 20px;
+  }
+
+  .pending-state,
+  .rejected-state {
+    margin: 30px auto;
+  }
+}
+
+/* =========================================================
+   SMALL TABLET
+========================================================= */
+
+@media (max-width: 850px) {
+  .business-status {
+    span:not(.status-dot) {
+      &:last-child {
+        display: none;
+      }
+    }
+
+    i {
+      display: none;
+    }
+  }
+
+  .topbar-right {
+    gap: 6px;
+  }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+  /* =======================================================
+     APPROVED SIDEBAR
+  ======================================================== */
+
+  .sidebar {
+    width: 64px;
+  }
+
+  .sidebar-brand {
+    justify-content: center;
+
+    padding: 0;
+  }
+
+  .brand-mark {
+    width: 36px;
+    height: 36px;
+  }
+
+  .brand-text,
+  .nav-label,
+  .nav-item span,
+  .pro-badge,
+  .owner-info,
+  .logout-button {
+    display: none;
+  }
+
+  .sidebar-nav {
+    padding: 20px 10px;
+  }
+
+  .nav-item {
+    justify-content: center;
+
+    padding: 0;
+  }
+
+  .nav-item i {
+    margin: 0;
+  }
+
+  .owner-profile {
+    justify-content: center;
+  }
+
+  .sidebar-footer {
+    justify-content: center;
+  }
+
+  /* =======================================================
+     APPROVED MAIN
+  ======================================================== */
+
+  .main-content {
+    margin-left: 64px;
+  }
+
+  /* =======================================================
+     PENDING / REJECTED MAIN
+  ======================================================== */
+
+  .business-shell.pending-shell .main-content,
+  .business-shell.rejected-shell .main-content {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  /* =======================================================
+     TOPBAR
+  ======================================================== */
+
+  .topbar {
+    min-height: 68px;
+
+    padding: 0 16px;
+  }
+
+  .topbar h1 {
+    max-width: 180px;
+
+    font-size: 16px;
+  }
+
+  .business-status {
+    min-height: 34px;
+
+    padding: 0 9px;
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+    }
+  }
+
+  .plan-indicator {
+    display: none;
+  }
+
+  /* =======================================================
+     CONTENT
+  ======================================================== */
+
+  .page-content {
+    padding: 16px;
+  }
+
+  /* =======================================================
+     PENDING / REJECTED
+  ======================================================== */
+
+  .pending-state,
+  .rejected-state {
+    width: 100%;
+
+    min-height: auto;
+
+    margin: 20px auto;
+
+    padding: 40px 24px;
+  }
+
+  .pending-state h2,
+  .rejected-state h2 {
+    font-size: 26px;
+  }
+
+  .pending-state > p,
+  .rejected-state > p {
+    font-size: 13px;
+  }
+}
+
+/* =========================================================
+   VERY SMALL MOBILE
+========================================================= */
+
+@media (max-width: 420px) {
+  .topbar {
+    padding: 0 12px;
+  }
+
+  .topbar-right {
+    gap: 5px;
+  }
+
+  .topbar h1 {
+    max-width: 130px;
+  }
+
+  .business-status {
+    span {
+      display: none;
+    }
+  }
+
+  .page-content {
+    padding: 12px;
+  }
+
+  /* =======================================================
+     PENDING / REJECTED
+  ======================================================== */
+
+  .pending-state,
+  .rejected-state {
+    margin: 14px auto;
+
+    padding: 34px 20px;
+  }
+
+  .pending-icon,
+  .rejected-icon {
+    width: 62px;
+    height: 62px;
+
+    margin-bottom: 20px;
+
+    i {
+      font-size: 26px;
+    }
+  }
+
+  .pending-state h2,
+  .rejected-state h2 {
+    font-size: 23px;
+  }
+
+  .pending-state > p,
+  .rejected-state > p {
+    font-size: 13px;
+  }
+
+  .pending-business,
+  .rejected-business {
+    margin-top: 26px;
+    padding-top: 20px;
+  }
+
+  .pending-message {
+    margin-top: 16px;
+  }
+}

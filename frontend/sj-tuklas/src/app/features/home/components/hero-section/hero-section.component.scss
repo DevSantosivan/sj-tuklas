@@ -1,0 +1,644 @@
+/* =========================================================
+   HERO
+========================================================= */
+
+.hero {
+  position: relative;
+  min-height: 610px;
+  display: flex;
+  align-items: center;
+  padding: 88px 0 76px;
+  overflow: hidden;
+  isolation: isolate;
+  color: #111;
+}
+
+/* =========================================================
+   BACKGROUND
+========================================================= */
+
+.hero-background {
+  position: absolute;
+  inset: -20px;
+  z-index: -5;
+
+  background-image: url("https://static.wikia.nocookie.net/tv-philippines/images/c/ca/San_Jose_Rotonda_Landmark.png/revision/latest/scale-to-width-down/1200?cb=20240908054442");
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  transform: scale(1.025);
+
+  filter: blur(2px);
+  -webkit-filter: blur(2px);
+}
+
+/* =========================================================
+   OVERLAY
+========================================================= */
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: -4;
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      ellipse 72% 82% at 50% 46%,
+      rgba(255, 255, 255, 0.94) 0%,
+      rgba(255, 255, 255, 0.82) 20%,
+      rgba(255, 255, 255, 0.52) 42%,
+      rgba(255, 255, 255, 0.2) 64%,
+      rgba(255, 255, 255, 0) 82%
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.78) 0%,
+      rgba(255, 255, 255, 0.5) 18%,
+      rgba(255, 255, 255, 0.12) 42%,
+      rgba(255, 255, 255, 0) 100%
+    ),
+    linear-gradient(
+      270deg,
+      rgba(255, 255, 255, 0.78) 0%,
+      rgba(255, 255, 255, 0.5) 18%,
+      rgba(255, 255, 255, 0.12) 42%,
+      rgba(255, 255, 255, 0) 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.32) 0%,
+      rgba(255, 255, 255, 0) 45%,
+      rgba(255, 255, 255, 0.28) 100%
+    );
+}
+
+/* =========================================================
+   SIDE ATMOSPHERE
+========================================================= */
+
+.hero::before,
+.hero::after {
+  content: "";
+  position: absolute;
+  top: -25%;
+  bottom: -25%;
+  width: 28%;
+
+  z-index: -3;
+  pointer-events: none;
+
+  filter: blur(65px);
+  -webkit-filter: blur(65px);
+
+  opacity: 0.55;
+}
+
+/* LEFT */
+
+.hero::before {
+  left: -12%;
+
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.96) 0%,
+    rgba(255, 255, 255, 0.7) 36%,
+    rgba(255, 255, 255, 0.2) 68%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+/* RIGHT */
+
+.hero::after {
+  right: -12%;
+
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.96) 0%,
+    rgba(255, 255, 255, 0.7) 36%,
+    rgba(255, 255, 255, 0.2) 68%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+/* =========================================================
+   CONTAINER
+========================================================= */
+
+.hero-container {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  width: min(1180px, calc(100% - 40px));
+  margin: 0 auto;
+}
+
+/* =========================================================
+   HERO COPY
+========================================================= */
+
+.hero-copy {
+  max-width: 820px;
+  text-align: center;
+}
+
+/* =========================================================
+   EYEBROW
+========================================================= */
+
+.eyebrow {
+  display: inline-block;
+
+  margin-bottom: 18px;
+
+  color: rgba(20, 20, 20, 0.62);
+
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+
+  text-transform: uppercase;
+}
+
+/* =========================================================
+   TITLE
+========================================================= */
+
+.hero-copy h1 {
+  margin: 0;
+
+  font-family: "Plus Jakarta Sans", sans-serif;
+
+  font-size: clamp(48px, 7vw, 82px);
+  line-height: 0.98;
+
+  letter-spacing: -5px;
+
+  font-weight: 800;
+
+  color: #111;
+}
+
+.hero-copy h1 span {
+  display: block;
+
+  color: #666;
+
+  font-weight: 750;
+}
+
+/* =========================================================
+   DESCRIPTION
+========================================================= */
+
+.hero-copy p {
+  max-width: 570px;
+
+  margin: 25px auto 36px;
+
+  color: rgba(25, 25, 25, 0.7);
+
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+/* =========================================================
+   SEARCH PANEL
+========================================================= */
+
+.search-panel {
+  width: min(100%, 920px);
+
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(180px, 0.7fr) auto;
+
+  gap: 3px;
+
+  padding: 6px;
+
+  background: rgba(255, 255, 255, 0.9);
+
+  border: 1px solid rgba(255, 255, 255, 0.95);
+
+  border-radius: 16px;
+
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.1),
+    0 3px 10px rgba(0, 0, 0, 0.04);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+/* =========================================================
+   SEARCH FIELDS
+========================================================= */
+
+.search-main,
+.search-location {
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  min-width: 0;
+
+  padding: 13px 17px;
+}
+
+.search-main > i,
+.search-location > i {
+  flex-shrink: 0;
+
+  font-size: 21px;
+
+  color: #666;
+}
+
+/* =========================================================
+   LOCATION DIVIDER
+========================================================= */
+
+.search-location {
+  border-left: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+/* =========================================================
+   FIELD CONTENT
+========================================================= */
+
+.field-content {
+  width: 100%;
+  min-width: 0;
+}
+
+/* =========================================================
+   LABEL
+========================================================= */
+
+.field-content label {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: #888;
+
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+.field-content input {
+  width: 100%;
+
+  padding: 0;
+
+  border: 0;
+  outline: 0;
+
+  background: transparent;
+
+  color: #171717;
+
+  font-family: inherit;
+
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.field-content input::placeholder {
+  color: #999;
+  opacity: 1;
+}
+
+/* =========================================================
+   LOCATION
+========================================================= */
+
+.field-content strong {
+  color: #222;
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* =========================================================
+   SEARCH BUTTON
+========================================================= */
+
+.search-button {
+  min-width: 128px;
+
+  padding: 0 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  border: 0;
+  border-radius: 11px;
+
+  background: #111;
+  color: #fff;
+
+  font-family: inherit;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.search-button:hover {
+  background: #292929;
+}
+
+.search-button:active {
+  transform: translateY(1px);
+}
+
+.search-button i {
+  font-size: 18px;
+}
+
+/* =========================================================
+   POPULAR SEARCHES
+========================================================= */
+
+.popular-searches {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  margin-top: 15px;
+
+  font-size: 11px;
+}
+
+.popular-label {
+  margin-right: 3px;
+
+  color: rgba(20, 20, 20, 0.5);
+}
+
+.popular-searches a {
+  padding: 5px 10px;
+
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.48);
+
+  color: rgba(20, 20, 20, 0.7);
+
+  text-decoration: none;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.popular-searches a:hover {
+  background: #111;
+  border-color: #111;
+  color: #fff;
+}
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 768px) {
+  .hero {
+    min-height: auto;
+
+    padding: 78px 0 62px;
+  }
+
+  .hero-container {
+    width: calc(100% - 28px);
+  }
+
+  .hero-background {
+    inset: -12px;
+
+    transform: scale(1.04);
+
+    background-position: center;
+  }
+
+  .hero::before,
+  .hero::after {
+    width: 34%;
+
+    filter: blur(50px);
+    -webkit-filter: blur(50px);
+
+    opacity: 0.5;
+  }
+
+  .hero-copy h1 {
+    letter-spacing: -3.5px;
+  }
+
+  .hero-copy p {
+    max-width: 520px;
+
+    font-size: 15px;
+  }
+
+  /* SEARCH */
+
+  .search-panel {
+    width: min(100%, 620px);
+
+    grid-template-columns: 1fr;
+  }
+
+  .search-location {
+    border-left: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.07);
+  }
+
+  .search-button {
+    min-height: 48px;
+  }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+  .hero {
+    padding: 64px 0 50px;
+  }
+
+  .hero-container {
+    width: calc(100% - 28px);
+  }
+
+  .hero-background {
+    inset: -10px;
+
+    transform: scale(1.05);
+
+    filter: blur(1.5px);
+    -webkit-filter: blur(1.5px);
+
+    background-position: center;
+  }
+
+  .hero-overlay {
+    background:
+      radial-gradient(
+        ellipse 90% 65% at 50% 43%,
+        rgba(255, 255, 255, 0.92) 0%,
+        rgba(255, 255, 255, 0.68) 27%,
+        rgba(255, 255, 255, 0.24) 55%,
+        rgba(255, 255, 255, 0) 76%
+      ),
+      linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.65) 0%,
+        rgba(255, 255, 255, 0) 35%,
+        rgba(255, 255, 255, 0) 65%,
+        rgba(255, 255, 255, 0.65) 100%
+      ),
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.25) 0%,
+        rgba(255, 255, 255, 0) 42%,
+        rgba(255, 255, 255, 0.3) 100%
+      );
+  }
+
+  .hero::before,
+  .hero::after {
+    width: 42%;
+
+    filter: blur(42px);
+    -webkit-filter: blur(42px);
+
+    opacity: 0.4;
+  }
+
+  /* EYEBROW */
+
+  .eyebrow {
+    margin-bottom: 16px;
+
+    font-size: 9px;
+    letter-spacing: 1.5px;
+  }
+
+  /* TITLE */
+
+  .hero-copy h1 {
+    font-size: 44px;
+    line-height: 1;
+
+    letter-spacing: -2.7px;
+  }
+
+  /* DESCRIPTION */
+
+  .hero-copy p {
+    margin-top: 19px;
+    margin-bottom: 27px;
+
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* SEARCH */
+
+  .search-panel {
+    padding: 5px;
+
+    border-radius: 14px;
+
+    box-shadow:
+      0 14px 35px rgba(0, 0, 0, 0.09),
+      0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  .search-main,
+  .search-location {
+    padding: 11px 13px;
+  }
+
+  .search-main > i,
+  .search-location > i {
+    font-size: 19px;
+  }
+
+  .field-content label {
+    font-size: 9px;
+  }
+
+  .field-content input,
+  .field-content strong {
+    font-size: 13px;
+  }
+
+  .search-button {
+    min-height: 47px;
+
+    border-radius: 10px;
+  }
+
+  /* POPULAR */
+
+  .popular-searches {
+    flex-wrap: wrap;
+
+    margin-top: 14px;
+
+    gap: 7px;
+  }
+
+  .popular-searches a {
+    padding: 4px 9px;
+  }
+}
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 380px) {
+  .hero {
+    padding-top: 55px;
+    padding-bottom: 45px;
+  }
+
+  .hero-copy h1 {
+    font-size: 39px;
+
+    letter-spacing: -2.2px;
+  }
+
+  .hero-copy p {
+    font-size: 13px;
+  }
+}

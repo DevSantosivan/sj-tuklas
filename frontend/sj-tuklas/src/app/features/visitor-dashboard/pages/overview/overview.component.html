@@ -1,0 +1,324 @@
+<section class="dashboard-page">
+  <!-- =====================================================
+       PAGE HEADER
+  ====================================================== -->
+
+  <header class="page-header">
+    <div class="page-heading">
+      <span class="eyebrow">MY DASHBOARD</span>
+
+      <h1>Hello, <span class="wave"></span></h1>
+
+      <p>
+        Keep track of your activity and discover what's happening around
+        <strong>SJ Tuklas</strong>.
+      </p>
+    </div>
+
+    <a routerLink="/search" class="discover-button">
+      <i class="bx bx-compass"></i>
+      <span>Discover</span>
+    </a>
+  </header>
+
+  <!-- =====================================================
+       STATS
+  ====================================================== -->
+
+  <section class="stats-grid">
+    <a routerLink="/dashboard/favorites" class="stat-card">
+      <div class="stat-icon">
+        <i class="bx bx-heart"></i>
+      </div>
+
+      <div class="stat-content">
+        <strong>{{ stats.favorites }}</strong>
+        <span>Favorites</span>
+        <small>Saved businesses</small>
+      </div>
+
+      <i class="bx bx-chevron-right stat-arrow"></i>
+    </a>
+
+    <a routerLink="/dashboard/bookings" class="stat-card">
+      <div class="stat-icon">
+        <i class="bx bx-calendar"></i>
+      </div>
+
+      <div class="stat-content">
+        <strong>{{ stats.bookings }}</strong>
+        <span>Bookings</span>
+        <small>{{ stats.upcomingBookings }} upcoming</small>
+      </div>
+
+      <i class="bx bx-chevron-right stat-arrow"></i>
+    </a>
+
+    <a routerLink="/dashboard/orders" class="stat-card">
+      <div class="stat-icon">
+        <i class="bx bx-shopping-bag"></i>
+      </div>
+
+      <div class="stat-content">
+        <strong>{{ stats.orders }}</strong>
+        <span>Orders</span>
+        <small>{{ stats.completedOrders }} completed</small>
+      </div>
+
+      <i class="bx bx-chevron-right stat-arrow"></i>
+    </a>
+
+    <a routerLink="/dashboard/inquiries" class="stat-card">
+      <div class="stat-icon">
+        <i class="bx bx-message-rounded-dots"></i>
+      </div>
+
+      <div class="stat-content">
+        <strong>{{ stats.inquiries }}</strong>
+        <span>Inquiries</span>
+        <small>{{ stats.unreadInquiries }} unread</small>
+      </div>
+
+      <i class="bx bx-chevron-right stat-arrow"></i>
+    </a>
+  </section>
+
+  <!-- =====================================================
+       MAIN GRID
+  ====================================================== -->
+
+  <section class="dashboard-grid">
+    <!-- ===================================================
+     UPCOMING BOOKINGS
+==================================================== -->
+    <div class="dashboard-card">
+      <div class="card-header">
+        <div class="card-heading">
+          <span class="card-eyebrow">UPCOMING</span>
+          <h2>Bookings</h2>
+        </div>
+
+        <a routerLink="/dashboard/bookings" class="view-link">
+          View all
+          <i class="bx bx-right-arrow-alt"></i>
+        </a>
+      </div>
+
+      <div class="booking-list">
+        <article class="booking-item" *ngFor="let booking of bookings">
+          <div class="business-avatar">
+            <i [class]="booking.icon"></i>
+          </div>
+
+          <div class="booking-info">
+            <strong>{{ booking.business }}</strong>
+
+            <span>
+              <i class="bx bx-calendar"></i>
+              {{ booking.date }}
+            </span>
+
+            <span>
+              <i class="bx bx-time-five"></i>
+              {{ booking.time }}
+            </span>
+          </div>
+
+          <span class="status-badge">
+            {{ booking.status }}
+          </span>
+        </article>
+      </div>
+
+      <div class="card-footer">
+        <a routerLink="/search" class="secondary-button">
+          <i class="bx bx-plus"></i>
+          Book another
+        </a>
+      </div>
+    </div>
+
+    <!-- ===================================================
+     RECENT ORDERS
+==================================================== -->
+    <div class="dashboard-card">
+      <div class="card-header">
+        <div class="card-heading">
+          <span class="card-eyebrow">RECENT</span>
+          <h2>Orders</h2>
+        </div>
+
+        <a routerLink="/dashboard/orders" class="view-link">
+          View all
+          <i class="bx bx-right-arrow-alt"></i>
+        </a>
+      </div>
+
+      <div class="order-list">
+        <article class="order-item" *ngFor="let order of orders">
+          <div class="business-avatar">
+            <i [class]="order.icon"></i>
+          </div>
+
+          <div class="order-info">
+            <strong>{{ order.business }}</strong>
+
+            <span>
+              {{ order.items }} item{{ order.items > 1 ? "s" : "" }} ·
+              {{ order.date }}
+            </span>
+          </div>
+
+          <div class="order-right">
+            <strong>₱{{ order.amount | number: "1.2-2" }}</strong>
+
+            <span
+              class="order-status"
+              [class.completed]="order.status === 'Completed'"
+              [class.processing]="order.status === 'Processing'"
+            >
+              {{ order.status }}
+            </span>
+          </div>
+        </article>
+      </div>
+
+      <div class="card-footer">
+        <a routerLink="/search" class="secondary-button">
+          <i class="bx bx-store"></i>
+          Explore businesses
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       SECONDARY GRID
+  ====================================================== -->
+
+  <section class="secondary-grid">
+    <!-- ===================================================
+     FAVORITES
+==================================================== -->
+    <div class="dashboard-card favorites-card">
+      <div class="card-header">
+        <div class="card-heading">
+          <span class="card-eyebrow">SAVED</span>
+          <h2>Favorite Businesses</h2>
+        </div>
+
+        <a routerLink="/dashboard/favorites" class="view-link">
+          View all
+          <i class="bx bx-right-arrow-alt"></i>
+        </a>
+      </div>
+
+      <div class="favorite-list">
+        <article class="favorite-item" *ngFor="let favorite of favorites">
+          <div class="favorite-image">
+            <i [class]="favorite.icon"></i>
+          </div>
+
+          <div class="favorite-info">
+            <strong>{{ favorite.name }}</strong>
+            <span>{{ favorite.category }}</span>
+          </div>
+
+          <button type="button" class="favorite-button" aria-label="Favorite">
+            <i class="bx bxs-heart"></i>
+          </button>
+        </article>
+      </div>
+    </div>
+
+    <!-- ===================================================
+     NOTIFICATIONS
+==================================================== -->
+    <div class="dashboard-card">
+      <div class="card-header">
+        <div class="card-heading">
+          <span class="card-eyebrow">UPDATES</span>
+          <h2>Notifications</h2>
+        </div>
+
+        <a routerLink="/dashboard/notifications" class="view-link">
+          View all
+          <i class="bx bx-right-arrow-alt"></i>
+        </a>
+      </div>
+
+      <div class="notification-list">
+        <article
+          class="notification-item"
+          *ngFor="let notification of notifications"
+        >
+          <div class="notification-icon">
+            <i [class]="notification.icon"></i>
+          </div>
+
+          <div class="notification-content">
+            <strong>{{ notification.title }}</strong>
+            <p>{{ notification.message }}</p>
+            <span>{{ notification.time }}</span>
+          </div>
+
+          <span *ngIf="notification.unread" class="unread-dot"></span>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       RECENT ACTIVITY
+  ====================================================== -->
+
+  <section class="dashboard-card activity-card">
+    <div class="card-header">
+      <div class="card-heading">
+        <span class="card-eyebrow">ACTIVITY</span>
+        <h2>Recent Activity</h2>
+      </div>
+
+      <a routerLink="/dashboard/transaction" class="view-link">
+        Transactions
+        <i class="bx bx-right-arrow-alt"></i>
+      </a>
+    </div>
+
+    <div class="activity-list">
+      <article class="activity-item" *ngFor="let activity of activities">
+        <div class="activity-icon">
+          <i [class]="activity.icon"></i>
+        </div>
+
+        <div class="activity-content">
+          <strong>{{ activity.title }}</strong>
+          <span>{{ activity.description }}</span>
+        </div>
+
+        <time>{{ activity.time }}</time>
+      </article>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       DISCOVER CTA
+  ====================================================== -->
+
+  <section class="discover-card">
+    <div class="discover-content">
+      <span class="card-eyebrow">EXPLORE SJ TUKLAS</span>
+
+      <h2>Discover something new.</h2>
+
+      <p>
+        Find local businesses, services, food spots and experiences around you.
+      </p>
+    </div>
+
+    <a routerLink="/search" class="discover-cta">
+      Explore businesses
+      <i class="bx bx-right-arrow-alt"></i>
+    </a>
+  </section>
+</section>

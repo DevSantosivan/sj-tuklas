@@ -1,0 +1,743 @@
+<div class="profile-page">
+  <!-- =====================================================
+       LOADING
+  ====================================================== -->
+
+  @if (isLoading()) {
+    <div class="profile-loading">
+      <div class="loading-spinner"></div>
+
+      <span> Loading business profile... </span>
+    </div>
+  } @else {
+    <!-- ===================================================
+         BUSINESS EXISTS
+    ==================================================== -->
+
+    @if (business(); as business) {
+      <!-- =================================================
+           PAGE HEADER
+      ================================================== -->
+
+      <header class="page-header">
+        <div class="page-header-copy">
+          <span class="eyebrow"> MY BUSINESS </span>
+
+          <h2>Business Profile</h2>
+
+          <p>Manage the information customers see on your SJ Tuklas profile.</p>
+        </div>
+
+        <div class="header-actions">
+          <button
+            class="secondary-button"
+            type="button"
+            (click)="previewProfile()"
+          >
+            <i class="bx bx-show"></i>
+
+            <span> Preview Profile </span>
+          </button>
+
+          <button
+            class="primary-button"
+            type="button"
+            (click)="saveChanges()"
+            [disabled]="isSaving()"
+          >
+            <i class="bx bx-save"></i>
+
+            <span>
+              {{ isSaving() ? "Saving..." : "Save Changes" }}
+            </span>
+          </button>
+        </div>
+      </header>
+
+      <!-- =================================================
+           SUCCESS
+      ================================================== -->
+
+      @if (successMessage()) {
+        <div class="success-message">
+          <i class="bx bx-check-circle"></i>
+
+          <span>
+            {{ successMessage() }}
+          </span>
+        </div>
+      }
+
+      <!-- =================================================
+           ERROR
+      ================================================== -->
+
+      @if (errorMessage()) {
+        <div class="error-message">
+          <i class="bx bx-error-circle"></i>
+
+          <span>
+            {{ errorMessage() }}
+          </span>
+        </div>
+      }
+
+      <!-- =================================================
+           BUSINESS IDENTITY
+           COVER + PROFILE + BUSINESS INFO
+      ================================================== -->
+
+      <section class="business-identity-card">
+        <!-- COVER IMAGE -->
+
+        <div class="business-cover">
+          @if (business.coverImage) {
+            <img
+              class="business-cover-image"
+              [src]="business.coverImage"
+              [alt]="business.name + ' cover'"
+            />
+          } @else {
+            <div class="business-cover-placeholder">
+              <i class="bx bx-image"></i>
+
+              <strong> No cover image </strong>
+
+              <span> Add a cover image to showcase your business. </span>
+            </div>
+          }
+
+          <!-- COVER ACTION -->
+
+          <button
+            class="cover-edit-button"
+            type="button"
+            (click)="openImagePicker('cover')"
+            [disabled]="isUploading()"
+          >
+            <i class="bx bx-camera"></i>
+
+            <span>
+              {{ business.coverImage ? "Change Cover" : "Upload Cover" }}
+            </span>
+          </button>
+        </div>
+
+        <!-- BUSINESS INFORMATION -->
+
+        <div class="business-identity-content">
+          <!-- PROFILE IMAGE -->
+
+          <div class="business-logo-wrapper">
+            <div class="business-logo">
+              @if (business.profileImage) {
+                <img [src]="business.profileImage" [alt]="business.name" />
+              } @else {
+                <span>
+                  {{
+                    business.name ? business.name.charAt(0).toUpperCase() : "S"
+                  }}
+                </span>
+              }
+            </div>
+
+            <button
+              class="logo-edit"
+              type="button"
+              (click)="openImagePicker('profile')"
+              [disabled]="isUploading()"
+              aria-label="Change profile image"
+            >
+              <i class="bx bx-camera"></i>
+            </button>
+          </div>
+
+          <!-- BUSINESS DETAILS -->
+
+          <div class="business-heading">
+            <div class="business-name-row">
+              <h3>
+                {{ business.name }}
+              </h3>
+
+              @if (business.status) {
+                <span class="published-badge">
+                  <span></span>
+
+                  {{ business.status }}
+                </span>
+              }
+            </div>
+
+            <p class="business-type-line">
+              @if (business.businessType) {
+                <span>
+                  {{ business.businessType }}
+                </span>
+
+                <span class="separator"> · </span>
+              }
+
+              <span> Local business on SJ Tuklas </span>
+            </p>
+
+            <span class="business-id">
+              Business ID:
+              {{ business.id }}
+            </span>
+          </div>
+        </div>
+
+        <!-- IDENTITY FOOTER -->
+
+        <div class="business-identity-footer">
+          <div class="identity-meta">
+            <span>
+              <i class="bx bx-image"></i>
+              Cover image
+            </span>
+
+            <span>
+              <i class="bx bx-user-circle"></i>
+              Profile image
+            </span>
+
+            @if (business.image) {
+              <span>
+                <i class="bx bx-star"></i>
+                Feature image
+              </span>
+            }
+          </div>
+
+          <button
+            type="button"
+            class="secondary-button small-button"
+            (click)="openImagePicker('cover')"
+            [disabled]="isUploading()"
+          >
+            <i class="bx bx-image-add"></i>
+
+            Manage Cover
+          </button>
+        </div>
+      </section>
+
+      <!-- =================================================
+           BASIC INFORMATION
+      ================================================== -->
+
+      <section class="dashboard-card">
+        <div class="card-header">
+          <div>
+            <span class="card-eyebrow"> BASIC INFORMATION </span>
+
+            <h3>Business details</h3>
+
+            <p>Tell customers what your business is about.</p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <!-- BUSINESS NAME -->
+
+          <div class="form-group full-width">
+            <label for="businessName"> Business Name </label>
+
+            <input
+              id="businessName"
+              type="text"
+              [(ngModel)]="businessName"
+              placeholder="Enter business name"
+            />
+          </div>
+
+          <!-- CATEGORY -->
+
+          <div class="form-group">
+            <label for="category"> Category </label>
+
+            <input
+              id="category"
+              type="text"
+              [(ngModel)]="category"
+              placeholder="Business category"
+            />
+          </div>
+
+          <!-- BUSINESS TYPE -->
+
+          <div class="form-group">
+            <label for="businessType"> Business Type </label>
+
+            <input
+              id="businessType"
+              type="text"
+              [(ngModel)]="businessType"
+              placeholder="Business type"
+            />
+          </div>
+
+          <!-- PHONE -->
+
+          <div class="form-group">
+            <label for="phone"> Contact Number </label>
+
+            <input
+              id="phone"
+              type="tel"
+              [(ngModel)]="phone"
+              placeholder="09XX XXX XXXX"
+            />
+          </div>
+
+          <!-- DESCRIPTION -->
+
+          <div class="form-group full-width">
+            <label for="description"> Business Description </label>
+
+            <textarea
+              id="description"
+              rows="5"
+              [(ngModel)]="description"
+              placeholder="Describe your business..."
+            ></textarea>
+
+            <span class="field-hint">
+              A clear description helps customers understand your business.
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================
+           LOCATION
+      ================================================== -->
+
+      <section class="dashboard-card">
+        <div class="card-header">
+          <div>
+            <span class="card-eyebrow"> LOCATION </span>
+
+            <h3>Business location</h3>
+
+            <p>Help customers find your business.</p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <!-- ADDRESS -->
+
+          <div class="form-group full-width">
+            <label for="address"> Complete Address </label>
+
+            <input
+              id="address"
+              type="text"
+              [(ngModel)]="location"
+              placeholder="Enter complete business address"
+            />
+          </div>
+
+          <!-- BARANGAY -->
+
+          <div class="form-group">
+            <label for="barangay"> Barangay </label>
+
+            <input
+              id="barangay"
+              type="text"
+              [(ngModel)]="barangay"
+              placeholder="Enter barangay"
+            />
+          </div>
+
+          <!-- MUNICIPALITY -->
+
+          <div class="form-group">
+            <label for="municipality"> Municipality </label>
+
+            <input id="municipality" type="text" value="San Jose" readonly />
+          </div>
+        </div>
+
+        <!-- LOCATION PREVIEW -->
+
+        <div class="location-preview">
+          <div class="location-icon">
+            <i class="bx bx-map"></i>
+          </div>
+
+          <div class="location-content">
+            <strong> Location preview </strong>
+
+            <span>
+              {{
+                location ||
+                  "Your business location will appear here on your public profile."
+              }}
+            </span>
+          </div>
+
+          <button type="button" (click)="setLocation()">
+            <i class="bx bx-map-alt"></i>
+
+            <span> Set Location </span>
+          </button>
+        </div>
+      </section>
+
+      <!-- =================================================
+           BUSINESS HOURS
+      ================================================== -->
+
+      <section class="dashboard-card">
+        <div class="card-header">
+          <div>
+            <span class="card-eyebrow"> OPERATING HOURS </span>
+
+            <h3>Business hours</h3>
+
+            <p>Let customers know when you're open.</p>
+          </div>
+        </div>
+
+        <div class="hours-list">
+          @for (hour of hoursList; track hour.day) {
+            <div class="hours-row">
+              <div class="day-name">
+                {{ hour.day }}
+              </div>
+
+              <label class="switch" [attr.aria-label]="'Toggle ' + hour.day">
+                <input type="checkbox" [(ngModel)]="hour.enabled" />
+
+                <span></span>
+              </label>
+
+              @if (hour.enabled) {
+                <input class="time-input" type="time" [(ngModel)]="hour.open" />
+
+                <span class="time-separator"> to </span>
+
+                <input
+                  class="time-input"
+                  type="time"
+                  [(ngModel)]="hour.close"
+                />
+              } @else {
+                <span class="closed-label"> Closed </span>
+              }
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- =================================================
+           BUSINESS IMAGES
+      ================================================== -->
+
+      <section class="dashboard-card">
+        <div class="card-header">
+          <div>
+            <span class="card-eyebrow"> BUSINESS PHOTOS </span>
+
+            <h3>Business images</h3>
+
+            <p>
+              Manage your profile, cover, and feature images. PRO businesses can
+              add additional gallery photos.
+            </p>
+          </div>
+
+          @if (isPro()) {
+            <button
+              class="secondary-button small-button"
+              type="button"
+              (click)="addPhoto()"
+              [disabled]="!canAddPhoto() || isUploading()"
+            >
+              <i class="bx bx-plus"></i>
+
+              Add Gallery Photo
+            </button>
+          } @else {
+            <button
+              class="secondary-button small-button"
+              type="button"
+              (click)="upgradeToPro()"
+            >
+              <i class="bx bx-crown"></i>
+
+              Upgrade to PRO
+            </button>
+          }
+        </div>
+
+        <!-- IMAGE GRID -->
+
+        <div class="photo-grid">
+          @for (photo of photos(); track photo.id) {
+            <div class="photo-card" [class.photo-card-filled]="photo.url">
+              @if (photo.url) {
+                <img [src]="photo.url" [alt]="photo.label" />
+
+                <div class="photo-overlay">
+                  <span>
+                    {{ photo.label }}
+                  </span>
+                </div>
+              } @else {
+                <div class="photo-empty">
+                  <i class="bx bx-image"></i>
+
+                  <strong>
+                    {{ photo.label }}
+                  </strong>
+
+                  <span> No image uploaded </span>
+
+                  <button
+                    type="button"
+                    (click)="openImagePicker(photo.type)"
+                    [disabled]="isUploading()"
+                  >
+                    <i class="bx bx-upload"></i>
+
+                    Upload
+                  </button>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- FREE LOCK -->
+
+          @if (!isPro()) {
+            <div class="locked-photo">
+              <div class="locked-icon">
+                <i class="bx bx-lock-alt"></i>
+              </div>
+
+              <strong> More gallery photos </strong>
+
+              <span>
+                Upgrade to PRO to add up to
+                {{ proGalleryLimit }}
+                additional gallery photos.
+              </span>
+
+              <button type="button" (click)="upgradeToPro()">
+                <i class="bx bx-crown"></i>
+
+                Unlock PRO
+              </button>
+            </div>
+          }
+
+          <!-- PRO ADD -->
+
+          @if (isPro() && canAddPhoto()) {
+            <button
+              class="add-photo"
+              type="button"
+              (click)="addPhoto()"
+              [disabled]="isUploading()"
+            >
+              <i class="bx bx-plus"></i>
+
+              <span> Add photo </span>
+            </button>
+          }
+        </div>
+
+        <!-- PHOTO LIMIT -->
+
+        <div class="photo-limit">
+          <div>
+            <i class="bx bx-images"></i>
+
+            @if (isPro()) {
+              <span>
+                {{ galleryPhotos().length }}
+                of
+                {{ proGalleryLimit }}
+                gallery photos used
+              </span>
+            } @else {
+              <span> Gallery photos available with PRO </span>
+            }
+          </div>
+
+          @if (isPro()) {
+            <span class="pro-limit">
+              <i class="bx bxs-bolt"></i>
+
+              PRO
+            </span>
+          } @else {
+            <span class="free-limit"> FREE </span>
+          }
+        </div>
+      </section>
+
+      <!-- =================================================
+           FEATURES
+      ================================================== -->
+
+      <section class="dashboard-card">
+        <div class="card-header">
+          <div>
+            <span class="card-eyebrow"> BUSINESS FEATURES </span>
+
+            <h3>Enabled features</h3>
+
+            <p>Features currently enabled for this business.</p>
+          </div>
+        </div>
+
+        <div class="feature-grid">
+          @if (featureEnabled("menu")) {
+            <div class="feature-item">
+              <i class="bx bx-food-menu"></i>
+              <span>Menu</span>
+            </div>
+          }
+
+          @if (featureEnabled("products")) {
+            <div class="feature-item">
+              <i class="bx bx-package"></i>
+              <span>Products</span>
+            </div>
+          }
+
+          @if (featureEnabled("services")) {
+            <div class="feature-item">
+              <i class="bx bx-briefcase"></i>
+              <span>Services</span>
+            </div>
+          }
+
+          @if (featureEnabled("ordering")) {
+            <div class="feature-item">
+              <i class="bx bx-cart"></i>
+              <span>Ordering</span>
+            </div>
+          }
+
+          @if (featureEnabled("booking")) {
+            <div class="feature-item">
+              <i class="bx bx-calendar-check"></i>
+              <span>Booking</span>
+            </div>
+          }
+
+          @if (featureEnabled("reservations")) {
+            <div class="feature-item">
+              <i class="bx bx-calendar"></i>
+              <span>Reservations</span>
+            </div>
+          }
+
+          @if (featureEnabled("inquiries")) {
+            <div class="feature-item">
+              <i class="bx bx-message-rounded"></i>
+              <span>Inquiries</span>
+            </div>
+          }
+
+          @if (featureEnabled("promotions")) {
+            <div class="feature-item">
+              <i class="bx bx-megaphone"></i>
+              <span>Promotions</span>
+            </div>
+          }
+
+          @if (featureEnabled("rooms")) {
+            <div class="feature-item">
+              <i class="bx bx-bed"></i>
+              <span>Rooms</span>
+            </div>
+          }
+
+          @if (featureEnabled("analytics")) {
+            <div class="feature-item">
+              <i class="bx bx-bar-chart-alt-2"></i>
+              <span>Analytics</span>
+            </div>
+          }
+
+          @if (featureEnabled("requestQuote")) {
+            <div class="feature-item">
+              <i class="bx bx-receipt"></i>
+              <span>Request a Quote</span>
+            </div>
+          }
+
+          @if (featureEnabled("events")) {
+            <div class="feature-item">
+              <i class="bx bx-calendar-event"></i>
+              <span>Events</span>
+            </div>
+          }
+
+          @if (
+            !featureEnabled("menu") &&
+            !featureEnabled("products") &&
+            !featureEnabled("services") &&
+            !featureEnabled("ordering") &&
+            !featureEnabled("booking") &&
+            !featureEnabled("reservations") &&
+            !featureEnabled("inquiries") &&
+            !featureEnabled("promotions") &&
+            !featureEnabled("rooms") &&
+            !featureEnabled("analytics") &&
+            !featureEnabled("requestQuote") &&
+            !featureEnabled("events")
+          ) {
+            <div class="empty-features">
+              <i class="bx bx-layer"></i>
+
+              <span> No additional features enabled. </span>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- =================================================
+           SAVE AREA
+      ================================================== -->
+
+      <div class="save-area">
+        <span>
+          <i class="bx bx-info-circle"></i>
+
+          Remember to save your changes.
+        </span>
+
+        <button
+          class="primary-button"
+          type="button"
+          (click)="saveChanges()"
+          [disabled]="isSaving()"
+        >
+          <i class="bx bx-save"></i>
+
+          {{ isSaving() ? "Saving..." : "Save Changes" }}
+        </button>
+      </div>
+    } @else {
+      <!-- =================================================
+           NO BUSINESS
+      ================================================== -->
+
+      <div class="profile-empty">
+        <i class="bx bx-store-alt"></i>
+
+        <h3>No business found</h3>
+
+        <p>We couldn't find a business associated with your account.</p>
+      </div>
+    }
+  }
+</div>

@@ -1,0 +1,248 @@
+<section class="register-page">
+  <div class="register-container">
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <div class="register-header">
+      <!-- <a routerLink="/" class="brand">
+        <span class="brand-mark">SJ</span>
+        <span class="brand-name">Tuklas</span>
+      </a> -->
+
+      <div class="header-text">
+        <span class="eyebrow">VISITOR ACCOUNT</span>
+
+        <h1>Discover more with SJ Tuklas.</h1>
+
+        <p>
+          Create your visitor account to discover local businesses, save your
+          favorites, manage your bookings, and keep track of your activity
+          around San Jose.
+        </p>
+      </div>
+    </div>
+
+    <!-- =====================================================
+         FORM CARD
+    ====================================================== -->
+
+    <div class="register-card">
+      <div class="card-heading">
+        <div>
+          <span class="section-label">GET STARTED</span>
+          <h2>Create your visitor account</h2>
+        </div>
+      </div>
+
+      <form (submit)="onRegister(); $event.preventDefault()">
+        <!-- =================================================
+             FULL NAME
+        ================================================== -->
+
+        <div class="form-group">
+          <label for="name"> Full name </label>
+
+          <input
+            id="name"
+            name="fullName"
+            type="text"
+            [(ngModel)]="fullName"
+            placeholder="Enter your full name"
+            autocomplete="name"
+          />
+        </div>
+
+        <!-- =================================================
+             EMAIL
+        ================================================== -->
+
+        <div class="form-group">
+          <label for="email"> Email address </label>
+
+          <input
+            id="email"
+            name="email"
+            type="email"
+            [(ngModel)]="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+          />
+        </div>
+
+        <!-- =================================================
+             PASSWORD ROW
+        ================================================== -->
+
+        <div class="form-row">
+          <!-- PASSWORD -->
+
+          <div class="form-group">
+            <label for="password"> Password </label>
+
+            <div class="password-field">
+              <input
+                id="password"
+                name="password"
+                [type]="showPassword ? 'text' : 'password'"
+                [(ngModel)]="password"
+                placeholder="Create a password"
+                autocomplete="new-password"
+              />
+
+              <button
+                type="button"
+                class="password-toggle"
+                (click)="showPassword = !showPassword"
+                [attr.aria-label]="
+                  showPassword ? 'Hide password' : 'Show password'
+                "
+              >
+                <i
+                  class="bx"
+                  [class.bx-show]="!showPassword"
+                  [class.bx-hide]="showPassword"
+                ></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- CONFIRM PASSWORD -->
+
+          <div class="form-group">
+            <label for="confirmPassword"> Confirm password </label>
+
+            <div class="password-field">
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                [type]="showConfirmPassword ? 'text' : 'password'"
+                [(ngModel)]="confirmPassword"
+                placeholder="Repeat your password"
+                autocomplete="new-password"
+              />
+
+              <button
+                type="button"
+                class="password-toggle"
+                (click)="showConfirmPassword = !showConfirmPassword"
+                [attr.aria-label]="
+                  showConfirmPassword ? 'Hide password' : 'Show password'
+                "
+              >
+                <i
+                  class="bx"
+                  [class.bx-show]="!showConfirmPassword"
+                  [class.bx-hide]="showConfirmPassword"
+                ></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- =================================================
+             TERMS
+        ================================================== -->
+
+        <label class="terms">
+          <input
+            type="checkbox"
+            name="agreedToTerms"
+            [(ngModel)]="agreedToTerms"
+          />
+
+          <span>
+            I agree to the SJ Tuklas
+            <a routerLink="/terms"> Terms of Service </a>
+            and
+            <a routerLink="/privacy"> Privacy Policy </a>.
+          </span>
+        </label>
+
+        <!-- =================================================
+             ERROR
+        ================================================== -->
+
+        @if (errorMessage) {
+          <div class="form-error">
+            <i class="bx bx-error-circle"></i>
+
+            <span>
+              {{ errorMessage }}
+            </span>
+          </div>
+        }
+
+        <!-- =================================================
+             SUCCESS
+        ================================================== -->
+
+        @if (successMessage) {
+          <div class="form-success">
+            <i class="bx bx-check-circle"></i>
+
+            <span>
+              {{ successMessage }}
+            </span>
+          </div>
+        }
+
+        <!-- =================================================
+             ACTION
+        ================================================== -->
+
+        <button type="submit" class="submit-button" [disabled]="isLoading">
+          @if (isLoading) {
+            <span> Creating account... </span>
+          } @else {
+            <span> Create account </span>
+
+            <i class="bx bx-right-arrow-alt"></i>
+          }
+        </button>
+      </form>
+
+      <!-- =================================================
+           LOGIN
+      ================================================== -->
+
+      <div class="login-footer">
+        <span> Already have an account? </span>
+
+        <a routerLink="/login"> Sign in </a>
+      </div>
+    </div>
+
+    <!-- =====================================================
+         BUSINESS OWNER
+    ====================================================== -->
+
+    <div class="business-owner">
+      <div class="business-icon">
+        <i class="bx bx-store"></i>
+      </div>
+
+      <div class="business-content">
+        <strong> Are you a business owner? </strong>
+
+        <span> List your business and reach more local customers. </span>
+
+        <a routerLink="/business/register">
+          List your business
+          <i class="bx bx-right-arrow-alt"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- =====================================================
+         BACK TO HOME
+    ====================================================== -->
+
+    <div class="visitor-link">
+      <a routerLink="/">
+        <i class="bx bx-arrow-back"></i>
+        Back to SJ Tuklas
+      </a>
+    </div>
+  </div>
+</section>

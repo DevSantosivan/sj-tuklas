@@ -1,0 +1,141 @@
+@if (business(); as business) {
+  <section class="menu-page">
+    <div class="container">
+      <a [routerLink]="['/business', business.id]" class="back-link">
+        <i class="bx bx-left-arrow-alt"></i>
+        Back to business
+      </a>
+
+      @if (menuEnabled()) {
+        <div class="page-header">
+          <div>
+            <span class="eyebrow">
+              <i class="bx bx-food-menu"></i>
+              MENU
+            </span>
+
+            <h1>Explore the menu</h1>
+
+            <p>Browse what {{ business.name }} has to offer.</p>
+          </div>
+        </div>
+
+        <div class="category-tabs">
+          <button class="active">All</button>
+
+          <button>Meals</button>
+
+          <button>Drinks</button>
+
+          <button>Specials</button>
+        </div>
+
+        <div class="menu-grid">
+          <article class="menu-card">
+            <div class="menu-image">
+              <img
+                src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=700&q=80"
+                alt="Signature meal"
+              />
+            </div>
+
+            <div class="menu-content">
+              <div>
+                <span class="menu-category"> Meals </span>
+
+                <h3>Signature Meal</h3>
+
+                <p>A delicious house specialty prepared fresh.</p>
+              </div>
+
+              <strong class="price"> ₱180 </strong>
+            </div>
+          </article>
+
+          <article class="menu-card">
+            <div class="menu-image">
+              <img
+                src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=700&q=80"
+                alt="Special pizza"
+              />
+            </div>
+
+            <div class="menu-content">
+              <div>
+                <span class="menu-category"> Specials </span>
+
+                <h3>House Special</h3>
+
+                <p>One of the customer's favorite choices.</p>
+              </div>
+
+              <strong class="price"> ₱220 </strong>
+            </div>
+          </article>
+
+          <article class="menu-card">
+            <div class="menu-image">
+              <img
+                src="https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=700&q=80"
+                alt="Fresh drink"
+              />
+            </div>
+
+            <div class="menu-content">
+              <div>
+                <span class="menu-category"> Drinks </span>
+
+                <h3>Fresh Drink</h3>
+
+                <p>A refreshing drink to complete your meal.</p>
+              </div>
+
+              <strong class="price"> ₱75 </strong>
+            </div>
+          </article>
+
+          <article class="menu-card">
+            <div class="menu-image">
+              <img
+                src="https://images.unsplash.com/photo-1563379926898-05f4575a45d8?auto=format&fit=crop&w=700&q=80"
+                alt="Pasta"
+              />
+            </div>
+
+            <div class="menu-content">
+              <div>
+                <span class="menu-category"> Meals </span>
+
+                <h3>House Pasta</h3>
+
+                <p>Freshly prepared pasta with house sauce.</p>
+              </div>
+
+              <strong class="price"> ₱160 </strong>
+            </div>
+          </article>
+        </div>
+      } @else {
+        <div class="unavailable-state">
+          <div class="empty-icon">
+            <i class="bx bx-food-menu"></i>
+          </div>
+
+          <span class="eyebrow"> MENU UNAVAILABLE </span>
+
+          <h1>No online menu available</h1>
+
+          <p>
+            {{ business.name }} does not currently have an online menu on SJ
+            Tuklas.
+          </p>
+
+          <a [routerLink]="['/business', business.id]" class="primary-action">
+            <i class="bx bx-left-arrow-alt"></i>
+            Back to business
+          </a>
+        </div>
+      }
+    </div>
+  </section>
+}

@@ -1,0 +1,957 @@
+/* =====================================================
+DASHBOARD PAGE
+===================================================== */
+
+.dashboard-page {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-bottom: 35px;
+}
+
+/* =====================================================
+PAGE HEADER
+===================================================== */
+
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 30px;
+}
+
+.page-heading {
+  min-width: 0;
+}
+
+.eyebrow,
+.card-eyebrow {
+  display: inline-block;
+  margin-bottom: 8px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: #777;
+}
+
+.eyebrow {
+  margin-bottom: 8px;
+}
+
+.page-header h1 {
+  margin: 0;
+  color: #111;
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.045em;
+}
+
+.wave {
+  display: inline-block;
+  margin-left: 2px;
+}
+
+.page-header p {
+  max-width: 620px;
+  margin: 8px 0 0;
+  color: #888;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.page-header p strong {
+  color: #555;
+}
+
+/* =====================================================
+DISCOVER BUTTON
+===================================================== */
+
+.discover-button {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+  padding: 0 15px;
+  border-radius: 9px;
+  background: #111;
+  color: #fff;
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: 700;
+  transition: 0.18s ease;
+}
+
+.discover-button i {
+  font-size: 15px;
+}
+
+.discover-button:hover {
+  background: #292929;
+  transform: translateY(-1px);
+}
+
+/* =====================================================
+STATS
+===================================================== */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 11px;
+}
+
+.stat-card {
+  position: relative;
+  min-width: 0;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid #e6e6e6;
+  border-radius: 13px;
+  background: #fff;
+  color: #111;
+  text-decoration: none;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: #d2d2d2;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+}
+
+.stat-icon {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: #f2f2f2;
+  color: #171717;
+  transition: 0.18s ease;
+}
+
+.stat-card:hover .stat-icon {
+  background: #111;
+  color: #fff;
+}
+
+.stat-icon i {
+  font-size: 19px;
+}
+
+.stat-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-content strong {
+  color: #111;
+  font-size: 23px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.stat-content span {
+  margin-top: 5px;
+  color: #555;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.stat-content small {
+  margin-top: 4px;
+  color: #aaa;
+  font-size: 8px;
+}
+
+.stat-arrow {
+  margin-left: auto;
+  color: #c5c5c5;
+  font-size: 17px;
+  transition: 0.18s ease;
+}
+
+.stat-card:hover .stat-arrow {
+  color: #111;
+  transform: translateX(2px);
+}
+
+/* =====================================================
+MAIN GRID
+===================================================== */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+}
+
+/* =====================================================
+GENERAL CARD
+===================================================== */
+
+.dashboard-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #e7e7e7;
+  border-radius: 14px;
+  background: #fff;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.dashboard-card:hover {
+  border-color: #dadada;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.035);
+}
+
+/* =====================================================
+CARD HEADER
+===================================================== */
+
+.card-header {
+  min-height: 65px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 13px 17px;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.card-heading {
+  min-width: 0;
+}
+
+.card-eyebrow {
+  margin-bottom: 5px;
+}
+
+.card-header h2 {
+  margin: 0;
+  color: #111;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+/* =====================================================
+VIEW LINK
+===================================================== */
+
+.view-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  color: #777;
+  text-decoration: none;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.view-link i {
+  font-size: 14px;
+  transition: 0.15s ease;
+}
+
+.view-link:hover {
+  color: #111;
+}
+
+.view-link:hover i {
+  transform: translateX(2px);
+}
+
+/* =====================================================
+BOOKING LIST
+===================================================== */
+
+.booking-list,
+.order-list,
+.favorite-list,
+.notification-list,
+.activity-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.booking-item {
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 12px 17px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.business-avatar,
+.favorite-image {
+  width: 39px;
+  height: 39px;
+  flex: 0 0 39px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #f1f1f1;
+  color: #333;
+}
+
+.business-avatar i,
+.favorite-image i {
+  font-size: 18px;
+}
+
+.booking-info {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.booking-info strong,
+.order-info strong,
+.favorite-info strong {
+  overflow: hidden;
+  color: #222;
+  font-size: 10px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.booking-info span {
+  margin-top: 3px;
+  color: #999;
+  font-size: 8px;
+}
+
+.booking-info span + span {
+  margin-top: 2px;
+}
+
+.booking-info span i {
+  margin-right: 3px;
+  font-size: 10px;
+}
+
+.status-badge {
+  flex-shrink: 0;
+  padding: 5px 8px;
+  border-radius: 20px;
+  background: #f1f1f1;
+  color: #555;
+  font-size: 7px;
+  font-weight: 800;
+}
+
+/* =====================================================
+ORDER LIST
+===================================================== */
+
+.order-item {
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 12px 17px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.order-info {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.order-info span {
+  margin-top: 4px;
+  color: #999;
+  font-size: 8px;
+}
+
+.order-right {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.order-right strong {
+  color: #222;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.order-status {
+  margin-top: 4px;
+  color: #999;
+  font-size: 7px;
+  font-weight: 700;
+}
+
+.order-status.completed {
+  color: #555;
+}
+
+.order-status.processing {
+  color: #888;
+}
+
+/* =====================================================
+CARD FOOTER
+===================================================== */
+
+.card-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 11px 17px;
+}
+
+.secondary-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid #e4e4e4;
+  border-radius: 7px;
+  background: #fff;
+  color: #444;
+  text-decoration: none;
+  font-size: 8px;
+  font-weight: 700;
+  transition: 0.15s ease;
+}
+
+.secondary-button i {
+  font-size: 13px;
+}
+
+.secondary-button:hover {
+  border-color: #111;
+  background: #111;
+  color: #fff;
+}
+
+/* =====================================================
+SECONDARY GRID
+===================================================== */
+
+.secondary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+}
+
+/* =====================================================
+FAVORITES
+===================================================== */
+
+.favorite-item {
+  min-height: 62px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 17px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.favorite-info {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.favorite-info span {
+  margin-top: 4px;
+  color: #999;
+  font-size: 8px;
+}
+
+.favorite-button {
+  width: 29px;
+  height: 29px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: #f3f3f3;
+  color: #222;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.favorite-button:hover {
+  background: #111;
+  color: #fff;
+}
+
+.favorite-button i {
+  font-size: 13px;
+}
+
+/* =====================================================
+NOTIFICATIONS
+===================================================== */
+
+.notification-item {
+  position: relative;
+  min-height: 70px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 17px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.notification-icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #f1f1f1;
+  color: #333;
+}
+
+.notification-icon i {
+  font-size: 16px;
+}
+
+.notification-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.notification-content strong {
+  display: block;
+  color: #222;
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.notification-content p {
+  margin: 3px 0 0;
+  overflow: hidden;
+  color: #999;
+  font-size: 8px;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notification-content span {
+  display: block;
+  margin-top: 4px;
+  color: #aaa;
+  font-size: 7px;
+}
+
+.unread-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: #111;
+}
+
+/* =====================================================
+ACTIVITY
+===================================================== */
+
+.activity-card {
+  width: 100%;
+}
+
+.activity-item {
+  min-height: 62px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 17px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.activity-icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #f2f2f2;
+  color: #333;
+}
+
+.activity-icon i {
+  font-size: 16px;
+}
+
+.activity-content {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.activity-content strong {
+  overflow: hidden;
+  color: #222;
+  font-size: 9px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activity-content span {
+  margin-top: 3px;
+  color: #999;
+  font-size: 8px;
+}
+
+.activity-item time {
+  flex-shrink: 0;
+  color: #aaa;
+  font-size: 7px;
+}
+
+/* =====================================================
+DISCOVER CTA
+===================================================== */
+
+.discover-card {
+  min-height: 125px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 24px;
+  overflow: hidden;
+  border-radius: 15px;
+  background: #111;
+  color: #fff;
+}
+
+.discover-content {
+  min-width: 0;
+}
+
+.discover-card .card-eyebrow {
+  color: #888;
+}
+
+.discover-card h2 {
+  margin: 7px 0 0;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+.discover-card p {
+  max-width: 500px;
+  margin: 6px 0 0;
+  color: #999;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.discover-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  min-height: 37px;
+  padding: 0 13px;
+  border-radius: 8px;
+  background: #fff;
+  color: #111;
+  text-decoration: none;
+  font-size: 9px;
+  font-weight: 800;
+  transition: 0.15s ease;
+}
+
+.discover-cta i {
+  font-size: 14px;
+}
+
+.discover-cta:hover {
+  background: #e9e9e9;
+  transform: translateY(-1px);
+}
+
+/* =====================================================
+LARGE TABLET
+===================================================== */
+
+@media (max-width: 1050px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* =====================================================
+TABLET
+===================================================== */
+
+@media (max-width: 850px) {
+  .dashboard-grid,
+  .secondary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =====================================================
+MOBILE
+===================================================== */
+
+@media (max-width: 768px) {
+  .dashboard-page {
+    gap: 14px;
+  }
+
+  .page-header {
+    align-items: flex-start;
+  }
+
+  .page-header h1 {
+    font-size: 25px;
+  }
+
+  .page-header p {
+    font-size: 10px;
+  }
+
+  .discover-button {
+    width: 38px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .discover-button span {
+    display: none;
+  }
+
+  .stats-grid {
+    gap: 8px;
+  }
+
+  .stat-card {
+    min-height: 82px;
+    padding: 11px;
+    border-radius: 11px;
+  }
+
+  .stat-icon {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+    border-radius: 9px;
+  }
+
+  .stat-icon i {
+    font-size: 16px;
+  }
+
+  .stat-content strong {
+    font-size: 19px;
+  }
+
+  .stat-content span {
+    font-size: 9px;
+  }
+
+  .stat-content small {
+    font-size: 7px;
+  }
+
+  .stat-arrow {
+    display: none;
+  }
+
+  .dashboard-grid,
+  .secondary-grid {
+    gap: 10px;
+  }
+
+  .dashboard-card {
+    border-radius: 11px;
+  }
+
+  .card-header {
+    min-height: 59px;
+    padding: 12px 14px;
+  }
+
+  .card-header h2 {
+    font-size: 13px;
+  }
+
+  .booking-item,
+  .order-item {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .favorite-item,
+  .notification-item,
+  .activity-item {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .discover-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 20px;
+  }
+
+  .discover-cta {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* =====================================================
+SMALL MOBILE
+===================================================== */
+
+@media (max-width: 480px) {
+  .page-header {
+    gap: 10px;
+  }
+
+  .eyebrow {
+    font-size: 7px;
+  }
+
+  .page-header h1 {
+    font-size: 22px;
+  }
+
+  .page-header p {
+    font-size: 9px;
+  }
+
+  .stats-grid {
+    gap: 6px;
+  }
+
+  .stat-card {
+    min-height: 74px;
+    padding: 9px;
+    gap: 8px;
+  }
+
+  .stat-icon {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+  }
+
+  .stat-icon i {
+    font-size: 14px;
+  }
+
+  .stat-content strong {
+    font-size: 17px;
+  }
+
+  .stat-content span {
+    font-size: 8px;
+  }
+
+  .stat-content small {
+    font-size: 6px;
+  }
+
+  .booking-item,
+  .order-item {
+    min-height: 70px;
+  }
+
+  .business-avatar,
+  .favorite-image {
+    width: 35px;
+    height: 35px;
+    flex-basis: 35px;
+  }
+
+  .business-avatar i,
+  .favorite-image i {
+    font-size: 16px;
+  }
+
+  .status-badge {
+    padding: 4px 6px;
+    font-size: 6px;
+  }
+
+  .discover-card h2 {
+    font-size: 18px;
+  }
+}
+
+/* =====================================================
+VERY SMALL MOBILE
+===================================================== */
+
+@media (max-width: 360px) {
+  .page-header h1 {
+    font-size: 20px;
+  }
+
+  .page-header p {
+    font-size: 8px;
+  }
+
+  .stat-card {
+    min-height: 69px;
+    padding: 8px;
+  }
+
+  .stat-icon {
+    width: 27px;
+    height: 27px;
+    flex-basis: 27px;
+  }
+
+  .stat-content strong {
+    font-size: 16px;
+  }
+
+  .stat-content span {
+    font-size: 7px;
+  }
+
+  .stat-content small {
+    display: none;
+  }
+}

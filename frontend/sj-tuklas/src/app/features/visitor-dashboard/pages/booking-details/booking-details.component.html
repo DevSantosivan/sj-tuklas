@@ -1,0 +1,328 @@
+<section class="booking-details-page" *ngIf="booking; else notFound">
+  <!-- =====================================================
+       HEADER
+  ====================================================== -->
+
+  <header class="details-header">
+    <button type="button" class="back-button" (click)="goBackToBookings()">
+      <i class="bx bx-arrow-back"></i>
+      <span>Back to bookings</span>
+    </button>
+
+    <div class="header-copy">
+      <span class="eyebrow">BOOKING DETAILS</span>
+
+      <h1>Booking Details</h1>
+
+      <p>Review your reservation information, schedule, and booking status.</p>
+    </div>
+  </header>
+
+  <!-- =====================================================
+       MAIN
+  ====================================================== -->
+
+  <div class="details-layout">
+    <!-- ===================================================
+         LEFT
+    ==================================================== -->
+
+    <main class="details-main">
+      <!-- BUSINESS CARD -->
+      <section class="business-card">
+        <div class="business-image">
+          <img [src]="booking.image" [alt]="booking.businessName" />
+        </div>
+
+        <div class="business-info">
+          <span class="small-label"> BUSINESS </span>
+
+          <h2>
+            {{ booking.businessName }}
+          </h2>
+
+          <span class="location">
+            <i class="bx bx-map"></i>
+            {{ booking.location }}
+          </span>
+        </div>
+
+        <div
+          class="booking-status"
+          [class.upcoming]="booking.status === 'upcoming'"
+          [class.pending]="booking.status === 'pending'"
+          [class.completed]="booking.status === 'completed'"
+          [class.cancelled]="booking.status === 'cancelled'"
+        >
+          <span class="status-dot"></span>
+
+          {{ getStatusLabel(booking.status) }}
+        </div>
+      </section>
+
+      <!-- =================================================
+           BOOKING INFORMATION
+      ================================================== -->
+
+      <section class="details-card">
+        <div class="card-heading">
+          <div>
+            <span class="section-label"> BOOKING INFORMATION </span>
+
+            <h2>
+              {{ booking.service }}
+            </h2>
+          </div>
+
+          <span class="reference"> #{{ booking.reference }} </span>
+        </div>
+
+        <div class="info-grid">
+          <!-- DATE -->
+          <div class="info-item">
+            <div class="info-icon">
+              <i class="bx bx-calendar"></i>
+            </div>
+
+            <div>
+              <span>Date</span>
+              <strong>
+                {{ booking.date }}
+              </strong>
+            </div>
+          </div>
+
+          <!-- TIME -->
+          <div class="info-item">
+            <div class="info-icon">
+              <i class="bx bx-time-five"></i>
+            </div>
+
+            <div>
+              <span>Time</span>
+
+              <strong>
+                {{ booking.time }}
+              </strong>
+            </div>
+          </div>
+
+          <!-- GUESTS -->
+          <div class="info-item">
+            <div class="info-icon">
+              <i class="bx bx-group"></i>
+            </div>
+
+            <div>
+              <span>Guests</span>
+
+              <strong>
+                {{ booking.guests }}
+                {{ booking.guests === 1 ? "person" : "people" }}
+              </strong>
+            </div>
+          </div>
+
+          <!-- BOOKED ON -->
+          <div class="info-item">
+            <div class="info-icon">
+              <i class="bx bx-history"></i>
+            </div>
+
+            <div>
+              <span>Booked on</span>
+
+              <strong>
+                {{ booking.createdAt }}
+              </strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================
+           BOOKING STATUS
+      ================================================== -->
+
+      <section class="details-card">
+        <div class="section-label">BOOKING STATUS</div>
+
+        <div class="status-timeline">
+          <!-- CREATED -->
+          <div class="timeline-item active">
+            <div class="timeline-icon">
+              <i class="bx bx-check"></i>
+            </div>
+
+            <div>
+              <strong> Booking created </strong>
+
+              <span>
+                {{ booking.createdAt }}
+              </span>
+            </div>
+          </div>
+
+          <!-- LINE -->
+          <div class="timeline-line"></div>
+
+          <!-- CONFIRMATION -->
+          <div
+            class="timeline-item"
+            [class.active]="booking.status !== 'pending'"
+          >
+            <div class="timeline-icon">
+              <i class="bx bx-check"></i>
+            </div>
+
+            <div>
+              <strong>
+                {{
+                  booking.status === "pending"
+                    ? "Awaiting confirmation"
+                    : "Booking confirmed"
+                }}
+              </strong>
+
+              <span>
+                {{
+                  booking.status === "pending"
+                    ? "The business has not confirmed this booking yet."
+                    : "Your booking has been processed."
+                }}
+              </span>
+            </div>
+          </div>
+
+          <!-- UPCOMING / COMPLETED LINE -->
+          <div
+            class="timeline-line"
+            *ngIf="booking.status !== 'cancelled'"
+          ></div>
+
+          <!-- UPCOMING / COMPLETED -->
+          <div
+            class="timeline-item"
+            [class.active]="booking.status === 'completed'"
+            *ngIf="booking.status !== 'cancelled'"
+          >
+            <div class="timeline-icon">
+              <i class="bx bx-check-circle"></i>
+            </div>
+
+            <div>
+              <strong>
+                {{ booking.status === "completed" ? "Completed" : "Upcoming" }}
+              </strong>
+
+              <span>
+                {{
+                  booking.status === "completed"
+                    ? "This booking has been completed."
+                    : "Your booking is scheduled."
+                }}
+              </span>
+            </div>
+          </div>
+
+          <!-- CANCELLED -->
+          <div
+            class="timeline-item cancelled-item"
+            *ngIf="booking.status === 'cancelled'"
+          >
+            <div class="timeline-icon">
+              <i class="bx bx-x"></i>
+            </div>
+
+            <div>
+              <strong> Booking cancelled </strong>
+
+              <span> This booking is no longer active. </span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ===================================================
+         RIGHT SIDEBAR
+    ==================================================== -->
+
+    <aside class="details-sidebar">
+      <!-- QUICK ACTIONS -->
+      <section class="action-card">
+        <span class="section-label"> QUICK ACTIONS </span>
+
+        <!-- BACK -->
+        <button
+          type="button"
+          class="primary-button"
+          (click)="goBackToBookings()"
+        >
+          <i class="bx bx-arrow-back"></i>
+          Back to bookings
+        </button>
+
+        <!-- BOOK AGAIN -->
+        <button
+          *ngIf="booking.status === 'completed'"
+          type="button"
+          class="secondary-button"
+          (click)="bookAgain()"
+        >
+          <i class="bx bx-refresh"></i>
+          Book again
+        </button>
+
+        <!-- CANCEL -->
+        <button
+          *ngIf="booking.status === 'upcoming' || booking.status === 'pending'"
+          type="button"
+          class="secondary-button"
+          (click)="cancelBooking()"
+        >
+          <i class="bx bx-x"></i>
+          Cancel booking
+        </button>
+      </section>
+
+      <!-- REFERENCE -->
+      <section class="reference-card">
+        <div class="reference-icon">
+          <i class="bx bx-receipt"></i>
+        </div>
+
+        <span> BOOKING REFERENCE </span>
+
+        <strong>
+          {{ booking.reference }}
+        </strong>
+
+        <small> Keep this reference for your records. </small>
+      </section>
+    </aside>
+  </div>
+</section>
+
+<!-- =====================================================
+     NOT FOUND
+====================================================== -->
+
+<ng-template #notFound>
+  <section class="not-found">
+    <div class="not-found-icon">
+      <i class="bx bx-calendar-x"></i>
+    </div>
+
+    <span class="eyebrow"> BOOKING NOT FOUND </span>
+
+    <h2>We couldn't find this booking</h2>
+
+    <p>The booking may no longer exist or the link may be invalid.</p>
+
+    <button type="button" class="primary-button" (click)="goBackToBookings()">
+      <i class="bx bx-arrow-back"></i>
+      Back to bookings
+    </button>
+  </section>
+</ng-template>

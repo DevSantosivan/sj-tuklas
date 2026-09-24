@@ -1,0 +1,149 @@
+@if (business(); as business) {
+  <section class="promotions-page">
+    <div class="container">
+      <a [routerLink]="['/business', business.id]" class="back-link">
+        <i class="bx bx-left-arrow-alt"></i>
+        Back to business
+      </a>
+
+      @if (promotionsEnabled()) {
+        <div class="page-header">
+          <span class="eyebrow">
+            <i class="bx bx-purchase-tag"></i>
+            PROMOTIONS
+          </span>
+
+          <h1>Latest promotions</h1>
+
+          <p>
+            Discover deals and special offers from
+            {{ business.name }}.
+          </p>
+        </div>
+
+        <div class="promotions-grid">
+          <article class="promotion-card featured">
+            <div class="promotion-image">
+              <img
+                src="https://images.unsplash.com/photo-1600891964092-4316c288032e?auto=format&fit=crop&w=1000&q=80"
+                alt="Special offer"
+              />
+
+              <span class="offer-badge"> SPECIAL OFFER </span>
+            </div>
+
+            <div class="promotion-content">
+              <span class="promotion-label"> LIMITED TIME </span>
+
+              <h2>20% Off Selected Items</h2>
+
+              <p>
+                Enjoy 20% off selected items when you visit
+                {{ business.name }}.
+              </p>
+
+              <div class="promotion-footer">
+                <span>
+                  <i class="bx bx-time-five"></i>
+                  Until Sept 30
+                </span>
+
+                <button type="button">
+                  View offer
+                  <i class="bx bx-right-arrow-alt"></i>
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <article class="promotion-card">
+            <div class="promotion-image">
+              <img
+                src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=900&q=80"
+                alt="Customer deal"
+              />
+
+              <span class="offer-badge"> DEAL </span>
+            </div>
+
+            <div class="promotion-content">
+              <span class="promotion-label"> CUSTOMER DEAL </span>
+
+              <h2>Special Customer Offer</h2>
+
+              <p>
+                Get a special offer available for customers of
+                {{ business.name }}.
+              </p>
+
+              <div class="promotion-footer">
+                <span>
+                  <i class="bx bx-time-five"></i>
+                  This month
+                </span>
+
+                <button type="button">
+                  View offer
+                  <i class="bx bx-right-arrow-alt"></i>
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <article class="promotion-card">
+            <div class="promotion-image">
+              <img
+                src="https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?auto=format&fit=crop&w=900&q=80"
+                alt="Member offer"
+              />
+
+              <span class="offer-badge"> OFFER </span>
+            </div>
+
+            <div class="promotion-content">
+              <span class="promotion-label"> EXCLUSIVE </span>
+
+              <h2>Member Special</h2>
+
+              <p>
+                Ask the business about their current exclusive customer offers.
+              </p>
+
+              <div class="promotion-footer">
+                <span>
+                  <i class="bx bx-time-five"></i>
+                  Available now
+                </span>
+
+                <button type="button">
+                  View offer
+                  <i class="bx bx-right-arrow-alt"></i>
+                </button>
+              </div>
+            </div>
+          </article>
+        </div>
+      } @else {
+        <div class="unavailable-state">
+          <div class="empty-icon">
+            <i class="bx bx-purchase-tag"></i>
+          </div>
+
+          <span class="eyebrow"> PROMOTIONS UNAVAILABLE </span>
+
+          <h1>No promotions available</h1>
+
+          <p>
+            {{ business.name }} does not currently have promotions listed on SJ
+            Tuklas.
+          </p>
+
+          <a [routerLink]="['/business', business.id]" class="primary-action">
+            <i class="bx bx-left-arrow-alt"></i>
+            Back to business
+          </a>
+        </div>
+      }
+    </div>
+  </section>
+}

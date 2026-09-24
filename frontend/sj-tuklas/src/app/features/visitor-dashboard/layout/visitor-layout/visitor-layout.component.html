@@ -1,0 +1,383 @@
+<div class="visitor-layout">
+  <!-- =====================================================
+       DESKTOP SIDEBAR
+  ====================================================== -->
+
+  <aside class="visitor-sidebar">
+    <!-- BRAND -->
+    <a routerLink="/" class="sidebar-brand">
+      <span class="brand-mark"> SJ </span>
+
+      <div class="brand-text">
+        <strong>SJ Tuklas</strong>
+        <span>My Account</span>
+      </div>
+    </a>
+
+    <!-- NAVIGATION -->
+    <nav class="sidebar-nav">
+      <!-- DASHBOARD -->
+      <div class="nav-section">
+        <span class="nav-section-title"> Dashboard </span>
+
+        <a
+          [routerLink]="overviewRoute"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="sidebar-link"
+        >
+          <span class="sidebar-icon">
+            <i class="bx bx-grid-alt"></i>
+          </span>
+
+          <span class="sidebar-link-text"> Overview </span>
+        </a>
+      </div>
+
+      <!-- MY ACTIVITY -->
+      <div class="nav-section">
+        <span class="nav-section-title"> My Activity </span>
+
+        <!-- FAVORITES -->
+        <a
+          [routerLink]="favoritesRoute"
+          routerLinkActive="active"
+          class="sidebar-link"
+        >
+          <span class="sidebar-icon">
+            <i class="bx bx-heart"></i>
+          </span>
+
+          <span class="sidebar-link-text"> Favorites </span>
+        </a>
+
+        <!-- BOOKINGS -->
+        <a
+          [routerLink]="bookingsRoute"
+          routerLinkActive="active"
+          class="sidebar-link"
+        >
+          <span class="sidebar-icon">
+            <i class="bx bx-calendar"></i>
+          </span>
+
+          <span class="sidebar-link-text"> Bookings </span>
+        </a>
+
+        <!-- ORDERS -->
+        <a
+          [routerLink]="ordersRoute"
+          routerLinkActive="active"
+          class="sidebar-link"
+        >
+          <span class="sidebar-icon">
+            <i class="bx bx-shopping-bag"></i>
+          </span>
+
+          <span class="sidebar-link-text"> Orders </span>
+        </a>
+
+        <!-- TRANSACTIONS -->
+        <a
+          [routerLink]="transactionsRoute"
+          routerLinkActive="active"
+          class="sidebar-link"
+        >
+          <span class="sidebar-icon">
+            <i class="bx bx-receipt"></i>
+          </span>
+
+          <span class="sidebar-link-text"> Transactions </span>
+        </a>
+
+        <!-- INQUIRIES -->
+        <a
+          [routerLink]="inquiriesRoute"
+          routerLinkActive="active"
+          class="sidebar-link"
+        >
+          <span class="sidebar-icon">
+            <i class="bx bx-message-rounded-dots"></i>
+          </span>
+
+          <span class="sidebar-link-text"> Inquiries </span>
+        </a>
+
+        <!-- RECENTLY VIEWED -->
+        <a
+          [routerLink]="recentlyViewedRoute"
+          routerLinkActive="active"
+          class="sidebar-link"
+        >
+          <span class="sidebar-icon">
+            <i class="bx bx-history"></i>
+          </span>
+
+          <span class="sidebar-link-text"> Recently Viewed </span>
+        </a>
+      </div>
+
+      <!-- ACCOUNT -->
+      <div class="nav-section">
+        <span class="nav-section-title"> Account </span>
+
+        <!-- NOTIFICATIONS -->
+        <a
+          [routerLink]="notificationsRoute"
+          routerLinkActive="active"
+          class="sidebar-link notification-link"
+        >
+          <span class="sidebar-icon notification-icon">
+            <i class="bx bx-bell"></i>
+
+            @if (notificationCount > 0) {
+              <span class="notification-dot"></span>
+            }
+          </span>
+
+          <span class="sidebar-link-text"> Notifications </span>
+
+          @if (notificationCount > 0) {
+            <span class="notification-badge">
+              {{ notificationCount > 99 ? "99+" : notificationCount }}
+            </span>
+          }
+        </a>
+
+        <!-- PROFILE -->
+        <a
+          [routerLink]="profileRoute"
+          routerLinkActive="active"
+          class="sidebar-link"
+        >
+          <span class="sidebar-icon">
+            <i class="bx bx-user"></i>
+          </span>
+
+          <span class="sidebar-link-text"> Profile </span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- SIDEBAR FOOTER -->
+    <div class="sidebar-footer">
+      <a routerLink="/" class="back-link">
+        <span class="sidebar-icon">
+          <i class="bx bx-arrow-back"></i>
+        </span>
+
+        <span> Back to SJ Tuklas </span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- =====================================================
+       MAIN
+  ====================================================== -->
+
+  <main class="visitor-main">
+    <!-- ===================================================
+         MOBILE APP BAR
+    ==================================================== -->
+
+    <header class="visitor-mobile-appbar">
+      <!-- BRAND -->
+      <a routerLink="/" class="mobile-brand">
+        <span class="mobile-brand-mark"> SJ </span>
+
+        <span class="mobile-brand-name"> Tuklas </span>
+      </a>
+
+      <!-- ACTIONS -->
+      <div class="mobile-appbar-actions">
+        <!-- NOTIFICATIONS -->
+        <a
+          [routerLink]="notificationsRoute"
+          class="mobile-notification-button"
+          aria-label="Notifications"
+        >
+          <i class="bx bx-bell"></i>
+
+          @if (notificationCount > 0) {
+            <span class="mobile-notification-badge">
+              {{ notificationCount > 9 ? "9+" : notificationCount }}
+            </span>
+          }
+        </a>
+
+        <!-- PROFILE -->
+        <a
+          [routerLink]="profileRoute"
+          class="mobile-profile-button"
+          aria-label="Profile"
+        >
+          {{ currentUser()?.fullName?.charAt(0)?.toUpperCase() || "?" }}
+        </a>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <div class="visitor-content">
+      <router-outlet />
+    </div>
+  </main>
+
+  <!-- =====================================================
+       MOBILE BOTTOM NAV
+  ====================================================== -->
+
+  <nav class="visitor-mobile-bottom-nav">
+    <!-- HOME -->
+    <a
+      [routerLink]="overviewRoute"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      <i class="bx bx-home-alt-2"></i>
+
+      <span> Home </span>
+    </a>
+
+    <!-- FAVORITES -->
+    <a [routerLink]="favoritesRoute" routerLinkActive="active">
+      <i class="bx bx-heart"></i>
+
+      <span> Favorites </span>
+    </a>
+
+    <!-- BOOKINGS -->
+    <a [routerLink]="bookingsRoute" routerLinkActive="active">
+      <i class="bx bx-calendar"></i>
+
+      <span> Bookings </span>
+    </a>
+
+    <!-- ORDERS -->
+    <a [routerLink]="ordersRoute" routerLinkActive="active">
+      <i class="bx bx-shopping-bag"></i>
+
+      <span> Orders </span>
+    </a>
+
+    <!-- MORE -->
+    <button
+      type="button"
+      class="mobile-more-nav"
+      [class.active]="moreMenuOpen"
+      [attr.aria-expanded]="moreMenuOpen"
+      aria-label="More"
+      (click)="toggleMoreMenu()"
+    >
+      <i class="bx bx-menu"></i>
+
+      <span> More </span>
+    </button>
+  </nav>
+
+  <!-- =====================================================
+       MOBILE MORE SHEET
+  ====================================================== -->
+
+  @if (moreMenuOpen) {
+    <!-- OVERLAY -->
+    <div class="mobile-more-overlay" (click)="closeMoreMenu()"></div>
+
+    <!-- SHEET -->
+    <div class="mobile-more-sheet">
+      <div class="more-sheet-handle"></div>
+
+      <!-- HEADER -->
+      <div class="more-sheet-header">
+        <strong> More </strong>
+
+        <button type="button" aria-label="Close menu" (click)="closeMoreMenu()">
+          <i class="bx bx-x"></i>
+        </button>
+      </div>
+
+      <!-- MENU -->
+      <div class="more-sheet-menu">
+        <!-- TRANSACTIONS -->
+        <a
+          [routerLink]="transactionsRoute"
+          routerLinkActive="active"
+          (click)="closeMoreMenu()"
+        >
+          <span class="more-sheet-icon">
+            <i class="bx bx-receipt"></i>
+          </span>
+
+          <span class="more-sheet-label"> Transactions </span>
+
+          <i class="bx bx-chevron-right more-sheet-arrow"></i>
+        </a>
+
+        <!-- INQUIRIES -->
+        <a
+          [routerLink]="inquiriesRoute"
+          routerLinkActive="active"
+          (click)="closeMoreMenu()"
+        >
+          <span class="more-sheet-icon">
+            <i class="bx bx-message-rounded-dots"></i>
+          </span>
+
+          <span class="more-sheet-label"> Inquiries </span>
+
+          <i class="bx bx-chevron-right more-sheet-arrow"></i>
+        </a>
+
+        <!-- RECENTLY VIEWED -->
+        <a
+          [routerLink]="recentlyViewedRoute"
+          routerLinkActive="active"
+          (click)="closeMoreMenu()"
+        >
+          <span class="more-sheet-icon">
+            <i class="bx bx-history"></i>
+          </span>
+
+          <span class="more-sheet-label"> Recently Viewed </span>
+
+          <i class="bx bx-chevron-right more-sheet-arrow"></i>
+        </a>
+
+        <!-- NOTIFICATIONS -->
+        <a
+          [routerLink]="notificationsRoute"
+          routerLinkActive="active"
+          (click)="closeMoreMenu()"
+        >
+          <span class="more-sheet-icon">
+            <i class="bx bx-bell"></i>
+          </span>
+
+          <span class="more-sheet-label"> Notifications </span>
+
+          @if (notificationCount > 0) {
+            <span class="more-sheet-badge">
+              {{ notificationCount > 99 ? "99+" : notificationCount }}
+            </span>
+          }
+
+          <i class="bx bx-chevron-right more-sheet-arrow"></i>
+        </a>
+
+        <!-- PROFILE -->
+        <a
+          [routerLink]="profileRoute"
+          routerLinkActive="active"
+          (click)="closeMoreMenu()"
+        >
+          <span class="more-sheet-icon">
+            <i class="bx bx-user"></i>
+          </span>
+
+          <span class="more-sheet-label"> Profile </span>
+
+          <i class="bx bx-chevron-right more-sheet-arrow"></i>
+        </a>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,37 @@
+<section class="locations-section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">EXPLORE</span>
+
+      <h2 class="section-title">Discover places around San Jose</h2>
+
+      <p class="section-subtitle">
+        Browse businesses by area and find what's nearby.
+      </p>
+    </div>
+
+    <div class="locations-grid">
+      @for (location of locations; track location.slug) {
+        <a
+          class="location-card"
+          [routerLink]="['/search']"
+          [queryParams]="{ location: location.slug }"
+        >
+          <div class="location-card__content">
+            <span class="location-card__name">
+              {{ location.name }}
+            </span>
+
+            <small class="location-card__count">
+              {{ location.businesses }} businesses
+            </small>
+          </div>
+
+          <span class="location-card__arrow">
+            <i class="bx bx-right-arrow-alt"></i>
+          </span>
+        </a>
+      }
+    </div>
+  </div>
+</section>

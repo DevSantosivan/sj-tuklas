@@ -1,0 +1,207 @@
+<section class="pricing-page">
+  <div class="pricing-container">
+    <!-- BACK -->
+    <a routerLink="/business/create" class="back-link">
+      <i class="bx bx-left-arrow-alt"></i>
+      Back to business setup
+    </a>
+
+    <!-- HEADER -->
+    <div class="pricing-header">
+      <span class="section-label">BUSINESS PLANS</span>
+
+      <h1>Choose what works for your business.</h1>
+
+      <p>
+        Start with the free plan or unlock more ways for customers to interact
+        with your business with Pro.
+      </p>
+    </div>
+
+    <!-- PLAN TOGGLE -->
+    <div class="billing-toggle">
+      <button
+        type="button"
+        [class.active]="billingPeriod === 'monthly'"
+        (click)="billingPeriod = 'monthly'"
+      >
+        Monthly
+      </button>
+
+      <button
+        type="button"
+        [class.active]="billingPeriod === 'yearly'"
+        (click)="billingPeriod = 'yearly'"
+      >
+        Yearly
+
+        <span>Save more</span>
+      </button>
+    </div>
+
+    <!-- PLANS -->
+    <div class="plans">
+      <!-- FREE -->
+      <article class="plan-card">
+        <div class="plan-top">
+          <div>
+            <span class="plan-label">FREE</span>
+
+            <h2>Basic</h2>
+
+            <p>Everything you need to create your business listing.</p>
+          </div>
+
+          <div class="plan-price">
+            <strong>₱0</strong>
+            <span>forever</span>
+          </div>
+        </div>
+
+        <div class="plan-divider"></div>
+
+        <div class="features-heading">
+          <span>What's included</span>
+        </div>
+
+        <ul class="feature-list">
+          <li>
+            <i class="bx bx-check"></i>
+            Business listing
+          </li>
+
+          <li>
+            <i class="bx bx-check"></i>
+            Business information
+          </li>
+
+          <li>
+            <i class="bx bx-check"></i>
+            Location & business hours
+          </li>
+
+          <li>
+            <i class="bx bx-check"></i>
+            Business image
+          </li>
+
+          <li>
+            <i class="bx bx-check"></i>
+            Customer discovery
+          </li>
+
+          <li>
+            <i class="bx bx-check"></i>
+            Basic business profile
+          </li>
+        </ul>
+
+        <button
+          type="button"
+          class="plan-button secondary"
+          (click)="continueWithFree()"
+        >
+          Continue with Free
+
+          <i class="bx bx-right-arrow-alt"></i>
+        </button>
+
+        <span class="plan-note"> No payment required </span>
+      </article>
+
+      <!-- PRO -->
+      <article class="plan-card pro">
+        <div class="popular-badge">
+          <i class="bx bx-crown"></i>
+          RECOMMENDED FOR GROWING BUSINESSES
+        </div>
+
+        <div class="plan-top">
+          <div>
+            <span class="plan-label">PRO</span>
+
+            <h2>Business Pro</h2>
+
+            <p>Give customers more ways to discover and interact with you.</p>
+          </div>
+
+          <div class="plan-price">
+            @if (billingPeriod === "monthly") {
+              <strong>₱299</strong>
+              <span>per month</span>
+            } @else {
+              <strong>₱2,990</strong>
+              <span>per year</span>
+            }
+          </div>
+        </div>
+
+        <div class="plan-divider"></div>
+
+        <div class="features-heading">
+          <span>Everything in Basic, plus</span>
+        </div>
+
+        <ul class="feature-list">
+          <li>
+            <i class="bx bx-check"></i>
+            Online booking
+          </li>
+
+          <li>
+            <i class="bx bx-check"></i>
+            Services
+          </li>
+
+          <li>
+            <i class="bx bx-check"></i>
+            Menu
+          </li>
+
+          <li>
+            <i class="bx bx-check"></i>
+            Promotions
+          </li>
+
+          <li>
+            <i class="bx bx-check"></i>
+            Business insights
+          </li>
+
+          <li>
+            <i class="bx bx-check"></i>
+            More customer interactions
+          </li>
+        </ul>
+
+        <button
+          type="button"
+          class="plan-button primary"
+          (click)="upgradeToPro()"
+        >
+          Upgrade to Pro
+
+          <i class="bx bx-right-arrow-alt"></i>
+        </button>
+
+        <span class="plan-note"> Cancel anytime </span>
+      </article>
+    </div>
+
+    <!-- FOOTER NOTE -->
+    <div class="pricing-footer">
+      <div class="footer-icon">
+        <i class="bx bx-shield-check"></i>
+      </div>
+
+      <div>
+        <strong>You can change your plan anytime.</strong>
+
+        <p>
+          Start free and upgrade later when you need additional business
+          features. Your basic listing remains available on the Free plan.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>

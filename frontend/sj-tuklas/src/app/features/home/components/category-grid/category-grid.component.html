@@ -1,0 +1,74 @@
+<section class="explore-section">
+  <div class="container">
+    <!-- =====================================================
+         SECTION HEADER
+    ====================================================== -->
+
+    <div class="section-header-row">
+      <div class="section-heading">
+        <span class="section-label">EXPLORE SJ TUKLAS</span>
+
+        <h2 class="section-title">Tuklasin ang San Jose</h2>
+
+        <p class="section-subtitle">
+          Discover local businesses and places around you.
+        </p>
+      </div>
+
+      <a routerLink="/search" class="view-all">
+        View all
+        <i class="bx bx-right-arrow-alt"></i>
+      </a>
+    </div>
+
+    <!-- =====================================================
+         CATEGORY GRID
+    ====================================================== -->
+
+    <div class="category-grid">
+      @for (category of categories; track category.slug) {
+        @if (category.slug === "places") {
+          <!-- =================================================
+               PLACES → LOCATIONS
+          ================================================== -->
+
+          <a routerLink="/locations" class="category-item">
+            <span class="category-circle">
+              <i [class]="category.icon"></i>
+            </span>
+
+            <span class="category-name">
+              {{ category.name }}
+            </span>
+
+            <span class="category-count"> {{ category.count }} places </span>
+          </a>
+        } @else {
+          <!-- =================================================
+               BUSINESS CATEGORY
+          ================================================== -->
+
+          <a
+            routerLink="/search"
+            [queryParams]="{
+              category: category.name,
+            }"
+            class="category-item"
+          >
+            <span class="category-circle">
+              <i [class]="category.icon"></i>
+            </span>
+
+            <span class="category-name">
+              {{ category.name }}
+            </span>
+
+            <span class="category-count">
+              {{ category.count }} businesses
+            </span>
+          </a>
+        }
+      }
+    </div>
+  </div>
+</section>

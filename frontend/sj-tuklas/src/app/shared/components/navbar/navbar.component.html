@@ -1,0 +1,208 @@
+<nav class="navbar">
+  <div class="container navbar-inner">
+    <!-- =========================================
+         BRAND
+    ========================================== -->
+    <a routerLink="/" class="brand">
+      <span class="brand-mark">SJ</span>
+      <span class="brand-name">Tuklas</span>
+    </a>
+
+    <!-- =========================================
+         DESKTOP NAVIGATION
+    ========================================== -->
+    <div class="nav-links">
+      <a routerLink="/search" routerLinkActive="active">
+        <i class="bx bx-compass"></i>
+        <span>Discover</span>
+      </a>
+
+      <a routerLink="/categories" routerLinkActive="active">
+        <i class="bx bx-grid-alt"></i>
+        <span>Categories</span>
+      </a>
+
+      <a routerLink="/locations" routerLinkActive="active">
+        <i class="bx bx-map"></i>
+        <span>Locations</span>
+      </a>
+    </div>
+
+    <!-- =========================================
+         RIGHT SIDE
+    ========================================== -->
+    <div class="nav-actions">
+      <!-- AUTH CHECKING -->
+      @if (authLoading()) {
+        <div class="auth-loading" aria-label="Checking authentication"></div>
+
+        <!-- LOGGED IN -->
+      } @else if (currentUser()) {
+        <div class="profile-menu-wrapper">
+          <!-- PROFILE BUTTON -->
+          <button
+            type="button"
+            class="profile-button"
+            (click)="toggleProfileMenu()"
+            [attr.aria-expanded]="profileMenuOpen()"
+            aria-label="Open profile menu"
+          >
+            <!-- AVATAR -->
+            <span class="profile-avatar">
+              {{ userInitial }}
+            </span>
+
+            <!-- NAME -->
+            <span class="profile-name">
+              {{ currentUser()?.fullName || "Account" }}
+            </span>
+
+            <!-- ARROW -->
+            <i
+              class="bx"
+              [class.bx-chevron-down]="!profileMenuOpen()"
+              [class.bx-chevron-up]="profileMenuOpen()"
+            ></i>
+          </button>
+
+          <!-- =====================================
+               PROFILE DROPDOWN
+          ====================================== -->
+
+          @if (profileMenuOpen()) {
+            <div class="profile-dropdown">
+              <!-- USER INFO -->
+              <div class="profile-dropdown-header">
+                <!-- AVATAR -->
+                <span class="dropdown-avatar">
+                  {{ userInitial }}
+                </span>
+
+                <!-- USER DETAILS -->
+                <div class="dropdown-user-info">
+                  <strong>
+                    {{ currentUser()?.fullName || "User" }}
+                  </strong>
+
+                  <span>
+                    {{ currentUser()?.email || "" }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- DIVIDER -->
+              <div class="profile-dropdown-divider"></div>
+
+              <!-- VIEW PROFILE -->
+              <a
+                [routerLink]="profileRoute"
+                class="profile-dropdown-item"
+                (click)="closeProfileMenu()"
+              >
+                <i class="bx bx-user"></i>
+
+                <span> View Profile </span>
+              </a>
+
+              <!-- MY DASHBOARD -->
+              <a
+                [routerLink]="dashboardRoute"
+                class="profile-dropdown-item"
+                (click)="closeProfileMenu()"
+              >
+                <i class="bx bx-layout"></i>
+
+                <span> My Dashboard </span>
+              </a>
+
+              <!-- DIVIDER -->
+              <div class="profile-dropdown-divider"></div>
+
+              <!-- LOGOUT -->
+              <button
+                type="button"
+                class="profile-dropdown-item logout-item"
+                (click)="logout()"
+              >
+                <i class="bx bx-log-out"></i>
+
+                <span> Log out </span>
+              </button>
+            </div>
+          }
+        </div>
+
+        <!-- NOT LOGGED IN -->
+      } @else {
+        <a routerLink="/business/register" class="business-link">
+          List your business
+        </a>
+
+        <a routerLink="/login" class="login-btn"> Log in </a>
+      }
+    </div>
+  </div>
+
+  <!-- =========================================
+       MOBILE BOTTOM NAVIGATION
+       HIDDEN INSIDE /dashboard/:id/*
+  ========================================== -->
+
+  @if (!hideMobileBottomNav) {
+    <div class="mobile-bottom-nav">
+      <!-- HOME -->
+      <a
+        routerLink="/"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <i class="bx bx-home-alt-2"></i>
+        <span>Home</span>
+      </a>
+
+      <!-- DISCOVER -->
+      <a routerLink="/search" routerLinkActive="active">
+        <i class="bx bx-compass"></i>
+        <span>Discover</span>
+      </a>
+
+      <!-- CATEGORIES -->
+      <a routerLink="/categories" routerLinkActive="active">
+        <i class="bx bx-grid-alt"></i>
+        <span>Categories</span>
+      </a>
+
+      <!-- LOCATIONS -->
+      <a routerLink="/locations" routerLinkActive="active">
+        <i class="bx bx-map"></i>
+        <span>Locations</span>
+      </a>
+
+      <!-- PROFILE / ACCOUNT -->
+      @if (authLoading()) {
+        <div class="mobile-auth-loading">
+          <span class="mobile-loading-dot"></span>
+          <span>Loading</span>
+        </div>
+      } @else if (currentUser()) {
+        <a
+          [routerLink]="profileRoute"
+          routerLinkActive="active"
+          class="mobile-profile-link"
+        >
+          <span class="mobile-profile-avatar">
+            {{ userInitial }}
+          </span>
+
+          <span> Profile </span>
+        </a>
+      } @else {
+        <a routerLink="/login" routerLinkActive="active">
+          <i class="bx bx-user"></i>
+
+          <span> Account </span>
+        </a>
+      }
+    </div>
+  }
+</nav>

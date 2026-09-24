@@ -1,0 +1,170 @@
+<section class="community-stats">
+  <div class="community-stats__container">
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <div class="community-stats__header">
+      <div class="community-stats__heading">
+        <span class="section-label"> SJ TUKLAS COMMUNITY </span>
+
+        <h2>Discover what San Jose has to offer.</h2>
+
+        <p>
+          Explore local businesses, services, and opportunities within the
+          community.
+        </p>
+      </div>
+
+      <!-- ===================================================
+           REALTIME STATUS
+      ==================================================== -->
+
+      <div class="community-stats__mark">
+        @if (realtimeUpdating()) {
+          <span class="live-dot is-updating"></span>
+          <span>SYNC</span>
+        } @else {
+          <span class="live-dot"></span>
+          <span>LIVE</span>
+        }
+      </div>
+    </div>
+
+    <!-- =====================================================
+         STATS
+    ====================================================== -->
+
+    <div class="community-stats__grid" [class.is-loading]="loading()">
+      <!-- ===================================================
+           REGISTERED USERS
+      ==================================================== -->
+
+      <article class="stat-card">
+        <div class="stat-card__top">
+          <span class="stat-card__number">
+            @if (loading()) {
+              <span class="skeleton skeleton-number"></span>
+            } @else {
+              <span class="number-value">
+                {{ registeredUsersDisplay() }}
+              </span>
+
+              <span class="number-suffix">+</span>
+            }
+          </span>
+
+          <span class="stat-card__icon">
+            <span class="icon icon-users"></span>
+          </span>
+        </div>
+
+        <div class="stat-card__content">
+          <h3>Registered Users</h3>
+
+          <p>People discovering and using SJ Tuklas.</p>
+        </div>
+      </article>
+
+      <!-- ===================================================
+           LOCAL BUSINESSES
+      ==================================================== -->
+
+      <article class="stat-card">
+        <div class="stat-card__top">
+          <span class="stat-card__number">
+            @if (loading()) {
+              <span class="skeleton skeleton-number"></span>
+            } @else {
+              <span class="number-value">
+                {{ businessesDisplay() }}
+              </span>
+
+              <span class="number-suffix">+</span>
+            }
+          </span>
+
+          <span class="stat-card__icon">
+            <span class="icon icon-business"></span>
+          </span>
+        </div>
+
+        <div class="stat-card__content">
+          <h3>Local Businesses</h3>
+
+          <p>Local businesses available to discover.</p>
+        </div>
+      </article>
+
+      <!-- ===================================================
+           CATEGORIES
+      ==================================================== -->
+
+      <article class="stat-card">
+        <div class="stat-card__top">
+          <span class="stat-card__number">
+            @if (loading()) {
+              <span class="skeleton skeleton-number"></span>
+            } @else {
+              <span class="number-value">
+                {{ categoriesDisplay() }}
+              </span>
+            }
+          </span>
+
+          <span class="stat-card__icon">
+            <span class="icon icon-category"></span>
+          </span>
+        </div>
+
+        <div class="stat-card__content">
+          <h3>Categories</h3>
+
+          <p>Different categories to help you explore.</p>
+        </div>
+      </article>
+
+      <!-- ===================================================
+           SERVICES
+      ==================================================== -->
+
+      <article class="stat-card">
+        <div class="stat-card__top">
+          <span class="stat-card__number">
+            @if (loading()) {
+              <span class="skeleton skeleton-number"></span>
+            } @else {
+              <span class="number-value">
+                {{ servicesDisplay() }}
+              </span>
+
+              <span class="number-suffix">+</span>
+            }
+          </span>
+
+          <span class="stat-card__icon">
+            <span class="icon icon-services"></span>
+          </span>
+        </div>
+
+        <div class="stat-card__content">
+          <h3>Services</h3>
+
+          <p>Services offered by local businesses.</p>
+        </div>
+      </article>
+    </div>
+
+    <!-- =====================================================
+         ERROR
+    ====================================================== -->
+
+    @if (error()) {
+      <div class="community-stats__notice">
+        <span> Some community statistics are temporarily unavailable. </span>
+
+        <button type="button" (click)="loadStats()">Retry</button>
+      </div>
+    }
+  </div>
+</section>

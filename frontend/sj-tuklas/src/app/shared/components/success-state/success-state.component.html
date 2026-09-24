@@ -1,0 +1,45 @@
+<section class="success-state" aria-live="polite">
+  <div class="success-card">
+    <div class="success-icon">
+      <i class="bx" [class]="icon()"></i>
+    </div>
+
+    <span class="success-eyebrow">
+      {{ eyebrow() }}
+    </span>
+
+    <h1>
+      {{ title() }}
+    </h1>
+
+    <p>
+      {{ message() }}
+    </p>
+
+    <div class="success-actions">
+      @if (primaryRoute()) {
+        <a class="primary-button" [routerLink]="primaryRoute()">
+          {{ primaryLabel() }}
+
+          <i class="bx bx-right-arrow-alt"></i>
+        </a>
+      } @else {
+        <button type="button" class="primary-button" (click)="onPrimaryClick()">
+          {{ primaryLabel() }}
+
+          <i class="bx bx-right-arrow-alt"></i>
+        </button>
+      }
+
+      @if (showSecondary() && secondaryLabel()) {
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="onSecondaryClick()"
+        >
+          {{ secondaryLabel() }}
+        </button>
+      }
+    </div>
+  </div>
+</section>

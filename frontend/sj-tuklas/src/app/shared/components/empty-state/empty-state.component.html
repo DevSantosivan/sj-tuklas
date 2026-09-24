@@ -1,0 +1,29 @@
+<section class="empty-state">
+  <div class="empty-state-container">
+    @if (loading()) {
+      <!-- SPINNER -->
+      <div class="spinner"></div>
+
+      <h2>Loading...</h2>
+
+      <p>
+        {{ message() }}
+      </p>
+    } @else {
+      <div class="empty-icon">
+        <i class="bx" [class]="icon()"></i>
+      </div>
+
+      <h2>{{ title() }}</h2>
+
+      <p>{{ message() }}</p>
+
+      @if (buttonText() && buttonLink()) {
+        <a [routerLink]="buttonLink()" class="empty-action">
+          <i class="bx bx-left-arrow-alt"></i>
+          <span>{{ buttonText() }}</span>
+        </a>
+      }
+    }
+  </div>
+</section>

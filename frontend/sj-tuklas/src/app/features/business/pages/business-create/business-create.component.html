@@ -1,0 +1,752 @@
+@if (isSuccess) {
+  <!-- =====================================================
+       SUCCESS STATE
+  ====================================================== -->
+
+  <app-success-state
+    eyebrow="BUSINESS CREATED"
+    icon="bx-check-circle"
+    title="Your business is ready."
+    message="Your business profile has been successfully created and is now ready for the next step."
+    primaryLabel="Go to dashboard"
+    primaryRoute="/business/dashboard"
+    secondaryLabel="Back to SJ Tuklas"
+    (secondaryAction)="goHome()"
+  />
+} @else if (isSaving) {
+  <!-- =====================================================
+       LOADING STATE
+  ====================================================== -->
+
+  <section class="setup-loading" aria-live="polite" aria-busy="true">
+    <div class="loading-card">
+      <div class="loading-spinner">
+        <i class="bx bx-loader-alt bx-spin"></i>
+      </div>
+
+      <span class="loading-eyebrow"> CREATING BUSINESS </span>
+
+      <h1>Setting things up...</h1>
+
+      <p>We're saving your business information. Please wait a moment.</p>
+
+      <div class="loading-progress">
+        <span></span>
+      </div>
+
+      <small> Please don't close this page. </small>
+    </div>
+  </section>
+} @else {
+  <!-- =====================================================
+       BUSINESS SETUP
+  ====================================================== -->
+
+  <section class="setup-page">
+    <div class="container">
+      <!-- =================================================
+           HEADER
+      ================================================== -->
+
+      <div class="setup-header">
+        <a routerLink="/" class="back-link">
+          <i class="bx bx-left-arrow-alt"></i>
+          Back to SJ Tuklas
+        </a>
+
+        <div class="header-content">
+          <span class="section-label"> BUSINESS SETUP </span>
+
+          <h1>Set up your business</h1>
+
+          <p>
+            Add your business information so customers can discover and learn
+            more about your business.
+          </p>
+        </div>
+
+        <div class="setup-progress">
+          <div class="progress-info">
+            <span>Business profile</span>
+            <strong>Step 2 of 2</strong>
+          </div>
+
+          <div class="progress-bar">
+            <span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- =================================================
+           ERROR
+      ================================================== -->
+
+      @if (errorMessage) {
+        <div class="form-alert error-alert" role="alert">
+          <i class="bx bx-error-circle"></i>
+
+          <span>
+            {{ errorMessage }}
+          </span>
+        </div>
+      }
+
+      <!-- =================================================
+           FORM
+      ================================================== -->
+
+      <form class="setup-form" (ngSubmit)="onSubmit()">
+        <!-- =================================================
+             01 — BUSINESS INFORMATION
+        ================================================== -->
+
+        <section class="form-section">
+          <div class="section-heading">
+            <span>01</span>
+
+            <div>
+              <h2>Business information</h2>
+
+              <p>Tell customers what your business is about.</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <!-- BUSINESS NAME -->
+
+            <div class="form-group full">
+              <label for="businessName"> Business name </label>
+
+              <input
+                id="businessName"
+                name="businessName"
+                type="text"
+                [(ngModel)]="businessName"
+                maxlength="120"
+                autocomplete="organization"
+                placeholder="e.g. Hidden Cravings"
+              />
+            </div>
+
+            <!-- CATEGORY -->
+
+            <div class="form-group">
+              <label for="category"> Category </label>
+
+              <div class="select-with-icon">
+                <i class="bx bx-category"></i>
+
+                <select
+                  id="category"
+                  name="category"
+                  (change)="onCategoryChange($event)"
+                >
+                  <option value="">Select a category</option>
+
+                  @for (category of categories; track category.id) {
+                    <option [value]="category.id">
+                      {{ category.name }}
+                    </option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <!-- BUSINESS TYPE -->
+
+            <div class="form-group">
+              <label for="businessType"> Business type </label>
+
+              <div class="select-with-icon">
+                <i
+                  class="bx"
+                  [class]="selectedBusinessType?.icon || 'bx-store'"
+                ></i>
+
+                <select
+                  id="businessType"
+                  name="businessType"
+                  [disabled]="!selectedCategory"
+                  (change)="onBusinessTypeChange($event)"
+                >
+                  @if (!selectedCategory) {
+                    <option value="">Select category first</option>
+                  } @else {
+                    <option value="">Select your business type</option>
+
+                    @for (type of selectedCategory.types; track type.id) {
+                      <option [value]="type.id">
+                        {{ type.name }}
+                      </option>
+                    }
+                  }
+                </select>
+              </div>
+
+              @if (selectedCategory) {
+                <span class="field-hint">
+                  Choose the type that best describes your business.
+                </span>
+              }
+            </div>
+
+            <!-- PHONE -->
+
+            <div class="form-group">
+              <label for="phone"> Phone number </label>
+
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                [(ngModel)]="phone"
+                maxlength="30"
+                autocomplete="tel"
+                placeholder="+63 9XX XXX XXXX"
+              />
+            </div>
+
+            <!-- DESCRIPTION -->
+
+            <div class="form-group full">
+              <label for="description"> Description </label>
+
+              <textarea
+                id="description"
+                name="description"
+                rows="5"
+                [(ngModel)]="description"
+                maxlength="1000"
+                placeholder="Tell customers what makes your business special..."
+              ></textarea>
+
+              <span class="field-hint">
+                Keep it short and easy to understand.
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <!-- =================================================
+             02 — LOCATION
+        ================================================== -->
+
+        <section class="form-section">
+          <div class="section-heading">
+            <span>02</span>
+
+            <div>
+              <h2>Location</h2>
+
+              <p>Select your barangay and pin your exact business location.</p>
+            </div>
+          </div>
+
+          <div class="location-setup">
+            <!-- BARANGAY -->
+
+            <div class="form-group full">
+              <label for="barangay"> Barangay </label>
+
+              <div class="select-with-icon">
+                <i class="bx bx-map-pin"></i>
+
+                <select
+                  id="barangay"
+                  name="barangay"
+                  (change)="onBarangayChange($event)"
+                >
+                  <option value="">Select your barangay</option>
+
+                  @for (barangay of barangays; track barangay.id) {
+                    <option [value]="barangay.id">
+                      {{ barangay.name }}
+                    </option>
+                  }
+                </select>
+              </div>
+
+              <span class="field-hint">
+                Choose the barangay where your business is located.
+              </span>
+            </div>
+
+            <!-- MAP -->
+
+            <div class="location-map-section">
+              <div class="map-header">
+                <div>
+                  <span class="map-label"> EXACT LOCATION </span>
+
+                  <h3>Pin your business on the map</h3>
+
+                  <p>
+                    Select your barangay first, then click the map or drag the
+                    pin to adjust your exact location.
+                  </p>
+                </div>
+
+                @if (selectedBarangay) {
+                  <div class="selected-area">
+                    <i class="bx bx-map"></i>
+
+                    <span>
+                      {{ selectedBarangay.name }}
+                    </span>
+                  </div>
+                }
+              </div>
+
+              <div class="setup-map">
+                <app-business-map
+                  [businesses]="[]"
+                  [locations]="[]"
+                  [locationPicker]="true"
+                  [selectedLatitude]="latitude"
+                  [selectedLongitude]="longitude"
+                  [selectedBarangay]="selectedBarangay"
+                  (locationPicked)="onLocationSelected($event)"
+                />
+              </div>
+            </div>
+
+            <!-- LOCATION RESULT -->
+
+            <div class="selected-location">
+              <div class="selected-location-icon">
+                <i class="bx bx-current-location"></i>
+              </div>
+
+              <div class="selected-location-content">
+                @if (selectedBarangay) {
+                  <strong>
+                    {{ selectedBarangay.name }}
+                  </strong>
+
+                  <span> San Jose, Occidental Mindoro </span>
+                } @else {
+                  <strong> No barangay selected </strong>
+
+                  <span> Select a barangay above. </span>
+                }
+              </div>
+
+              @if (latitude !== undefined && longitude !== undefined) {
+                <div class="coordinates">
+                  <div class="coordinate-item">
+                    <span>LATITUDE</span>
+
+                    <strong>
+                      {{ formatCoordinate(latitude) }}
+                    </strong>
+                  </div>
+
+                  <div class="coordinate-item">
+                    <span>LONGITUDE</span>
+
+                    <strong>
+                      {{ formatCoordinate(longitude) }}
+                    </strong>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- LOCATION TIP -->
+
+            <div class="location-tip">
+              <i class="bx bx-info-circle"></i>
+
+              <span>
+                Choose your barangay first. The map will move to that area
+                automatically. Then click or drag the pin to your actual
+                business location.
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <!-- =================================================
+             03 — BUSINESS HOURS
+        ================================================== -->
+
+        <section class="form-section">
+          <div class="section-heading">
+            <span>03</span>
+
+            <div>
+              <h2>Business hours</h2>
+
+              <p>Let customers know when you're open.</p>
+            </div>
+          </div>
+
+          <div class="hours-list">
+            @for (day of days; track day) {
+              <div class="hours-row">
+                <strong>
+                  {{ day }}
+                </strong>
+
+                <label class="switch">
+                  <input
+                    type="checkbox"
+                    [name]="'enabled-' + day"
+                    [(ngModel)]="hours[day].enabled"
+                  />
+
+                  <span></span>
+                </label>
+
+                <input
+                  type="time"
+                  [name]="'open-' + day"
+                  [(ngModel)]="hours[day].open"
+                  [disabled]="!hours[day].enabled"
+                />
+
+                <span class="time-separator"> to </span>
+
+                <input
+                  type="time"
+                  [name]="'close-' + day"
+                  [(ngModel)]="hours[day].close"
+                  [disabled]="!hours[day].enabled"
+                />
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- =================================================
+             04 — BUSINESS IMAGES
+        ================================================== -->
+
+        <section class="form-section images-section">
+          <div class="section-heading">
+            <span>04</span>
+
+            <div>
+              <h2>Business images</h2>
+
+              <p>Add your logo, cover image, and featured business photo.</p>
+            </div>
+          </div>
+
+          <div class="business-images-layout">
+            <!-- =================================================
+                 MAIN FEATURED IMAGE
+            ================================================== -->
+
+            <div class="image-card main-image-card">
+              <div class="image-card-header">
+                <div>
+                  <span class="image-card-label"> MAIN BUSINESS IMAGE </span>
+
+                  <h3>Featured business photo</h3>
+
+                  <p>
+                    This is the main image customers will see when discovering
+                    your business.
+                  </p>
+                </div>
+
+                <span class="image-required"> REQUIRED </span>
+              </div>
+
+              <div class="main-image-upload">
+                <div class="main-preview">
+                  @if (imagePreview) {
+                    <img
+                      [src]="imagePreview"
+                      alt="Main business image preview"
+                    />
+
+                    <div class="preview-check">
+                      <i class="bx bx-check"></i>
+                    </div>
+                  } @else {
+                    <div class="main-image-placeholder">
+                      <i class="bx bx-image-add"></i>
+
+                      <span> No image selected </span>
+                    </div>
+                  }
+                </div>
+
+                <div class="image-upload-footer">
+                  <div class="image-upload-info">
+                    <strong> Main business photo </strong>
+
+                    <span> JPG, PNG or WEBP · Maximum 5 MB </span>
+                  </div>
+
+                  <label for="businessImage" class="upload-button">
+                    <i class="bx bx-upload"></i>
+                    Choose image
+                  </label>
+
+                  <input
+                    id="businessImage"
+                    name="businessImage"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    hidden
+                    (change)="onImageSelected($event)"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- =================================================
+                 SIDE IMAGES
+            ================================================== -->
+
+            <div class="secondary-images">
+              <!-- PROFILE -->
+
+              <div class="image-card profile-image-card">
+                <div class="image-card-header">
+                  <div>
+                    <span class="image-card-label"> PROFILE IMAGE </span>
+
+                    <h3>Business logo</h3>
+
+                    <p>Your logo or business profile photo.</p>
+                  </div>
+
+                  <span class="image-optional"> OPTIONAL </span>
+                </div>
+
+                <div class="profile-upload-area">
+                  <div class="profile-preview">
+                    @if (profileImagePreview) {
+                      <img
+                        [src]="profileImagePreview"
+                        alt="Business profile image preview"
+                      />
+                    } @else {
+                      <i class="bx bx-store"></i>
+                    }
+                  </div>
+
+                  <div class="image-upload-info">
+                    <strong> Profile image </strong>
+
+                    <span> JPG, PNG or WEBP · Maximum 2 MB </span>
+
+                    <label for="profileImage" class="upload-button secondary">
+                      Choose image
+                    </label>
+
+                    <input
+                      id="profileImage"
+                      name="profileImage"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      hidden
+                      (change)="onProfileImageSelected($event)"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- COVER -->
+
+              <div class="image-card cover-image-card">
+                <div class="image-card-header">
+                  <div>
+                    <span class="image-card-label"> COVER IMAGE </span>
+
+                    <h3>Business profile cover</h3>
+
+                    <p>
+                      A wide image displayed at the top of your business
+                      profile.
+                    </p>
+                  </div>
+
+                  <span class="image-optional"> OPTIONAL </span>
+                </div>
+
+                <div class="cover-upload-area">
+                  <div class="cover-preview">
+                    @if (coverImagePreview) {
+                      <img
+                        [src]="coverImagePreview"
+                        alt="Business cover image preview"
+                      />
+                    } @else {
+                      <div class="cover-placeholder">
+                        <i class="bx bx-image"></i>
+
+                        <span> Cover preview </span>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="image-upload-footer">
+                    <div class="image-upload-info">
+                      <strong> Cover photo </strong>
+
+                      <span> JPG, PNG or WEBP · Maximum 5 MB </span>
+                    </div>
+
+                    <label for="coverImage" class="upload-button secondary">
+                      Choose image
+                    </label>
+
+                    <input
+                      id="coverImage"
+                      name="coverImage"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      hidden
+                      (change)="onCoverImageSelected($event)"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="image-upload-note">
+            <i class="bx bx-info-circle"></i>
+
+            <span>
+              Your main business photo is required. Profile and cover images are
+              optional and can be added later.
+            </span>
+          </div>
+        </section>
+
+        <!-- =================================================
+             05 — BUSINESS FEATURES
+        ================================================== -->
+
+        <section class="form-section features-section">
+          <div class="section-heading">
+            <span>05</span>
+
+            <div>
+              <h2>Business features</h2>
+
+              @if (selectedBusinessType; as type) {
+                <p>
+                  Optional features available for your
+                  <strong>
+                    {{ type.name }}
+                  </strong>
+                  business.
+                </p>
+              } @else {
+                <p>Optional features you can enable for your business.</p>
+              }
+            </div>
+          </div>
+
+          @if (selectedBusinessType; as type) {
+            <div class="feature-context">
+              <div class="feature-context-icon">
+                <i class="bx {{ type.icon }}"></i>
+              </div>
+
+              <div class="feature-context-copy">
+                <span class="feature-context-label">
+                  SELECTED BUSINESS TYPE
+                </span>
+
+                <strong>
+                  {{ type.name }}
+                </strong>
+
+                <small>
+                  {{ selectedCategory?.name }}
+                </small>
+              </div>
+
+              <span class="pro-badge">
+                <i class="bx bx-crown"></i>
+                PRO
+              </span>
+            </div>
+
+            <div class="feature-options">
+              @for (feature of type.features; track feature.id) {
+                <div class="feature-option">
+                  <div class="feature-icon">
+                    <i class="bx {{ feature.icon }}"></i>
+                  </div>
+
+                  <div class="feature-info">
+                    <div class="feature-title">
+                      <strong>
+                        {{ feature.name }}
+                      </strong>
+
+                      <span class="pro-badge">
+                        <i class="bx bx-crown"></i>
+                        PRO
+                      </span>
+                    </div>
+
+                    <span>
+                      {{ feature.description }}
+                    </span>
+                  </div>
+
+                  <div class="feature-action">
+                    <i class="bx bx-lock-alt"></i>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <div class="pro-note">
+              <div class="pro-note-icon">
+                <i class="bx bx-info-circle"></i>
+              </div>
+
+              <div>
+                <strong> Optional features </strong>
+
+                <p>
+                  You can skip this section and enable these features later from
+                  your business dashboard.
+                </p>
+              </div>
+            </div>
+          } @else {
+            <div class="feature-empty">
+              <div class="feature-empty-icon">
+                <i class="bx bx-layer"></i>
+              </div>
+
+              <div>
+                <strong> Select your business type first </strong>
+
+                <span>
+                  Choose a business category and business type above to see the
+                  features available for your business.
+                </span>
+              </div>
+            </div>
+          }
+        </section>
+
+        <!-- =================================================
+             ACTIONS
+        ================================================== -->
+
+        <div class="form-actions">
+          <a routerLink="/" class="cancel-button"> Cancel </a>
+
+          <button type="submit" class="save-button" [disabled]="isSaving">
+            Save & continue
+            <i class="bx bx-right-arrow-alt"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+}

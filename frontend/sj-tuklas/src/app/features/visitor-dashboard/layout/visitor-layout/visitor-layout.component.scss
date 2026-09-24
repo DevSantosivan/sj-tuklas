@@ -1,0 +1,1081 @@
+/* =====================================================
+   VISITOR LAYOUT
+===================================================== */
+
+.visitor-layout {
+  min-height: 100vh;
+  background: #f7f7f7;
+  color: #111111;
+}
+
+/* =====================================================
+   SIDEBAR
+===================================================== */
+
+.visitor-sidebar {
+  position: fixed;
+
+  top: 0;
+  left: 0;
+  bottom: 0;
+
+  width: 250px;
+
+  display: flex;
+  flex-direction: column;
+
+  background: #ffffff;
+
+  border-right: 1px solid #e9e9e9;
+
+  z-index: 900;
+
+  overflow-y: auto;
+
+  scrollbar-width: thin;
+  scrollbar-color: #d8d8d8 transparent;
+}
+
+/* =====================================================
+   BRAND
+===================================================== */
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  padding: 22px 16px;
+
+  color: #111111;
+
+  text-decoration: none;
+
+  flex-shrink: 0;
+}
+
+.brand-mark {
+  width: 40px;
+  height: 40px;
+
+  flex: 0 0 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  background: #111111;
+  color: #ffffff;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.brand-text {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+.brand-text strong {
+  color: #111111;
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.brand-text span {
+  color: #999999;
+
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* =====================================================
+   NAV
+===================================================== */
+
+.sidebar-nav {
+  flex: 1;
+
+  padding: 8px 11px 20px;
+}
+
+.nav-section {
+  margin-bottom: 25px;
+}
+
+.nav-section:last-child {
+  margin-bottom: 0;
+}
+
+.nav-section-title {
+  display: block;
+
+  margin: 0 11px 8px;
+
+  color: #999999;
+
+  font-size: 9px;
+  font-weight: 800;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.9px;
+}
+
+/* =====================================================
+   SIDEBAR LINK
+===================================================== */
+
+.sidebar-link {
+  position: relative;
+
+  width: 100%;
+  min-height: 43px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  padding: 0 11px;
+
+  margin-bottom: 3px;
+
+  border-radius: 9px;
+
+  color: #5f5f5f;
+
+  text-decoration: none;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.sidebar-link:hover {
+  background: #f4f4f4;
+  color: #111111;
+}
+
+.sidebar-link.active {
+  background: #111111;
+  color: #ffffff;
+}
+
+/* =====================================================
+   SIDEBAR ICON
+===================================================== */
+
+.sidebar-icon {
+  width: 20px;
+  height: 20px;
+
+  flex: 0 0 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-icon i {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* =====================================================
+   LINK TEXT
+===================================================== */
+
+.sidebar-link-text {
+  min-width: 0;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+}
+
+/* =====================================================
+   NOTIFICATION LINK
+===================================================== */
+
+.notification-link {
+  position: relative;
+}
+
+.notification-icon {
+  position: relative;
+}
+
+/* =====================================================
+   NOTIFICATION DOT
+===================================================== */
+
+.notification-dot {
+  position: absolute;
+
+  top: 0;
+  right: 0;
+
+  width: 7px;
+  height: 7px;
+
+  border: 2px solid #ffffff;
+
+  border-radius: 50%;
+
+  background: #111111;
+}
+
+.sidebar-link.active .notification-dot {
+  border-color: #111111;
+  background: #ffffff;
+}
+
+/* =====================================================
+   NOTIFICATION BADGE
+===================================================== */
+
+.notification-badge {
+  min-width: 19px;
+  height: 19px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-left: auto;
+
+  padding: 0 5px;
+
+  border-radius: 999px;
+
+  background: #111111;
+  color: #ffffff;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  line-height: 1;
+}
+
+.sidebar-link.active .notification-badge {
+  background: #ffffff;
+  color: #111111;
+}
+
+/* =====================================================
+   FOOTER
+===================================================== */
+
+.sidebar-footer {
+  flex-shrink: 0;
+
+  padding: 14px 11px 18px;
+
+  border-top: 1px solid #eeeeee;
+}
+
+.back-link {
+  min-height: 42px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 0 11px;
+
+  border-radius: 9px;
+
+  color: #777777;
+
+  text-decoration: none;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.back-link:hover {
+  background: #f4f4f4;
+  color: #111111;
+}
+
+/* =====================================================
+   MAIN
+===================================================== */
+
+.visitor-main {
+  min-height: 100vh;
+
+  margin-left: 250px;
+
+  background: #f7f7f7;
+}
+
+.visitor-content {
+  width: min(1200px, calc(100% - 48px));
+
+  margin: 0 auto;
+
+  padding: 32px 0 60px;
+}
+
+/* =====================================================
+   MOBILE ONLY ELEMENTS
+===================================================== */
+
+.visitor-mobile-appbar,
+.visitor-mobile-bottom-nav {
+  display: none;
+}
+
+/* =====================================================
+   TABLET
+===================================================== */
+
+@media (max-width: 1024px) and (min-width: 769px) {
+  .visitor-sidebar {
+    width: 220px;
+  }
+
+  .visitor-main {
+    margin-left: 220px;
+  }
+
+  .visitor-content {
+    width: calc(100% - 36px);
+
+    max-width: 1000px;
+  }
+}
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 768px) {
+  .visitor-sidebar {
+    display: none;
+  }
+
+  .visitor-main {
+    width: 100%;
+
+    min-height: 100vh;
+
+    margin-left: 0;
+
+    padding-bottom: 76px;
+  }
+
+  /* ===================================================
+     MOBILE APP BAR
+  ================================================== */
+
+  .visitor-mobile-appbar {
+    position: sticky;
+
+    top: 0;
+
+    width: 100%;
+    height: 60px;
+
+    padding: 0 16px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    background: #ffffff;
+
+    border-bottom: 1px solid #e9e9e9;
+
+    z-index: 1000;
+  }
+
+  /* ===================================================
+     MOBILE BRAND
+  ================================================== */
+
+  .mobile-brand {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    color: #111111;
+
+    text-decoration: none;
+
+    font-size: 15px;
+    font-weight: 800;
+  }
+
+  .mobile-brand-mark {
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 8px;
+
+    background: #111111;
+    color: #ffffff;
+
+    font-size: 9px;
+    font-weight: 800;
+  }
+
+  .mobile-brand-name {
+    line-height: 1;
+  }
+
+  /* ===================================================
+     APPBAR ACTIONS
+  ================================================== */
+
+  .mobile-appbar-actions {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+  }
+
+  /* ===================================================
+     NOTIFICATION BUTTON
+  ================================================== */
+
+  .mobile-notification-button {
+    position: relative;
+
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #e8e8e8;
+
+    border-radius: 50%;
+
+    background: #ffffff;
+
+    color: #333333;
+
+    text-decoration: none;
+
+    transition:
+      background 0.18s ease,
+      color 0.18s ease,
+      transform 0.18s ease;
+  }
+
+  .mobile-notification-button:hover {
+    background: #f4f4f4;
+    color: #111111;
+  }
+
+  .mobile-notification-button:active {
+    transform: scale(0.94);
+  }
+
+  .mobile-notification-button i {
+    font-size: 19px;
+  }
+
+  /* ===================================================
+     MOBILE NOTIFICATION BADGE
+  ================================================== */
+
+  .mobile-notification-badge {
+    position: absolute;
+
+    top: -2px;
+    right: -2px;
+
+    min-width: 16px;
+    height: 16px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 4px;
+
+    border: 2px solid #ffffff;
+
+    border-radius: 999px;
+
+    background: #111111;
+    color: #ffffff;
+
+    font-size: 7px;
+    font-weight: 800;
+  }
+
+  /* ===================================================
+     PROFILE
+  ================================================== */
+
+  .mobile-profile-button {
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #111111;
+    color: #ffffff;
+
+    text-decoration: none;
+
+    font-size: 12px;
+    font-weight: 800;
+
+    transition: transform 0.18s ease;
+  }
+
+  .mobile-profile-button:active {
+    transform: scale(0.94);
+  }
+
+  /* ===================================================
+     CONTENT
+  ================================================== */
+
+  .visitor-content {
+    width: calc(100% - 28px);
+
+    margin: 0 auto;
+
+    padding: 22px 0 30px;
+  }
+
+  /* ===================================================
+     BOTTOM NAV
+  ================================================== */
+
+  .visitor-mobile-bottom-nav {
+    position: fixed;
+
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    width: 100%;
+
+    min-height: 68px;
+
+    display: grid;
+
+    grid-template-columns: repeat(5, 1fr);
+
+    align-items: stretch;
+
+    padding: 5px 6px;
+
+    padding-bottom: calc(5px + env(safe-area-inset-bottom));
+
+    background: #ffffff;
+
+    border-top: 1px solid #e8e8e8;
+
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.06);
+
+    z-index: 1100;
+  }
+
+  /* ===================================================
+     BOTTOM NAV LINKS
+  ================================================== */
+
+  .visitor-mobile-bottom-nav a,
+  .mobile-more-nav {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 3px;
+
+    padding: 4px 2px;
+
+    border-radius: 9px;
+
+    color: #999999;
+
+    text-decoration: none;
+
+    font-family: inherit;
+
+    font-size: 9px;
+    font-weight: 700;
+
+    line-height: 1;
+
+    transition:
+      color 0.18s ease,
+      background 0.18s ease,
+      transform 0.18s ease;
+  }
+
+  .visitor-mobile-bottom-nav a i,
+  .mobile-more-nav i {
+    font-size: 21px;
+    line-height: 1;
+  }
+
+  .visitor-mobile-bottom-nav a span,
+  .mobile-more-nav span {
+    display: block;
+
+    max-width: 100%;
+
+    overflow: hidden;
+
+    white-space: nowrap;
+
+    text-overflow: ellipsis;
+
+    line-height: 1.1;
+  }
+
+  .visitor-mobile-bottom-nav a.active,
+  .mobile-more-nav.active {
+    background: #f3f3f3;
+    color: #111111;
+  }
+
+  /* ===================================================
+     MORE BUTTON
+  ================================================== */
+
+  .mobile-more-nav {
+    border: 0;
+
+    background: transparent;
+
+    cursor: pointer;
+  }
+
+  .mobile-more-nav:active {
+    transform: scale(0.95);
+  }
+
+  /* ===================================================
+     OVERLAY
+  ================================================== */
+
+  .mobile-more-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.28);
+
+    z-index: 1200;
+
+    animation: moreOverlayIn 0.18s ease;
+  }
+
+  /* ===================================================
+     BOTTOM SHEET
+  ================================================== */
+
+  .mobile-more-sheet {
+    position: fixed;
+
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    z-index: 1300;
+
+    padding: 10px 16px calc(18px + env(safe-area-inset-bottom));
+
+    border-radius: 18px 18px 0 0;
+
+    background: #ffffff;
+
+    box-shadow: 0 -10px 35px rgba(0, 0, 0, 0.12);
+
+    animation: moreSheetIn 0.2s ease;
+  }
+
+  .more-sheet-handle {
+    width: 36px;
+    height: 4px;
+
+    margin: 0 auto 15px;
+
+    border-radius: 999px;
+
+    background: #d8d8d8;
+  }
+
+  /* ===================================================
+     SHEET HEADER
+  ================================================== */
+
+  .more-sheet-header {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 10px;
+  }
+
+  .more-sheet-header strong {
+    color: #111111;
+
+    font-size: 15px;
+    font-weight: 750;
+  }
+
+  .more-sheet-header button {
+    width: 32px;
+    height: 32px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    border: 0;
+
+    border-radius: 50%;
+
+    background: #f4f4f4;
+
+    color: #555555;
+
+    cursor: pointer;
+  }
+
+  .more-sheet-header button i {
+    font-size: 19px;
+  }
+
+  /* ===================================================
+     SHEET MENU
+  ================================================== */
+
+  .more-sheet-menu {
+    display: flex;
+    flex-direction: column;
+
+    gap: 4px;
+  }
+
+  .more-sheet-menu a {
+    min-height: 50px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 11px;
+
+    padding: 0 9px;
+
+    border-radius: 9px;
+
+    color: #333333;
+
+    text-decoration: none;
+
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .more-sheet-menu a:hover {
+    background: #f5f5f5;
+  }
+
+  .more-sheet-menu a.active {
+    background: #111111;
+    color: #ffffff;
+  }
+
+  /* ===================================================
+     SHEET ICON
+  ================================================== */
+
+  .more-sheet-icon {
+    width: 34px;
+    height: 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 34px;
+
+    border-radius: 8px;
+
+    background: #f4f4f4;
+
+    color: #555555;
+  }
+
+  .more-sheet-icon i {
+    font-size: 18px;
+  }
+
+  .more-sheet-menu a.active .more-sheet-icon {
+    background: #2d2d2d;
+    color: #ffffff;
+  }
+
+  /* ===================================================
+     SHEET LABEL
+  ================================================== */
+
+  .more-sheet-label {
+    flex: 1;
+  }
+
+  /* ===================================================
+     SHEET BADGE
+  ================================================== */
+
+  .more-sheet-badge {
+    min-width: 19px;
+    height: 19px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 5px;
+
+    border-radius: 999px;
+
+    background: #111111;
+    color: #ffffff;
+
+    font-size: 8px;
+    font-weight: 800;
+  }
+
+  .more-sheet-menu a.active .more-sheet-badge {
+    background: #ffffff;
+    color: #111111;
+  }
+
+  /* ===================================================
+     SHEET ARROW
+  ================================================== */
+
+  .more-sheet-arrow {
+    color: #aaaaaa;
+
+    font-size: 17px;
+  }
+
+  .more-sheet-menu a.active .more-sheet-arrow {
+    color: #ffffff;
+  }
+}
+
+/* =====================================================
+   SMALL MOBILE
+===================================================== */
+
+@media (max-width: 420px) {
+  .visitor-mobile-appbar {
+    height: 58px;
+
+    padding: 0 13px;
+  }
+
+  .mobile-brand {
+    font-size: 14px;
+  }
+
+  .mobile-brand-mark {
+    width: 29px;
+    height: 29px;
+  }
+
+  .mobile-appbar-actions {
+    gap: 6px;
+  }
+
+  .mobile-notification-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .mobile-profile-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .visitor-content {
+    width: calc(100% - 22px);
+
+    padding-top: 18px;
+  }
+
+  .visitor-mobile-bottom-nav {
+    min-height: 66px;
+
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  .visitor-mobile-bottom-nav a,
+  .mobile-more-nav {
+    font-size: 8px;
+  }
+
+  .visitor-mobile-bottom-nav a i,
+  .mobile-more-nav i {
+    font-size: 19px;
+  }
+
+  .mobile-more-sheet {
+    padding-left: 13px;
+    padding-right: 13px;
+  }
+}
+
+/* =====================================================
+   VERY SMALL MOBILE
+===================================================== */
+
+@media (max-width: 350px) {
+  .visitor-mobile-appbar {
+    padding: 0 10px;
+  }
+
+  .mobile-brand {
+    font-size: 13px;
+  }
+
+  .mobile-brand-mark {
+    width: 28px;
+    height: 28px;
+  }
+
+  .mobile-notification-button {
+    width: 35px;
+    height: 35px;
+  }
+
+  .mobile-profile-button {
+    width: 35px;
+    height: 35px;
+  }
+
+  .visitor-content {
+    width: calc(100% - 18px);
+  }
+
+  .visitor-mobile-bottom-nav {
+    min-height: 64px;
+
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+
+  .visitor-mobile-bottom-nav a,
+  .mobile-more-nav {
+    font-size: 7px;
+
+    gap: 2px;
+  }
+
+  .visitor-mobile-bottom-nav a i,
+  .mobile-more-nav i {
+    font-size: 18px;
+  }
+}
+
+/* =====================================================
+   ANIMATIONS
+===================================================== */
+
+@keyframes moreOverlayIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes moreSheetIn {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* =====================================================
+   ACCESSIBILITY
+===================================================== */
+
+.sidebar-link:focus-visible,
+.back-link:focus-visible,
+.mobile-brand:focus-visible,
+.mobile-profile-button:focus-visible,
+.mobile-notification-button:focus-visible,
+.mobile-more-nav:focus-visible,
+.more-sheet-header button:focus-visible,
+.more-sheet-menu a:focus-visible {
+  outline: 2px solid #111111;
+
+  outline-offset: 2px;
+}
+
+/* =====================================================
+   REDUCED MOTION
+===================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-link,
+  .back-link,
+  .mobile-profile-button,
+  .mobile-notification-button,
+  .visitor-mobile-bottom-nav a,
+  .mobile-more-nav,
+  .mobile-more-sheet,
+  .mobile-more-overlay {
+    transition: none;
+    animation: none;
+  }
+}

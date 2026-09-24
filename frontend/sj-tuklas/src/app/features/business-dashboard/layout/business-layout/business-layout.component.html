@@ -1,0 +1,441 @@
+<!-- =========================================================
+     LOADING
+========================================================== -->
+
+@if (isLoading()) {
+  <main class="business-loading-page">
+    <div class="loading-content">
+      <div class="loading-icon">
+        <i class="bx bx-loader-alt bx-spin"></i>
+      </div>
+
+      <span> Loading business... </span>
+    </div>
+  </main>
+} @else {
+  <!-- =======================================================
+       APP SHELL
+       TOPBAR ALWAYS VISIBLE
+  ======================================================== -->
+
+  <div
+    class="business-shell"
+    [class.pending-shell]="businessStatus() === 'pending'"
+    [class.rejected-shell]="businessStatus() === 'rejected'"
+  >
+    <!-- =====================================================
+         SIDEBAR
+         ONLY APPROVED
+    ====================================================== -->
+
+    @if (businessStatus() === "approved") {
+      <aside class="sidebar">
+        <!-- =================================================
+             BRAND
+        ================================================== -->
+
+        <div class="sidebar-brand">
+          <div class="brand-mark">SJ</div>
+
+          <div class="brand-text">
+            <strong> Tuklas </strong>
+
+            <span> Business </span>
+          </div>
+        </div>
+
+        <!-- =================================================
+             NAVIGATION
+        ================================================== -->
+
+        <nav class="sidebar-nav">
+          <!-- ===============================================
+               MAIN
+          ================================================ -->
+
+          <div class="nav-section">
+            <span class="nav-label"> MAIN </span>
+
+            <a
+              routerLink="/business/dashboard/overview"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{
+                exact: true,
+              }"
+              class="nav-item"
+            >
+              <i class="bx bx-grid-alt"></i>
+
+              <span> Overview </span>
+            </a>
+
+            <a
+              routerLink="/business/dashboard/profile"
+              routerLinkActive="active"
+              class="nav-item"
+            >
+              <i class="bx bx-store"></i>
+
+              <span> My Business </span>
+            </a>
+
+            <a
+              routerLink="/business/dashboard/reviews"
+              routerLinkActive="active"
+              class="nav-item"
+            >
+              <i class="bx bx-star"></i>
+
+              <span> Reviews </span>
+            </a>
+          </div>
+
+          <!-- ===============================================
+               BUSINESS TOOLS
+          ================================================ -->
+
+          <div class="nav-section">
+            <span class="nav-label"> BUSINESS TOOLS </span>
+
+            @for (feature of businessFeatures(); track feature.key) {
+              @if (isPro()) {
+                <a
+                  [routerLink]="feature.route"
+                  routerLinkActive="active"
+                  class="nav-item"
+                >
+                  <i [class]="'bx ' + feature.icon"></i>
+
+                  <span>
+                    {{ feature.title }}
+                  </span>
+                </a>
+              } @else {
+                <div class="nav-item locked-item" aria-disabled="true">
+                  <i [class]="'bx ' + feature.icon"></i>
+
+                  <span>
+                    {{ feature.title }}
+                  </span>
+
+                  <span class="pro-badge"> PRO </span>
+                </div>
+              }
+            }
+          </div>
+
+          <!-- ===============================================
+               INSIGHTS
+          ================================================ -->
+
+          @if (isPro()) {
+            <div class="nav-section">
+              <span class="nav-label"> INSIGHTS </span>
+
+              <a
+                routerLink="/business/dashboard/analytics"
+                routerLinkActive="active"
+                class="nav-item"
+              >
+                <i class="bx bx-bar-chart-alt-2"></i>
+
+                <span> Analytics </span>
+              </a>
+            </div>
+          }
+
+          <!-- ===============================================
+               ACCOUNT
+          ================================================ -->
+
+          <div class="nav-section">
+            @if (isPro()) {
+              <a
+                routerLink="/business/dashboard/billing"
+                routerLinkActive="active"
+                class="nav-item"
+              >
+                <i class="bx bx-receipt"></i>
+
+                <span> Billing </span>
+              </a>
+            } @else {
+              <a
+                routerLink="/business/dashboard/subscription"
+                routerLinkActive="active"
+                class="nav-item upgrade-item"
+              >
+                <i class="bx bx-crown"></i>
+
+                <span> Upgrade to PRO </span>
+              </a>
+            }
+
+            <a
+              routerLink="/business/dashboard/settings"
+              routerLinkActive="active"
+              class="nav-item"
+            >
+              <i class="bx bx-cog"></i>
+
+              <span> Settings </span>
+            </a>
+          </div>
+        </nav>
+
+        <!-- =================================================
+             SIDEBAR FOOTER
+        ================================================== -->
+
+        <div class="sidebar-footer">
+          <div class="owner-profile">
+            <div class="owner-avatar">O</div>
+
+            <div class="owner-info">
+              <strong> Business Owner </strong>
+
+              <span> Business Account </span>
+            </div>
+          </div>
+
+          <button class="logout-button" type="button" aria-label="Logout">
+            <i class="bx bx-log-out"></i>
+          </button>
+        </div>
+      </aside>
+    }
+
+    <!-- =====================================================
+         MAIN AREA
+    ====================================================== -->
+
+    <main class="main-content">
+      <!-- ===================================================
+           TOPBAR
+           ALWAYS VISIBLE
+      ==================================================== -->
+
+      <header class="topbar">
+        <!-- =================================================
+             TOPBAR LEFT
+        ================================================== -->
+
+        <div class="topbar-left">
+          <div>
+            <span class="eyebrow"> BUSINESS DASHBOARD </span>
+
+            <h1>
+              {{ businessName() }}
+            </h1>
+          </div>
+        </div>
+
+        <!-- =================================================
+             TOPBAR RIGHT
+        ================================================== -->
+
+        <div class="topbar-right">
+          <!-- ===============================================
+               NOTIFICATIONS
+          ================================================ -->
+
+          <button class="icon-button" type="button" aria-label="Notifications">
+            <i class="bx bx-bell"></i>
+
+            @if (hasNotifications()) {
+              <span class="notification-dot"></span>
+            }
+          </button>
+
+          <!-- ===============================================
+               STATUS
+          ================================================ -->
+
+          @if (businessStatus() === "pending") {
+            <div class="business-status pending">
+              <span class="status-dot"></span>
+
+              <i class="bx bx-time-five"></i>
+
+              <span> Pending Approval </span>
+            </div>
+          } @else if (businessStatus() === "rejected") {
+            <div class="business-status rejected">
+              <span class="status-dot"></span>
+
+              <i class="bx bx-x-circle"></i>
+
+              <span> Rejected </span>
+            </div>
+          } @else if (businessStatus() === "approved") {
+            <div class="business-status approved">
+              <span class="status-dot"></span>
+
+              <i class="bx bx-check-circle"></i>
+
+              <span> Approved </span>
+            </div>
+          } @else {
+            <div class="business-status">
+              <span class="status-dot"></span>
+
+              <i class="bx bx-help-circle"></i>
+
+              <span> No Status </span>
+            </div>
+          }
+
+          <!-- ===============================================
+               PLAN
+          ================================================ -->
+
+          <div class="plan-indicator" [class.pro-plan]="isPro()">
+            <span class="plan-dot"></span>
+
+            @if (isPro()) {
+              <span> Pro Plan </span>
+            } @else {
+              <span> Free Plan </span>
+            }
+          </div>
+        </div>
+      </header>
+
+      <!-- ===================================================
+           CONTENT
+      ==================================================== -->
+
+      <section class="page-content">
+        <!-- =================================================
+             PENDING
+        ================================================== -->
+
+        @if (businessStatus() === "pending") {
+          <section class="pending-state">
+            <div class="pending-icon">
+              <i class="bx bx-time-five"></i>
+            </div>
+
+            <span class="pending-label"> BUSINESS PENDING APPROVAL </span>
+
+            <h2>Your business is under review</h2>
+
+            <p>
+              Your business listing has been submitted successfully. An admin
+              will review your business information before it becomes visible on
+              SJ Tuklas.
+            </p>
+
+            <div class="pending-status">
+              <span class="status-dot"></span>
+
+              <span> Pending approval </span>
+            </div>
+
+            @if (business(); as currentBusiness) {
+              <div class="pending-business">
+                <div class="business-avatar">
+                  <i class="bx bx-store"></i>
+                </div>
+
+                <div class="business-info">
+                  <strong>
+                    {{ currentBusiness.name }}
+                  </strong>
+
+                  <span>
+                    {{ currentBusiness.category }}
+                  </span>
+                </div>
+              </div>
+            }
+
+            <div class="pending-message">
+              <i class="bx bx-info-circle"></i>
+
+              <span>
+                You will be able to access your business dashboard once your
+                listing has been approved.
+              </span>
+            </div>
+          </section>
+        }
+
+        <!-- =================================================
+             REJECTED
+        ================================================== -->
+
+        @else if (businessStatus() === "rejected") {
+          <section class="rejected-state">
+            <div class="rejected-icon">
+              <i class="bx bx-x-circle"></i>
+            </div>
+
+            <span class="rejected-label"> BUSINESS REQUIRES ATTENTION </span>
+
+            <h2>Your business was not approved</h2>
+
+            <p>
+              Please review your business information and make the necessary
+              changes before submitting your business again.
+            </p>
+
+            <div class="rejected-status">
+              <span class="status-dot"></span>
+
+              <span> Rejected </span>
+            </div>
+
+            @if (business(); as currentBusiness) {
+              <div class="rejected-business">
+                <div class="business-avatar">
+                  <i class="bx bx-store"></i>
+                </div>
+
+                <div class="business-info">
+                  <strong>
+                    {{ currentBusiness.name }}
+                  </strong>
+
+                  <span>
+                    {{ currentBusiness.category }}
+                  </span>
+                </div>
+              </div>
+            }
+          </section>
+        }
+
+        <!-- =================================================
+             APPROVED
+             NORMAL DASHBOARD
+        ================================================== -->
+
+        @else if (businessStatus() === "approved") {
+          <router-outlet />
+        }
+
+        <!-- =================================================
+             NO BUSINESS / UNKNOWN STATUS
+        ================================================== -->
+
+        @else {
+          <section class="empty-state">
+            <div class="empty-icon">
+              <i class="bx bx-store"></i>
+            </div>
+
+            <span class="empty-label"> BUSINESS ACCOUNT </span>
+
+            <h2>Business unavailable</h2>
+
+            <p>
+              We could not determine the current status of your business. Please
+              try again.
+            </p>
+          </section>
+        }
+      </section>
+    </main>
+  </div>
+}

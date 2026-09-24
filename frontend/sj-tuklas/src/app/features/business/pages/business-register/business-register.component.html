@@ -1,0 +1,319 @@
+<section class="register-page">
+  <div class="register-container">
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <div class="register-header">
+      <!-- <a routerLink="/" class="brand">
+        <span class="brand-mark">SJ</span>
+        <span class="brand-name">Tuklas</span>
+      </a> -->
+
+      <div class="header-text">
+        <span class="eyebrow"> BUSINESS OWNERS </span>
+
+        <h1>Create your business account.</h1>
+
+        <p>
+          Join SJ Tuklas and manage your business listing, services, promotions,
+          and customer bookings in one place.
+        </p>
+      </div>
+
+      <!-- ===================================================
+           PROGRESS
+      ==================================================== -->
+
+      <div class="setup-progress">
+        <div class="progress-info">
+          <span> Account setup </span>
+
+          <strong> Step 1 of 2 </strong>
+        </div>
+
+        <div class="progress-bar">
+          <span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- =====================================================
+         FORM CARD
+    ====================================================== -->
+
+    <div class="register-card">
+      <div class="card-heading">
+        <div>
+          <span class="section-label"> GET STARTED </span>
+
+          <h2>Create your account</h2>
+        </div>
+      </div>
+
+      <!-- ===================================================
+           FORM
+      ==================================================== -->
+
+      <form (ngSubmit)="onContinue()" #registerForm="ngForm">
+        <!-- =================================================
+             NAME
+        ================================================== -->
+
+        <div class="form-group">
+          <label for="name"> Full name </label>
+
+          <input
+            id="name"
+            name="fullName"
+            type="text"
+            [(ngModel)]="fullName"
+            placeholder="Enter your full name"
+            autocomplete="name"
+            maxlength="100"
+            [disabled]="isLoading"
+          />
+        </div>
+
+        <!-- =================================================
+             EMAIL
+        ================================================== -->
+
+        <div class="form-group">
+          <label for="email"> Email address </label>
+
+          <input
+            id="email"
+            name="email"
+            type="email"
+            [(ngModel)]="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+            maxlength="254"
+            [disabled]="isLoading"
+          />
+        </div>
+
+        <!-- =================================================
+             PHONE
+        ================================================== -->
+
+        <div class="form-group">
+          <label for="phone"> Phone number </label>
+
+          <input
+            id="phone"
+            name="phone"
+            type="tel"
+            [(ngModel)]="phone"
+            placeholder="+63 9XX XXX XXXX"
+            autocomplete="tel"
+            maxlength="30"
+            [disabled]="isLoading"
+          />
+        </div>
+
+        <!-- =================================================
+             PASSWORD ROW
+        ================================================== -->
+
+        <div class="form-row">
+          <!-- PASSWORD -->
+
+          <div class="form-group">
+            <label for="password"> Password </label>
+
+            <div class="password-field">
+              <input
+                id="password"
+                name="password"
+                [type]="showPassword ? 'text' : 'password'"
+                [(ngModel)]="password"
+                placeholder="Create a password"
+                autocomplete="new-password"
+                maxlength="128"
+                [disabled]="isLoading"
+              />
+
+              <button
+                type="button"
+                class="password-toggle"
+                [disabled]="isLoading"
+                (click)="showPassword = !showPassword"
+                [attr.aria-label]="
+                  showPassword ? 'Hide password' : 'Show password'
+                "
+              >
+                <i
+                  class="bx"
+                  [class.bx-show]="!showPassword"
+                  [class.bx-hide]="showPassword"
+                ></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- CONFIRM PASSWORD -->
+
+          <div class="form-group">
+            <label for="confirmPassword"> Confirm password </label>
+
+            <div class="password-field">
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                [type]="showConfirmPassword ? 'text' : 'password'"
+                [(ngModel)]="confirmPassword"
+                placeholder="Repeat your password"
+                autocomplete="new-password"
+                maxlength="128"
+                [disabled]="isLoading"
+              />
+
+              <button
+                type="button"
+                class="password-toggle"
+                [disabled]="isLoading"
+                (click)="showConfirmPassword = !showConfirmPassword"
+                [attr.aria-label]="
+                  showConfirmPassword ? 'Hide password' : 'Show password'
+                "
+              >
+                <i
+                  class="bx"
+                  [class.bx-show]="!showConfirmPassword"
+                  [class.bx-hide]="showConfirmPassword"
+                ></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- =================================================
+             TERMS
+        ================================================== -->
+
+        <label class="terms">
+          <input
+            type="checkbox"
+            name="agreedToTerms"
+            [(ngModel)]="agreedToTerms"
+            [disabled]="isLoading"
+          />
+
+          <span>
+            I agree to the SJ Tuklas
+
+            <a routerLink="/terms"> Terms of Service </a>
+
+            and
+
+            <a routerLink="/privacy"> Privacy Policy </a>.
+          </span>
+        </label>
+
+        <!-- =================================================
+             ERROR
+        ================================================== -->
+
+        @if (errorMessage) {
+          <div class="form-error" role="alert">
+            <i class="bx bx-error-circle"></i>
+
+            <span>
+              {{ errorMessage }}
+            </span>
+          </div>
+        }
+
+        <!-- =================================================
+             SUCCESS
+        ================================================== -->
+
+        @if (successMessage) {
+          <div class="form-success" role="status">
+            <i class="bx bx-check-circle"></i>
+
+            <span>
+              {{ successMessage }}
+            </span>
+          </div>
+        }
+
+        <!-- =================================================
+             ACTION
+        ================================================== -->
+
+        <button type="submit" class="submit-button" [disabled]="isLoading">
+          @if (isLoading) {
+            <i class="bx bx-loader-alt bx-spin"></i>
+
+            Creating account...
+          } @else {
+            Continue
+
+            <i class="bx bx-right-arrow-alt"></i>
+          }
+        </button>
+      </form>
+
+      <!-- ===================================================
+           LOGIN
+      ==================================================== -->
+
+      <div class="login-footer">
+        <span> Already have a business account? </span>
+
+        <a routerLink="/login"> Sign in </a>
+      </div>
+    </div>
+
+    <!-- =====================================================
+         BENEFITS
+    ====================================================== -->
+
+    <div class="benefits">
+      <!-- BUSINESS LISTING -->
+
+      <div class="benefit">
+        <div class="benefit-icon">
+          <i class="bx bx-store"></i>
+        </div>
+
+        <div>
+          <strong> Business listing </strong>
+
+          <span> Get discovered by local customers. </span>
+        </div>
+      </div>
+
+      <!-- INSIGHTS -->
+
+      <div class="benefit">
+        <div class="benefit-icon">
+          <i class="bx bx-bar-chart-alt-2"></i>
+        </div>
+
+        <div>
+          <strong> Business insights </strong>
+
+          <span> Track views and customer activity. </span>
+        </div>
+      </div>
+
+      <!-- PRO -->
+
+      <div class="benefit">
+        <div class="benefit-icon">
+          <i class="bx bx-crown"></i>
+        </div>
+
+        <div>
+          <strong> Optional Pro features </strong>
+
+          <span> Upgrade anytime after creating your listing. </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

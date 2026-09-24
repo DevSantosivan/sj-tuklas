@@ -1,0 +1,453 @@
+/* =========================================================
+   EXPLORE SECTION
+========================================================= */
+
+.explore-section {
+  position: relative;
+
+  padding: 78px 0 92px;
+
+  background: #fff;
+
+  overflow: hidden;
+}
+
+/* =========================================================
+   SUBTLE TOP TRANSITION
+========================================================= */
+
+.explore-section::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 50%;
+
+  width: min(900px, 80%);
+
+  height: 1px;
+
+  transform: translateX(-50%);
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 0, 0, 0.08),
+    transparent
+  );
+}
+
+/* =========================================================
+   CONTAINER
+========================================================= */
+
+.container {
+  width: min(1180px, calc(100% - 40px));
+
+  margin: 0 auto;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.section-header-row {
+  display: flex;
+
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 30px;
+
+  margin-bottom: 48px;
+}
+
+/* =========================================================
+   HEADING
+========================================================= */
+
+.section-heading {
+  max-width: 620px;
+}
+
+.section-label {
+  display: inline-block;
+
+  margin-bottom: 11px;
+
+  color: #999;
+
+  font-size: 10px;
+
+  font-weight: 700;
+
+  letter-spacing: 0.18em;
+
+  text-transform: uppercase;
+}
+
+.section-title {
+  margin: 0;
+
+  color: #111;
+
+  font-family: "Plus Jakarta Sans", sans-serif;
+
+  font-size: clamp(28px, 4vw, 38px);
+
+  line-height: 1.15;
+
+  letter-spacing: -1.5px;
+
+  font-weight: 750;
+}
+
+.section-subtitle {
+  margin: 10px 0 0;
+
+  color: #777;
+
+  font-size: 14px;
+
+  line-height: 1.6;
+}
+
+/* =========================================================
+   VIEW ALL
+========================================================= */
+
+.view-all {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  flex-shrink: 0;
+
+  padding-bottom: 4px;
+
+  color: #666;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  text-decoration: none;
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.view-all i {
+  font-size: 17px;
+
+  transition: transform 0.2s ease;
+}
+
+.view-all:hover {
+  color: #111;
+}
+
+.view-all:hover i {
+  transform: translateX(4px);
+}
+
+/* =========================================================
+   CATEGORY GRID
+========================================================= */
+
+.category-grid {
+  display: grid;
+
+  grid-template-columns: repeat(6, 1fr);
+
+  align-items: start;
+
+  gap: 24px;
+}
+
+/* =========================================================
+   CATEGORY ITEM
+========================================================= */
+
+.category-item {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  text-align: center;
+
+  color: #111;
+
+  text-decoration: none;
+
+  cursor: pointer;
+}
+
+/* =========================================================
+   CIRCLE
+========================================================= */
+
+.category-circle {
+  position: relative;
+
+  width: 82px;
+  height: 82px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 15px;
+
+  border-radius: 50%;
+
+  background: #f7f7f7;
+
+  border: 1px solid #ebebeb;
+
+  color: #333;
+
+  transition:
+    transform 0.25s ease,
+    background 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.category-circle::after {
+  content: "";
+
+  position: absolute;
+
+  inset: 5px;
+
+  border-radius: 50%;
+
+  border: 1px solid rgba(0, 0, 0, 0.035);
+
+  pointer-events: none;
+}
+
+.category-circle i {
+  position: relative;
+
+  z-index: 1;
+
+  font-size: 29px;
+
+  color: #222;
+
+  transition:
+    transform 0.25s ease,
+    color 0.25s ease;
+}
+
+/* =========================================================
+   HOVER
+========================================================= */
+
+.category-item:hover .category-circle {
+  transform: translateY(-6px);
+
+  background: #fff;
+
+  border-color: #dcdcdc;
+
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+.category-item:hover .category-circle i {
+  transform: scale(1.08);
+
+  color: #111;
+}
+
+/* =========================================================
+   CATEGORY NAME
+========================================================= */
+
+.category-name {
+  display: block;
+
+  color: #222;
+
+  font-size: 13px;
+
+  font-weight: 650;
+
+  line-height: 1.35;
+}
+
+/* =========================================================
+   CATEGORY COUNT
+========================================================= */
+
+.category-count {
+  display: block;
+
+  margin-top: 5px;
+
+  color: #999;
+
+  font-size: 10px;
+
+  font-weight: 500;
+}
+
+/* =========================================================
+   SMALL DISCOVERY DOT
+========================================================= */
+
+.category-item:nth-child(6) .category-circle {
+  background: #f3f3f3;
+}
+
+.category-item:nth-child(6) .category-circle i {
+  font-size: 27px;
+}
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+  .explore-section {
+    padding: 68px 0 78px;
+  }
+
+  .category-grid {
+    grid-template-columns: repeat(3, 1fr);
+
+    row-gap: 38px;
+  }
+
+  .category-circle {
+    width: 78px;
+    height: 78px;
+  }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+  .explore-section {
+    padding: 55px 0 65px;
+  }
+
+  .container {
+    width: calc(100% - 28px);
+  }
+
+  /* HEADER */
+
+  .section-header-row {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 17px;
+
+    margin-bottom: 35px;
+  }
+
+  .section-title {
+    font-size: 27px;
+
+    letter-spacing: -1.1px;
+  }
+
+  .section-subtitle {
+    max-width: 340px;
+
+    font-size: 13px;
+  }
+
+  .view-all {
+    padding-bottom: 0;
+
+    font-size: 12px;
+  }
+
+  /* GRID */
+
+  .category-grid {
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 34px 10px;
+  }
+
+  /* CIRCLE */
+
+  .category-circle {
+    width: 68px;
+    height: 68px;
+
+    margin-bottom: 11px;
+  }
+
+  .category-circle i {
+    font-size: 24px;
+  }
+
+  /* TEXT */
+
+  .category-name {
+    max-width: 90px;
+
+    font-size: 11px;
+
+    line-height: 1.3;
+  }
+
+  .category-count {
+    margin-top: 4px;
+
+    font-size: 9px;
+  }
+}
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 380px) {
+  .explore-section {
+    padding-top: 48px;
+
+    padding-bottom: 58px;
+  }
+
+  .section-title {
+    font-size: 25px;
+  }
+
+  .category-grid {
+    gap: 30px 6px;
+  }
+
+  .category-circle {
+    width: 62px;
+    height: 62px;
+  }
+
+  .category-circle i {
+    font-size: 22px;
+  }
+
+  .category-name {
+    font-size: 10px;
+  }
+
+  .category-count {
+    display: none;
+  }
+}

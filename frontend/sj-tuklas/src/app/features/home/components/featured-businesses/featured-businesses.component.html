@@ -1,0 +1,26 @@
+<section class="section featured-section">
+  <div class="container">
+    <div class="section-header-row">
+      <div>
+        <span class="section-label">FEATURED</span>
+
+        <h2 class="section-title">Businesses worth discovering</h2>
+
+        <p class="section-subtitle">
+          Explore local businesses featured on SJ Tuklas.
+        </p>
+      </div>
+
+      <a routerLink="/search" class="view-all">
+        Explore all
+        <i class="bx bx-right-arrow-alt"></i>
+      </a>
+    </div>
+
+    <div class="business-grid">
+      @for (business of businesses(); track business.id) {
+        <app-business-card [business]="business" />
+      }
+    </div>
+  </div>
+</section>
