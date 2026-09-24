@@ -1,0 +1,35 @@
+# Angular
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+# .NET
+backend/**/bin/
+backend/**/obj/
+backend/.vs/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Local ASP.NET settings
+backend/**/appsettings.Local.json
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Test
+TestResults/
+coverage/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
