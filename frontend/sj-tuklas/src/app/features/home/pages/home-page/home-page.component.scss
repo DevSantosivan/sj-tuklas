@@ -1,3 +1,290 @@
-:host {
+/* =========================================================
+   DEFERRED SECTION PLACEHOLDER
+========================================================= */
+
+.home-section-placeholder {
+  width: 100%;
+  padding: 64px 0;
+}
+
+.home-section-placeholder .container {
+  width: min(1200px, calc(100% - 40px));
+  margin: 0 auto;
+}
+
+/* =========================================================
+   SECTION TITLE
+========================================================= */
+
+.section-title-skeleton {
+  width: 240px;
+  height: 32px;
+  margin-bottom: 28px;
+  border-radius: 8px;
+
+  background: linear-gradient(90deg, #f1f1f1 25%, #e7e7e7 50%, #f1f1f1 75%);
+
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.4s ease-in-out infinite;
+}
+
+.section-title-skeleton.short {
+  width: 190px;
+}
+
+.section-title-skeleton.location-title {
+  width: 210px;
+}
+
+/* =========================================================
+   BUSINESS CARDS
+========================================================= */
+
+.business-grid-skeleton {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.business-card-skeleton {
+  width: 100%;
+  height: 320px;
+  border-radius: 16px;
+
+  background: linear-gradient(90deg, #f1f1f1 25%, #e7e7e7 50%, #f1f1f1 75%);
+
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.4s ease-in-out infinite;
+}
+
+/* =========================================================
+   LOCATION SKELETON
+========================================================= */
+
+.location-skeleton {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 24px;
+}
+
+.location-map-skeleton {
+  min-height: 360px;
+  border-radius: 16px;
+
+  background: linear-gradient(90deg, #f1f1f1 25%, #e7e7e7 50%, #f1f1f1 75%);
+
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.4s ease-in-out infinite;
+}
+
+.location-list-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.location-list-skeleton span {
   display: block;
+  width: 100%;
+  height: 72px;
+  border-radius: 12px;
+
+  background: linear-gradient(90deg, #f1f1f1 25%, #e7e7e7 50%, #f1f1f1 75%);
+
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.4s ease-in-out infinite;
+}
+
+/* =========================================================
+   BUSINESS OWNER CTA
+========================================================= */
+
+.cta-skeleton {
+  min-height: 320px;
+  padding: 48px;
+  border-radius: 20px;
+
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 48px;
+  align-items: center;
+
+  background: #f5f5f5;
+}
+
+.cta-content-skeleton {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.cta-title-skeleton {
+  width: 280px;
+  height: 38px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+
+  background: linear-gradient(90deg, #e9e9e9 25%, #dedede 50%, #e9e9e9 75%);
+
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.4s ease-in-out infinite;
+}
+
+.cta-text-skeleton {
+  width: 420px;
+  max-width: 100%;
+  height: 16px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+
+  background: linear-gradient(90deg, #e9e9e9 25%, #dedede 50%, #e9e9e9 75%);
+
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.4s ease-in-out infinite;
+}
+
+.cta-text-skeleton.short {
+  width: 320px;
+  margin-bottom: 24px;
+}
+
+.cta-button-skeleton {
+  width: 150px;
+  height: 46px;
+  border-radius: 8px;
+
+  background: linear-gradient(90deg, #e9e9e9 25%, #dedede 50%, #e9e9e9 75%);
+
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.4s ease-in-out infinite;
+}
+
+.cta-image-skeleton {
+  width: 100%;
+  height: 220px;
+  border-radius: 16px;
+
+  background: linear-gradient(90deg, #e9e9e9 25%, #dedede 50%, #e9e9e9 75%);
+
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.4s ease-in-out infinite;
+}
+
+/* =========================================================
+   SKELETON ANIMATION
+========================================================= */
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+  .business-grid-skeleton {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .location-skeleton {
+    grid-template-columns: 1fr;
+  }
+
+  .location-map-skeleton {
+    min-height: 300px;
+  }
+
+  .cta-skeleton {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .cta-image-skeleton {
+    height: 200px;
+  }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+  .home-section-placeholder {
+    padding: 48px 0;
+  }
+
+  .home-section-placeholder .container {
+    width: calc(100% - 24px);
+  }
+
+  .section-title-skeleton {
+    width: 190px;
+    height: 28px;
+    margin-bottom: 20px;
+  }
+
+  .business-grid-skeleton {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .business-card-skeleton {
+    height: 280px;
+    border-radius: 14px;
+  }
+
+  .location-map-skeleton {
+    min-height: 260px;
+  }
+
+  .location-list-skeleton span {
+    height: 64px;
+  }
+
+  .cta-skeleton {
+    min-height: 280px;
+    padding: 28px 20px;
+    border-radius: 16px;
+  }
+
+  .cta-title-skeleton {
+    width: 220px;
+    height: 32px;
+  }
+
+  .cta-text-skeleton {
+    width: 100%;
+  }
+
+  .cta-text-skeleton.short {
+    width: 80%;
+  }
+
+  .cta-image-skeleton {
+    height: 160px;
+  }
+}
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .section-title-skeleton,
+  .business-card-skeleton,
+  .location-map-skeleton,
+  .location-list-skeleton span,
+  .cta-title-skeleton,
+  .cta-text-skeleton,
+  .cta-button-skeleton,
+  .cta-image-skeleton {
+    animation: none;
+  }
 }

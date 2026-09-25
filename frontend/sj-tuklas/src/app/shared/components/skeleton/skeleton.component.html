@@ -1,0 +1,513 @@
+<div
+  class="skeleton-wrapper"
+  [class]="'skeleton-type-' + type()"
+  [attr.data-rounded]="rounded()"
+>
+  <!-- =====================================================
+       BASIC LINE
+  ====================================================== -->
+
+  @if (type() === "line") {
+    @for (item of items(); track $index) {
+      <span
+        class="skeleton skeleton-line"
+        [style.width]="width() || null"
+        [style.height]="height() || null"
+      ></span>
+    }
+  }
+
+  <!-- =====================================================
+       TEXT
+  ====================================================== -->
+
+  @if (type() === "text") {
+    <div class="skeleton-text-group">
+      @for (item of items(); track $index) {
+        <span
+          class="skeleton skeleton-line"
+          [style.width]="width() || null"
+          [style.height]="height() || null"
+        ></span>
+      }
+    </div>
+  }
+
+  <!-- =====================================================
+       TITLE
+  ====================================================== -->
+
+  @if (type() === "title") {
+    <span
+      class="skeleton skeleton-title"
+      [style.width]="width() || null"
+      [style.height]="height() || null"
+    ></span>
+  }
+
+  <!-- =====================================================
+       CIRCLE
+  ====================================================== -->
+
+  @if (type() === "circle") {
+    <span
+      class="skeleton skeleton-circle"
+      [style.width]="width() || null"
+      [style.height]="height() || null"
+    ></span>
+  }
+
+  <!-- =====================================================
+       AVATAR
+  ====================================================== -->
+
+  @if (type() === "avatar") {
+    <span
+      class="skeleton skeleton-avatar"
+      [style.width]="width() || null"
+      [style.height]="height() || null"
+    ></span>
+  }
+
+  <!-- =====================================================
+       IMAGE
+  ====================================================== -->
+
+  @if (type() === "image") {
+    <div
+      class="skeleton skeleton-image"
+      [style.width]="width() || null"
+      [style.height]="height() || null"
+    ></div>
+  }
+
+  <!-- =====================================================
+       CARD
+  ====================================================== -->
+
+  @if (type() === "card") {
+    <div class="skeleton-card-list">
+      @for (item of items(); track $index) {
+        <article class="skeleton-card">
+          <div class="skeleton skeleton-card-image"></div>
+
+          <div class="skeleton-card-content">
+            <span class="skeleton skeleton-line skeleton-card-category"></span>
+
+            <span class="skeleton skeleton-line skeleton-card-title"></span>
+
+            <span
+              class="skeleton skeleton-line skeleton-card-description"
+            ></span>
+
+            <span
+              class="skeleton skeleton-line skeleton-card-description short"
+            ></span>
+
+            <div class="skeleton-card-bottom">
+              <span class="skeleton skeleton-line skeleton-card-meta"></span>
+
+              <span class="skeleton skeleton-circle small"></span>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  }
+
+  <!-- =====================================================
+       BUSINESS CARD
+
+       Main business card skeleton.
+  ====================================================== -->
+
+  @if (type() === "business-card") {
+    <div class="skeleton-business-grid">
+      @for (item of items(); track $index) {
+        <article class="skeleton-business-card">
+          <!-- IMAGE -->
+          <div class="skeleton skeleton-business-image"></div>
+
+          <!-- CONTENT -->
+          <div class="skeleton-business-content">
+            <!-- CATEGORY + PRO -->
+            <div class="skeleton-business-top">
+              <span class="skeleton skeleton-business-category"></span>
+
+              <span class="skeleton skeleton-business-pro"></span>
+            </div>
+
+            <!-- NAME -->
+            <span class="skeleton skeleton-business-name"></span>
+
+            <!-- TYPE -->
+            <span class="skeleton skeleton-business-type"></span>
+
+            <!-- LOCATION -->
+            <span class="skeleton skeleton-business-location"></span>
+
+            <!-- BOTTOM -->
+            <div class="skeleton-business-bottom">
+              <span class="skeleton skeleton-business-rating"></span>
+
+              <span class="skeleton skeleton-business-arrow"></span>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  }
+
+  <!-- =====================================================
+       BUSINESS LIST
+
+       Compact list variant.
+  ====================================================== -->
+
+  @if (type() === "business-list") {
+    <div class="skeleton-business-list">
+      @for (item of items(); track $index) {
+        <article class="skeleton-business-list-item">
+          <div class="skeleton skeleton-list-image"></div>
+
+          <div class="skeleton-list-content">
+            <span class="skeleton skeleton-list-category"></span>
+
+            <span class="skeleton skeleton-list-title"></span>
+
+            <span class="skeleton skeleton-list-text"></span>
+
+            <span class="skeleton skeleton-list-location"></span>
+          </div>
+        </article>
+      }
+    </div>
+  }
+
+  <!-- =====================================================
+       MAP
+  ====================================================== -->
+
+  @if (type() === "map") {
+    <div class="skeleton skeleton-map">
+      <div class="skeleton-map-center">
+        <span class="skeleton skeleton-map-spinner"></span>
+
+        <span class="skeleton-map-text"> Loading map... </span>
+      </div>
+    </div>
+  }
+
+  <!-- =====================================================
+       STATS
+  ====================================================== -->
+
+  @if (type() === "stats") {
+    <div class="skeleton-stats">
+      @for (item of items(); track $index) {
+        <article class="skeleton-stat-card">
+          <span class="skeleton skeleton-stat-icon"></span>
+
+          <span class="skeleton skeleton-stat-number"></span>
+
+          <span class="skeleton skeleton-stat-label"></span>
+        </article>
+      }
+    </div>
+  }
+
+  <!-- =====================================================
+       TABLE
+  ====================================================== -->
+
+  @if (type() === "table") {
+    <div class="skeleton-table">
+      <div class="skeleton-table-header">
+        @for (column of [1, 2, 3, 4, 5]; track column) {
+          <span class="skeleton skeleton-line"></span>
+        }
+      </div>
+
+      @for (row of items(); track $index) {
+        <div class="skeleton-table-row">
+          @for (column of [1, 2, 3, 4, 5]; track column) {
+            <span class="skeleton skeleton-line"></span>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- =====================================================
+       SEARCH RESULTS
+  ====================================================== -->
+
+  @if (type() === "search-results") {
+    <div class="skeleton-search-results">
+      <div class="skeleton-search-header">
+        <div class="skeleton-search-info">
+          <span class="skeleton skeleton-line result-count"></span>
+
+          <span class="skeleton skeleton-line result-description"></span>
+        </div>
+
+        <div class="skeleton-search-actions">
+          <span class="skeleton skeleton-toggle"></span>
+
+          <span class="skeleton skeleton-sort"></span>
+        </div>
+      </div>
+
+      <div class="skeleton-search-list">
+        @for (item of items(); track $index) {
+          <article class="skeleton-search-business">
+            <div class="skeleton skeleton-search-image"></div>
+
+            <div class="skeleton-search-content">
+              <div class="skeleton-search-top">
+                <span class="skeleton skeleton-line category"></span>
+
+                <span class="skeleton skeleton-search-pro"></span>
+              </div>
+
+              <span class="skeleton skeleton-line name"></span>
+
+              <span class="skeleton skeleton-line type"></span>
+
+              <span class="skeleton skeleton-line location"></span>
+
+              <div class="skeleton-search-bottom">
+                <span class="skeleton skeleton-line rating"></span>
+
+                <span class="skeleton skeleton-search-arrow"></span>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- =====================================================
+       BUSINESS DETAILS
+  ====================================================== -->
+
+  @if (type() === "business-details") {
+    <section class="skeleton-business-details">
+      <!-- BACK -->
+      <div class="skeleton skeleton-details-back"></div>
+
+      <!-- =================================================
+           HERO
+      ================================================== -->
+
+      <section class="skeleton-details-hero">
+        <!-- COVER -->
+        <div class="skeleton skeleton-details-cover">
+          <div class="skeleton-details-cover-top">
+            <span class="skeleton skeleton-details-cover-location"></span>
+
+            <span class="skeleton skeleton-details-cover-status"></span>
+          </div>
+
+          <div class="skeleton-details-cover-bottom">
+            <span class="skeleton skeleton-details-cover-category"></span>
+
+            <span class="skeleton skeleton-details-cover-name"></span>
+          </div>
+        </div>
+
+        <!-- PROFILE -->
+        <div class="skeleton-details-profile">
+          <div class="skeleton skeleton-details-avatar"></div>
+
+          <div class="skeleton-details-profile-content">
+            <!-- BADGES -->
+            <div class="skeleton-details-badges">
+              <span class="skeleton skeleton-details-badge"></span>
+
+              <span class="skeleton skeleton-details-badge small"></span>
+
+              <span class="skeleton skeleton-details-badge small"></span>
+            </div>
+
+            <!-- NAME -->
+            <span class="skeleton skeleton-details-title"></span>
+
+            <!-- RATING -->
+            <span class="skeleton skeleton-details-rating"></span>
+
+            <!-- LOCATION -->
+            <span class="skeleton skeleton-details-location"></span>
+
+            <!-- ACTIONS -->
+            <div class="skeleton-details-actions">
+              <span class="skeleton skeleton-details-action"></span>
+
+              <span class="skeleton skeleton-details-action"></span>
+
+              <span class="skeleton skeleton-details-action favorite"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================
+           TABS
+      ================================================== -->
+
+      <nav class="skeleton-details-tabs">
+        @for (item of items(); track $index) {
+          <span class="skeleton skeleton-details-tab"></span>
+        }
+      </nav>
+
+      <!-- =================================================
+           CONTENT
+      ================================================== -->
+
+      <div class="skeleton-details-content">
+        <!-- FEATURES -->
+        <section class="skeleton-details-card">
+          <div class="skeleton-details-heading">
+            <div>
+              <span class="skeleton skeleton-details-eyebrow"></span>
+
+              <span class="skeleton skeleton-details-heading-title"></span>
+            </div>
+          </div>
+
+          <div class="skeleton-details-feature-grid">
+            @for (item of [1, 2, 3, 4]; track item) {
+              <article class="skeleton-details-feature">
+                <span class="skeleton skeleton-details-feature-icon"></span>
+
+                <div class="skeleton-details-feature-content">
+                  <span class="skeleton skeleton-feature-title"></span>
+
+                  <span class="skeleton skeleton-feature-description"></span>
+
+                  <span
+                    class="skeleton skeleton-feature-description short"
+                  ></span>
+                </div>
+
+                <span class="skeleton skeleton-feature-arrow"></span>
+              </article>
+            }
+          </div>
+        </section>
+
+        <!-- PHOTOS -->
+        <section class="skeleton-details-card">
+          <div class="skeleton-details-heading">
+            <div>
+              <span class="skeleton skeleton-details-eyebrow"></span>
+
+              <span class="skeleton skeleton-details-heading-title"></span>
+            </div>
+
+            <span class="skeleton skeleton-details-link"></span>
+          </div>
+
+          <div class="skeleton skeleton-details-photo"></div>
+        </section>
+
+        <!-- ABOUT -->
+        <section class="skeleton-details-card">
+          <div class="skeleton-details-heading">
+            <div>
+              <span class="skeleton skeleton-details-eyebrow"></span>
+
+              <span class="skeleton skeleton-details-heading-title"></span>
+            </div>
+          </div>
+
+          <div class="skeleton-details-about">
+            <div class="skeleton-details-about-main">
+              <span class="skeleton skeleton-about-line"></span>
+
+              <span class="skeleton skeleton-about-line"></span>
+
+              <span class="skeleton skeleton-about-line"></span>
+
+              <span class="skeleton skeleton-about-line short"></span>
+            </div>
+
+            <div class="skeleton-details-about-side">
+              @for (item of [1, 2, 3, 4]; track item) {
+                <div class="skeleton-about-detail">
+                  <span class="skeleton skeleton-about-icon"></span>
+
+                  <div>
+                    <span class="skeleton skeleton-about-label"></span>
+
+                    <span class="skeleton skeleton-about-value"></span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- LOCATION -->
+        <section class="skeleton-details-card">
+          <div class="skeleton-details-heading">
+            <div>
+              <span class="skeleton skeleton-details-eyebrow"></span>
+
+              <span class="skeleton skeleton-details-heading-title"></span>
+            </div>
+          </div>
+
+          <div class="skeleton-details-location-info">
+            <span class="skeleton skeleton-location-icon"></span>
+
+            <div>
+              <span class="skeleton skeleton-location-title"></span>
+
+              <span class="skeleton skeleton-location-subtitle"></span>
+            </div>
+          </div>
+
+          <div class="skeleton skeleton-details-map"></div>
+
+          <span class="skeleton skeleton-details-map-button"></span>
+        </section>
+
+        <!-- REVIEWS -->
+        <section class="skeleton-details-card">
+          <div class="skeleton-details-heading">
+            <div>
+              <span class="skeleton skeleton-details-eyebrow"></span>
+
+              <span class="skeleton skeleton-details-heading-title"></span>
+            </div>
+          </div>
+
+          <div class="skeleton-details-review-summary">
+            <div class="skeleton-details-rating-breakdown">
+              @for (item of [1, 2, 3, 4, 5]; track item) {
+                <div class="skeleton-review-row">
+                  <span class="skeleton skeleton-review-number"></span>
+
+                  <span class="skeleton skeleton-review-bar"></span>
+                </div>
+              }
+            </div>
+
+            <div class="skeleton-details-overall-rating">
+              <span class="skeleton skeleton-overall-score"></span>
+
+              <span class="skeleton skeleton-overall-stars"></span>
+
+              <span class="skeleton skeleton-overall-count"></span>
+            </div>
+          </div>
+
+          <span class="skeleton skeleton-review-button"></span>
+        </section>
+      </div>
+    </section>
+  }
+</div>

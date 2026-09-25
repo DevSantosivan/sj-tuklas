@@ -17,12 +17,13 @@ import {
 } from '../../../../core/data/business-category.data';
 
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
+import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
 import { AuthService } from '../../../../core/services/auth.service';
 import { FavoriteService } from '../../../../core/services/favorite.service';
 
 @Component({
   selector: 'app-business-details',
-  imports: [RouterLink, EmptyStateComponent],
+  imports: [RouterLink, EmptyStateComponent, SkeletonComponent],
   templateUrl: './business-details.component.html',
   styleUrl: './business-details.component.scss',
 })
@@ -47,7 +48,9 @@ export class BusinessDetailsComponent {
   );
 
   readonly isLoading = signal(true);
+
   readonly loading = signal(true);
+
   readonly error = signal<string | null>(null);
 
   // =========================================================
@@ -55,6 +58,7 @@ export class BusinessDetailsComponent {
   // =========================================================
 
   readonly businessId = signal<string | null>(null);
+
   readonly business = signal<Business | null>(null);
 
   // =========================================================
@@ -80,7 +84,9 @@ export class BusinessDetailsComponent {
   // =========================================================
 
   readonly selectedRating = signal(0);
+
   readonly reviewText = signal('');
+
   readonly reviewSubmitted = signal(false);
 
   @ViewChild('reviewDialog', { read: ElementRef })
@@ -102,9 +108,13 @@ export class BusinessDetailsComponent {
 
       if (!id) {
         this.business.set(null);
+
         this.error.set('Business not found.');
+
         this.loading.set(false);
+
         this.isLoading.set(false);
+
         return;
       }
 
@@ -126,9 +136,11 @@ export class BusinessDetailsComponent {
 
   async loadBusiness(id: string): Promise<void> {
     this.loading.set(true);
+
     this.isLoading.set(true);
 
     this.error.set(null);
+
     this.business.set(null);
 
     // Reset favorite state while changing business.
@@ -139,6 +151,7 @@ export class BusinessDetailsComponent {
 
       if (!business) {
         this.error.set('Business not found.');
+
         return;
       }
 
@@ -161,6 +174,7 @@ export class BusinessDetailsComponent {
       this.business.set(null);
     } finally {
       this.loading.set(false);
+
       this.isLoading.set(false);
     }
   }
@@ -176,6 +190,7 @@ export class BusinessDetailsComponent {
      */
     if (this.authService.authLoading()) {
       void this.loadFavoriteStatusAfterAuth(businessId);
+
       return;
     }
 
@@ -189,6 +204,7 @@ export class BusinessDetailsComponent {
      */
     if (!user) {
       this.isFavorite.set(false);
+
       return;
     }
 
@@ -228,6 +244,7 @@ export class BusinessDetailsComponent {
       console.error('Failed to initialize authentication:', error);
 
       this.isFavorite.set(false);
+
       return;
     }
 
@@ -243,6 +260,7 @@ export class BusinessDetailsComponent {
 
     if (!user) {
       this.isFavorite.set(false);
+
       return;
     }
 
@@ -360,7 +378,9 @@ export class BusinessDetailsComponent {
 
     if (!user) {
       this.favoriteModalType.set('login');
+
       this.showFavoriteModal.set(true);
+
       return;
     }
 
@@ -400,6 +420,7 @@ export class BusinessDetailsComponent {
           this.isFavorite.set(response.isFavorite);
 
           this.favoriteModalType.set('removed');
+
           this.showFavoriteModal.set(true);
 
           this.favoriteLoading.set(false);
@@ -436,6 +457,7 @@ export class BusinessDetailsComponent {
         this.isFavorite.set(response.isFavorite);
 
         this.favoriteModalType.set('success');
+
         this.showFavoriteModal.set(true);
 
         this.favoriteLoading.set(false);
@@ -982,6 +1004,7 @@ export class BusinessDetailsComponent {
 
   submitReview(): void {
     const rating = this.selectedRating();
+
     const comment = this.reviewText().trim();
 
     if (rating === 0) {
@@ -1007,6 +1030,7 @@ export class BusinessDetailsComponent {
     this.reviewSubmitted.set(true);
 
     this.selectedRating.set(0);
+
     this.reviewText.set('');
   }
 

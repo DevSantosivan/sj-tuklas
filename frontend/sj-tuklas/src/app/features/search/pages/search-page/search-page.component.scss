@@ -453,15 +453,34 @@
 }
 
 /* =========================================================
-   BUSINESS LIST
+   BUSINESS LIST / GRID
 ========================================================= */
 
 .business-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
+  display: flex;
+  flex-direction: column;
+  margin: 10px 0px;
+  width: 100%;
+  min-width: 0;
 }
 
+/* Each Angular component must also fill the grid cell */
+.business-list app-business-card {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+/* LIST VIEW
+   When SearchPage has .list-view, force one full-width column.
+*/
+.business-list.list-view {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.business-list.list-view app-business-card {
+  width: 100%;
+}
 /* =========================================================
    EMPTY STATE
 ========================================================= */

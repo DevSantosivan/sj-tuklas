@@ -1,156 +1,107 @@
-import {
-  AfterViewInit,
-  Component,
-  OnDestroy,
-  ViewChild,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { BusinessCardComponent } from '../../../../shared/components/business-card/business-card.component';
 import { SearchBarComponent } from '../../../../shared/components/search-bar/search-bar.component';
+
+import { BusinessCardComponent } from '../../../../shared/components/business-card/business-card.component';
+
 import { BusinessMapComponent } from '../../../../shared/components/business-map/business-map.component';
 
-import { BusinessService } from '../../../../core/services/business.service';
+import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
 
-import {
-  BusinessRealtimeService,
-  BusinessStatusChangedEvent,
-} from '../../../../core/services/business-realtime.service';
+import { BusinessService } from '../../../../core/services/business.service';
 
 import { Business } from '../../../../core/models/business';
 
 @Component({
   selector: 'app-search-page',
-  imports: [BusinessCardComponent, SearchBarComponent, BusinessMapComponent],
+  standalone: true,
+
+  imports: [
+    SearchBarComponent,
+    BusinessCardComponent,
+    BusinessMapComponent,
+    SkeletonComponent,
+  ],
+
   templateUrl: './search-page.component.html',
   styleUrl: './search-page.component.scss',
 })
-export class SearchPageComponent implements AfterViewInit, OnDestroy {
-  // =========================================================
-  // DEPENDENCIES
-  // =========================================================
-
+export class SearchPageComponent implements OnInit {
   private readonly businessService = inject(BusinessService);
-
-  private readonly businessRealtimeService = inject(BusinessRealtimeService);
 
   private readonly route = inject(ActivatedRoute);
 
   private readonly router = inject(Router);
 
-  // =========================================================
-  // STATE
-  // =========================================================
+  /* =========================================================
+     DATA
+  ========================================================= */
 
-  searchTerm = signal('');
+  readonly businesses = signal<Business[]>([]);
 
-  selectedCategory = signal('all');
+  readonly loading = signal<boolean>(true);
 
-  selectedType = signal('all');
+  readonly error = signal<string | null>(null);
 
-  selectedLocation = signal('all');
+  /* =========================================================
+     FILTERS
+  ========================================================= */
 
-  viewMode = signal<'list' | 'map'>('list');
+  readonly searchTerm = signal<string>('');
 
-  businesses = signal<Business[]>([]);
+  readonly selectedCategory = signal<string>('all');
 
-  loading = signal(false);
+  readonly selectedType = signal<string>('all');
 
-  error = signal<string | null>(null);
+  readonly selectedLocation = signal<string>('all');
 
-  nearbyExpanded = signal(false);
+  /* =========================================================
+     VIEW
+  ========================================================= */
 
-  @ViewChild(BusinessMapComponent)
-  private businessMap?: BusinessMapComponent;
+  readonly viewMode = signal<'list' | 'map'>('list');
 
-  readonly is3D = signal(false);
+  readonly is3D = signal<boolean>(false);
 
-  // =========================================================
-  // REALTIME LISTENER
-  // =========================================================
+  readonly nearbyExpanded = signal<boolean>(false);
 
-  /**
-   * Keep the same function reference so we can remove
-   * the listener when this component is destroyed.
-   */
-  private readonly realtimeHandler = (
-    event: BusinessStatusChangedEvent,
-  ): void => {
-    void this.handleBusinessStatusChanged(event);
-  };
+  /* =========================================================
+     IMAGE ERRORS
+  ========================================================= */
 
-  // =========================================================
-  // FILTER OPTIONS
-  // =========================================================
+  readonly imageError = signal<Set<string>>(new Set());
+
+  /* =========================================================
+     OPTIONS
+  ========================================================= */
 
   readonly categories = [
     'Foods & Drinks',
-    'Shops',
-    'Services',
     'Hotels',
-    'Boarding Houses',
+    'Shops',
+    'Service',
+    'Boarding House',
+    'Places',
   ];
 
   readonly locations = [
-    'San Jose',
+    'Central',
     'Poblacion',
-    'Central San Jose',
     'San Roque',
+    'Mabini',
+    'Pag-asa',
+    'Mangangan I',
+    'Mangangan II',
   ];
 
-  // =========================================================
-  // MAP 3D
-  // =========================================================
+  /* =========================================================
+     FILTERED BUSINESSES
+  ========================================================= */
 
-  toggle3D(): void {
-    this.is3D.update((value) => !value);
-
-    this.businessMap?.set3D(this.is3D());
-  }
-
-  // =========================================================
-  // IMAGE FALLBACK
-  // =========================================================
-
-  imageError = signal<Set<string>>(new Set());
-
-  onImageError(businessId: string): void {
-    const errors = new Set(this.imageError());
-
-    errors.add(businessId);
-
-    this.imageError.set(errors);
-  }
-
-  // =========================================================
-  // AVAILABLE BUSINESS TYPES
-  // =========================================================
-
-  availableTypes = computed(() => {
-    const category = this.selectedCategory();
-
-    if (category === 'all') {
-      return [];
-    }
-
-    const types = this.businesses()
-      .filter((business) => business.category === category)
-      .map((business) => business.businessType)
-      .filter(Boolean);
-
-    return [...new Set(types)].sort();
-  });
-
-  // =========================================================
-  // FILTERED BUSINESSES
-  // =========================================================
-
-  filteredBusinesses = computed(() => {
-    const term = this.searchTerm().trim().toLowerCase();
+  readonly filteredBusinesses = computed(() => {
+    const search = this.searchTerm().trim().toLowerCase();
 
     const category = this.selectedCategory();
 
@@ -159,19 +110,20 @@ export class SearchPageComponent implements AfterViewInit, OnDestroy {
     const location = this.selectedLocation();
 
     return this.businesses().filter((business) => {
-      const searchableText = [
-        business.name,
-        business.category,
-        business.businessType,
-        business.description,
-        business.location,
-        business.barangay,
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
+      const name = business.name?.toLowerCase() ?? '';
 
-      const matchesSearch = !term || searchableText.includes(term);
+      const businessCategory = business.category?.toLowerCase() ?? '';
+
+      const businessType = business.businessType?.toLowerCase() ?? '';
+
+      const description = business.description?.toLowerCase() ?? '';
+
+      const matchesSearch =
+        !search ||
+        name.includes(search) ||
+        businessCategory.includes(search) ||
+        businessType.includes(search) ||
+        description.includes(search);
 
       const matchesCategory =
         category === 'all' || business.category === category;
@@ -179,21 +131,23 @@ export class SearchPageComponent implements AfterViewInit, OnDestroy {
       const matchesType = type === 'all' || business.businessType === type;
 
       const matchesLocation =
-        location === 'all' ||
-        business.location.toLowerCase().includes(location.toLowerCase()) ||
-        business.barangay.toLowerCase().includes(location.toLowerCase());
+        location === 'all' || business.location === location;
 
       return matchesSearch && matchesCategory && matchesType && matchesLocation;
     });
   });
 
-  // =========================================================
-  // RESULTS
-  // =========================================================
+  /* =========================================================
+     RESULT COUNT
+  ========================================================= */
 
-  resultCount = computed(() => this.filteredBusinesses().length);
+  readonly resultCount = computed(() => this.filteredBusinesses().length);
 
-  hasActiveFilters = computed(() => {
+  /* =========================================================
+     ACTIVE FILTERS
+  ========================================================= */
+
+  readonly hasActiveFilters = computed(() => {
     return (
       this.searchTerm().trim().length > 0 ||
       this.selectedCategory() !== 'all' ||
@@ -202,204 +156,136 @@ export class SearchPageComponent implements AfterViewInit, OnDestroy {
     );
   });
 
-  // =========================================================
-  // INITIALIZATION
-  // =========================================================
+  /* =========================================================
+     AVAILABLE TYPES
+  ========================================================= */
 
-  constructor() {
-    void this.initialize();
-  }
+  readonly availableTypes = computed(() => {
+    const category = this.selectedCategory();
 
-  ngAfterViewInit(): void {}
-
-  // =========================================================
-  // INITIALIZE
-  // =========================================================
-
-  private async initialize(): Promise<void> {
-    // -------------------------------------------------------
-    // Initial API fetch
-    // -------------------------------------------------------
-
-    await this.loadBusinesses();
-
-    // -------------------------------------------------------
-    // Query parameters
-    // -------------------------------------------------------
-
-    this.route.queryParams.subscribe((params) => {
-      this.applyQueryParams(params);
-    });
-
-    // -------------------------------------------------------
-    // Start realtime
-    // -------------------------------------------------------
-
-    await this.startRealtime();
-  }
-
-  // =========================================================
-  // START REALTIME
-  // =========================================================
-
-  private async startRealtime(): Promise<void> {
-    try {
-      await this.businessRealtimeService.connect(this.realtimeHandler);
-
-      console.log('========================================');
-
-      console.log('SEARCH PAGE REALTIME CONNECTED');
-
-      console.log('========================================');
-    } catch (error) {
-      console.error('FAILED TO CONNECT BUSINESS SIGNALR:', error);
+    if (category === 'all') {
+      return [];
     }
+
+    return [
+      ...new Set(
+        this.businesses()
+          .filter((business) => business.category === category)
+          .map((business) => business.businessType)
+          .filter(Boolean),
+      ),
+    ];
+  });
+
+  /* =========================================================
+     INIT
+  ========================================================= */
+
+  ngOnInit(): void {
+    this.route.queryParams.subscribe((params) => {
+      this.searchTerm.set(params['search'] ?? '');
+
+      this.selectedCategory.set(params['category'] ?? 'all');
+
+      this.selectedType.set(params['type'] ?? 'all');
+
+      this.selectedLocation.set(params['location'] ?? 'all');
+
+      /*
+       * Do not reload unnecessarily when only the
+       * query parameters change.
+       *
+       * The businesses themselves do not depend
+       * on these local filters yet.
+       */
+      if (this.businesses().length === 0) {
+        void this.loadBusinesses();
+      }
+    });
   }
 
-  // =========================================================
-  // REALTIME BUSINESS STATUS CHANGED
-  // =========================================================
+  /* =========================================================
+     LOAD BUSINESSES
+  ========================================================= */
 
-  private async handleBusinessStatusChanged(
-    event: BusinessStatusChangedEvent,
-  ): Promise<void> {
-    console.log('========================================');
-
-    console.log('SEARCH PAGE REALTIME UPDATE');
-
-    console.log('BUSINESS ID:', event.businessId);
-
-    console.log('NEW STATUS:', event.status);
-
-    console.log('========================================');
-
-    // =======================================================
-    // REFRESH APPROVED BUSINESSES
-    // =======================================================
-
-    await this.loadBusinesses();
-
-    // =======================================================
-    // REFRESH MAP
-    // =======================================================
-
-    this.refreshMap();
-
-    console.log('SEARCH PAGE BUSINESSES REFRESHED');
-  }
-
-  // =========================================================
-  // MAP REFRESH
-  // =========================================================
-
-  private refreshMap(): void {
-    if (this.viewMode() !== 'map') {
+  async loadBusinesses(): Promise<void> {
+    /*
+     * Prevent duplicate requests while the current
+     * request is still running.
+     */
+    if (this.loading() && this.businesses().length > 0) {
       return;
     }
 
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        this.businessMap?.refresh();
-      });
-    });
-  }
-
-  // =========================================================
-  // QUERY PARAMS
-  // =========================================================
-
-  private applyQueryParams(params: Record<string, string>): void {
-    const category = params['category'] ?? 'all';
-
-    const type = params['type'] ?? 'all';
-
-    const location = params['location'] ?? 'all';
-
-    const query = params['q'] ?? '';
-
-    this.searchTerm.set(query);
-
-    this.selectedCategory.set(
-      this.isValidCategory(category) ? category : 'all',
-    );
-
-    this.selectedLocation.set(
-      this.isValidLocation(location) ? location : 'all',
-    );
-
-    const validType =
-      type !== 'all' &&
-      this.businesses().some(
-        (business) =>
-          business.category === category && business.businessType === type,
-      );
-
-    this.selectedType.set(validType ? type : 'all');
-  }
-
-  private isValidCategory(category: string): boolean {
-    return category === 'all' || this.categories.includes(category);
-  }
-
-  private isValidLocation(location: string): boolean {
-    return location === 'all' || this.locations.includes(location);
-  }
-
-  // =========================================================
-  // LOAD BUSINESSES
-  // =========================================================
-
-  async loadBusinesses(): Promise<void> {
     this.loading.set(true);
 
     this.error.set(null);
 
     try {
-      console.log('FETCHING APPROVED BUSINESSES...');
-
       const businesses = await this.businessService.getApprovedBusinesses();
 
       this.businesses.set(businesses);
+    } catch (error: unknown) {
+      console.error('Failed to load businesses:', error);
 
-      console.log('APPROVED BUSINESSES:', businesses);
-    } catch (error) {
-      console.error('FAILED TO LOAD BUSINESSES:', error);
+      this.businesses.set([]);
 
       this.error.set(
         error instanceof Error ? error.message : 'Failed to load businesses.',
       );
-
-      this.businesses.set([]);
     } finally {
       this.loading.set(false);
     }
   }
 
-  // =========================================================
-  // SEARCH
-  // =========================================================
+  /* =========================================================
+     SEARCH
+  ========================================================= */
 
   onSearch(value: string): void {
     this.searchTerm.set(value);
+
+    this.updateQueryParams();
   }
 
-  // =========================================================
-  // FILTERS
-  // =========================================================
+  /* =========================================================
+     CATEGORY
+  ========================================================= */
 
   setCategory(category: string): void {
     this.selectedCategory.set(category);
 
+    /*
+     * Reset business type whenever category changes.
+     */
     this.selectedType.set('all');
+
+    this.updateQueryParams();
   }
+
+  /* =========================================================
+     TYPE
+  ========================================================= */
 
   setType(type: string): void {
     this.selectedType.set(type);
+
+    this.updateQueryParams();
   }
+
+  /* =========================================================
+     LOCATION
+  ========================================================= */
 
   setLocation(location: string): void {
     this.selectedLocation.set(location);
+
+    this.updateQueryParams();
   }
+
+  /* =========================================================
+     CLEAR FILTERS
+  ========================================================= */
 
   clearFilters(): void {
     this.searchTerm.set('');
@@ -409,60 +295,85 @@ export class SearchPageComponent implements AfterViewInit, OnDestroy {
     this.selectedType.set('all');
 
     this.selectedLocation.set('all');
+
+    this.updateQueryParams();
   }
 
-  // =========================================================
-  // VIEW MODE
-  // =========================================================
+  /* =========================================================
+     QUERY PARAMS
+  ========================================================= */
+
+  private updateQueryParams(): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+
+      queryParams: {
+        search: this.searchTerm() || null,
+
+        category:
+          this.selectedCategory() !== 'all' ? this.selectedCategory() : null,
+
+        type: this.selectedType() !== 'all' ? this.selectedType() : null,
+
+        location:
+          this.selectedLocation() !== 'all' ? this.selectedLocation() : null,
+      },
+
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  /* =========================================================
+     VIEW MODE
+  ========================================================= */
 
   setViewMode(mode: 'list' | 'map'): void {
     this.viewMode.set(mode);
 
-    if (mode === 'list') {
+    if (mode === 'map') {
       this.nearbyExpanded.set(false);
+    }
+  }
 
+  /* =========================================================
+     3D
+  ========================================================= */
+
+  toggle3D(): void {
+    this.is3D.update((value) => !value);
+  }
+
+  /* =========================================================
+     NEARBY
+  ========================================================= */
+
+  toggleNearbyBusinesses(): void {
+    this.nearbyExpanded.update((value) => !value);
+  }
+
+  /* =========================================================
+     OPEN BUSINESS
+  ========================================================= */
+
+  openBusiness(business: Business): void {
+    if (!business?.id) {
       return;
     }
 
-    this.refreshMap();
+    void this.router.navigate(['/business', business.id]);
   }
 
-  // =========================================================
-  // NEARBY BUSINESSES
-  // =========================================================
+  /* =========================================================
+     IMAGE ERROR
+  ========================================================= */
 
-  toggleNearbyBusinesses(): void {
-    this.nearbyExpanded.update((expanded) => !expanded);
-  }
+  onImageError(businessId: string): void {
+    this.imageError.update((current) => {
+      const next = new Set(current);
 
-  // =========================================================
-  // BUSINESS
-  // =========================================================
+      next.add(businessId);
 
-  openBusiness(business: Business): void {
-    this.router.navigate(['/business', business.id]);
-  }
-
-  // =========================================================
-  // DESTROY
-  // =========================================================
-
-  ngOnDestroy(): void {
-    /**
-     * Important:
-     *
-     * DO NOT call:
-     *
-     * this.businessRealtimeService.disconnect()
-     *
-     * because the realtime service is shared
-     * with other components such as BusinessLayout.
-     *
-     * We only remove THIS component's listener.
-     */
-
-    this.businessRealtimeService.removeListener(this.realtimeHandler);
-
-    console.log('SEARCH PAGE REALTIME LISTENER REMOVED');
+      return next;
+    });
   }
 }

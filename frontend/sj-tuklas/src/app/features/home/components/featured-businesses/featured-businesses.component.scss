@@ -19,25 +19,130 @@
   display: flex;
   align-items: center;
   gap: 5px;
+
   color: var(--text-secondary);
   font-size: 13px;
   font-weight: 600;
+  text-decoration: none;
+
+  white-space: nowrap;
+
+  transition:
+    color 0.2s ease,
+    gap 0.2s ease;
 }
+
+.view-all:hover {
+  color: var(--text);
+  gap: 8px;
+}
+
+/* =========================================================
+   BUSINESS GRID
+========================================================= */
 
 .business-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
+  width: 100%;
+  min-width: 0;
 }
+
+.business-grid app-business-card {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.featured-loading {
+  width: 100%;
+  min-width: 0;
+}
+
+.featured-loading app-skeleton {
+  display: block;
+  width: 100%;
+}
+
+/* =========================================================
+   ERROR / EMPTY
+========================================================= */
+
+.featured-error,
+.featured-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  min-height: 120px;
+  padding: 24px;
+
+  border: 1px solid var(--border);
+  border-radius: 16px;
+
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.featured-error i,
+.featured-empty i {
+  font-size: 20px;
+}
+
+.featured-empty p {
+  margin: 0;
+}
+
+/* =========================================================
+   TABLET
+========================================================= */
 
 @media (max-width: 900px) {
   .business-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
   }
 }
 
+/* =========================================================
+   MOBILE
+========================================================= */
+
 @media (max-width: 600px) {
+  .section-header-row {
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .view-all {
+    margin-top: 2px;
+    font-size: 12px;
+  }
+
   .business-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+}
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 420px) {
+  .section-header-row {
+    flex-direction: column;
+  }
+
+  .view-all {
+    margin-top: 0;
   }
 }

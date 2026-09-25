@@ -1,12 +1,108 @@
+<!-- =========================================================
+     HERO
+========================================================= -->
+
 <app-hero-section />
 
+<!-- =========================================================
+     CATEGORIES
+========================================================= -->
+
 <app-category-grid />
+
+<!-- =========================================================
+     COMMUNITY STATS
+========================================================= -->
+
 <app-community-stats />
 
-<app-featured-businesses />
+<!-- =========================================================
+     FEATURED BUSINESSES
 
-<app-popular-businesses />
+     Loaded when the section approaches the viewport.
+========================================================= -->
 
-<app-explore-locations />
+@defer (on viewport) {
+  <app-featured-businesses />
+} @placeholder {
+  <section class="home-section-placeholder">
+    <div class="container">
+      <div class="section-title-skeleton"></div>
 
-<app-business-owner-cta />
+      <div class="business-grid-skeleton">
+        <div class="business-card-skeleton"></div>
+        <div class="business-card-skeleton"></div>
+        <div class="business-card-skeleton"></div>
+      </div>
+    </div>
+  </section>
+}
+
+<!-- =========================================================
+     POPULAR BUSINESSES
+========================================================= -->
+
+@defer (on viewport) {
+  <app-popular-businesses />
+} @placeholder {
+  <section class="home-section-placeholder">
+    <div class="container">
+      <div class="section-title-skeleton short"></div>
+
+      <div class="business-grid-skeleton">
+        <div class="business-card-skeleton"></div>
+        <div class="business-card-skeleton"></div>
+        <div class="business-card-skeleton"></div>
+        <div class="business-card-skeleton"></div>
+      </div>
+    </div>
+  </section>
+}
+
+<!-- =========================================================
+     EXPLORE LOCATIONS
+========================================================= -->
+
+@defer (on viewport) {
+  <app-explore-locations />
+} @placeholder {
+  <section class="home-section-placeholder">
+    <div class="container">
+      <div class="section-title-skeleton location-title"></div>
+
+      <div class="location-skeleton">
+        <div class="location-map-skeleton"></div>
+
+        <div class="location-list-skeleton">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
+  </section>
+}
+
+<!-- =========================================================
+     BUSINESS OWNER CTA
+========================================================= -->
+
+@defer (on viewport) {
+  <app-business-owner-cta />
+} @placeholder {
+  <section class="home-section-placeholder">
+    <div class="container">
+      <div class="cta-skeleton">
+        <div class="cta-content-skeleton">
+          <div class="cta-title-skeleton"></div>
+          <div class="cta-text-skeleton"></div>
+          <div class="cta-text-skeleton short"></div>
+          <div class="cta-button-skeleton"></div>
+        </div>
+
+        <div class="cta-image-skeleton"></div>
+      </div>
+    </div>
+  </section>
+}

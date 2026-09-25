@@ -6,7 +6,7 @@
 
     <header class="search-header">
       <div class="header-copy">
-        <span class="section-label"> DISCOVER </span>
+        <span class="section-label">DISCOVER</span>
 
         <h1>Find local businesses</h1>
 
@@ -43,7 +43,7 @@
 
         <div class="filter-sidebar-header">
           <div>
-            <span class="filter-label"> FILTERS </span>
+            <span class="filter-label">FILTERS</span>
 
             <h2>Refine results</h2>
           </div>
@@ -75,7 +75,7 @@
               [class.active]="selectedCategory() === 'all'"
               (click)="setCategory('all')"
             >
-              <span> All categories </span>
+              <span>All categories</span>
 
               @if (selectedCategory() === "all") {
                 <i class="bx bx-check"></i>
@@ -120,7 +120,7 @@
                 [class.active]="selectedType() === 'all'"
                 (click)="setType('all')"
               >
-                <span> All types </span>
+                <span>All types</span>
 
                 @if (selectedType() === "all") {
                   <i class="bx bx-check"></i>
@@ -165,7 +165,7 @@
               [class.active]="selectedLocation() === 'all'"
               (click)="setLocation('all')"
             >
-              <span> All locations </span>
+              <span>All locations</span>
 
               @if (selectedLocation() === "all") {
                 <i class="bx bx-check"></i>
@@ -195,7 +195,7 @@
       </aside>
 
       <!-- =====================================================
-           RESULTS
+           RESULTS AREA
       ====================================================== -->
 
       <main class="results-area">
@@ -209,6 +209,7 @@
           <div class="results-info">
             <span class="results-count">
               {{ resultCount() }}
+
               {{ resultCount() === 1 ? "business" : "businesses" }}
             </span>
 
@@ -232,7 +233,7 @@
               >
                 <i class="bx bx-list-ul"></i>
 
-                <span> List </span>
+                <span>List</span>
               </button>
 
               <!-- MAP -->
@@ -246,7 +247,7 @@
               >
                 <i class="bx bx-map"></i>
 
-                <span> Map </span>
+                <span>Map</span>
               </button>
             </div>
 
@@ -255,7 +256,7 @@
             <button type="button" class="sort-button">
               <i class="bx bx-sort-alt-2"></i>
 
-              <span> Recommended </span>
+              <span>Recommended</span>
 
               <i class="bx bx-chevron-down"></i>
             </button>
@@ -278,7 +279,7 @@
             >
               <i class="bx bx-grid-alt"></i>
 
-              <span> All </span>
+              <span>All</span>
             </button>
 
             <!-- CATEGORIES -->
@@ -379,15 +380,55 @@
         <!-- =================================================
              LOADING
         ================================================== -->
-        @if (loading()) {
-          <div class="search-loading">
-            <div class="loading-spinner"></div>
 
-            <div class="search-loading-content">
-              <h2>Finding local businesses</h2>
-              <p>Searching for businesses around San Jose...</p>
-            </div>
-          </div>
+        @if (loading()) {
+          <section
+            class="search-loading"
+            aria-label="Loading businesses"
+            aria-busy="true"
+          >
+            <!-- =================================================
+                 LIST LOADING
+            ================================================== -->
+
+            @if (viewMode() === "list") {
+              <app-skeleton type="business-list" [count]="5" />
+            }
+
+            <!-- =================================================
+                 MAP LOADING
+            ================================================== -->
+
+            @if (viewMode() === "map") {
+              <div class="search-map-loading">
+                <!-- MAP SKELETON -->
+
+                <div class="search-map-loading-map">
+                  <app-skeleton type="map" />
+                </div>
+
+                <!-- RESULTS SKELETON -->
+
+                <div class="search-map-loading-results">
+                  <div class="search-map-loading-header">
+                    <app-skeleton
+                      type="title"
+                      [width]="'150px'"
+                      [height]="'18px'"
+                    />
+
+                    <app-skeleton
+                      type="circle"
+                      [width]="'30px'"
+                      [height]="'30px'"
+                    />
+                  </div>
+
+                  <app-skeleton type="business-list" [count]="4" />
+                </div>
+              </div>
+            }
+          </section>
         }
 
         <!-- =================================================
@@ -421,9 +462,11 @@
 
           @if (viewMode() === "list") {
             @if (resultCount() > 0) {
+              <!-- TRUE LIST VIEW -->
+
               <div class="business-list">
                 @for (business of filteredBusinesses(); track business.id) {
-                  <app-business-card [business]="business" />
+                  <app-business-card [business]="business" variant="list" />
                 }
               </div>
             } @else {
@@ -460,11 +503,8 @@
               <!-- =================================================
                    MAP
               ================================================== -->
-              <div class="map-container">
-                <!-- =====================================================
-       MAP
-  ====================================================== -->
 
+              <div class="map-container">
                 <app-business-map
                   [businesses]="filteredBusinesses()"
                   [directionsMode]="false"
@@ -476,9 +516,7 @@
                   (businessSelected)="openBusiness($event)"
                 />
 
-                <!-- =====================================================
-       3D CONTROL
-  ====================================================== -->
+                <!-- 3D CONTROL -->
 
                 <div class="search-map-controls">
                   <button
@@ -509,9 +547,7 @@
               ================================================== -->
 
               <aside class="map-results" [class.expanded]="nearbyExpanded()">
-                <!-- =================================================
-                     DRAG / TOGGLE HANDLE
-                ================================================== -->
+                <!-- HANDLE -->
 
                 <button
                   type="button"
@@ -523,9 +559,7 @@
                   <span></span>
                 </button>
 
-                <!-- =================================================
-                     MAP RESULTS HEADER
-                ================================================== -->
+                <!-- HEADER -->
 
                 <button
                   type="button"
@@ -556,9 +590,7 @@
                   </div>
                 </button>
 
-                <!-- =================================================
-                     BUSINESS RESULTS
-                ================================================== -->
+                <!-- CONTENT -->
 
                 <div class="map-results-content">
                   @if (resultCount() > 0) {
@@ -575,9 +607,7 @@
                           (keydown.enter)="openBusiness(business)"
                           (keydown.space)="openBusiness(business)"
                         >
-                          <!-- =================================================
-                               IMAGE
-                          ================================================================================================================================================================== -->
+                          <!-- IMAGE -->
 
                           <div class="map-business-image">
                             @if (
@@ -586,18 +616,19 @@
                               <img
                                 [src]="business.image"
                                 [alt]="business.name"
+                                width="96"
+                                height="96"
                                 loading="lazy"
+                                decoding="async"
                                 (error)="onImageError(business.id)"
                               />
                             } @else {
-                              <img
-                                src="https://scontent.fpag2-1.fna.fbcdn.net/v/t39.30808-6/704229271_1795953418248429_1562206046226465196_n.jpg?stp=dst-jpg_tt6&cstp=mx1254x1254&ctp=s1254x1254&_nc_cat=104&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeGnV9hUrBDwoVwhxYhVkNnVmQwrDM07yu-ZDCsMzTvK78zbGxo9tvA_xAPQhPS2B2C0_PATJkMyyryk8AqV_RNR&_nc_ohc=uUCeFjkpzh8Q7kNvwF0AdSU&_nc_oc=AdrfXdyBePqmOwjWKLOji43KneFbYwm7ItjfmZtGaG0b-tezrLSkvi3aGz_L1Q2ZoYA&_nc_zt=23&_nc_ht=scontent.fpag2-1.fna&_nc_gid=hP8AYIdcaPNycI-oi2PzRQ&_nc_ss=7b2a8&oh=00_AQJLiM4gMAyfXRcR-xg3dQ5rZq7r7_GNYTaT6_4LVKA4Mw&oe=6ABA671F"
-                                [alt]="business.name"
-                                loading="lazy"
-                              />
-                              <!-- <div class="map-business-image-placeholder">
+                              <div
+                                class="map-business-image-placeholder"
+                                aria-hidden="true"
+                              >
                                 <i class="bx bx-store-alt"></i>
-                              </div> -->
+                              </div>
                             }
 
                             <!-- VERIFIED -->
@@ -612,9 +643,7 @@
                             }
                           </div>
 
-                          <!-- =================================================
-                               CONTENT
-                          ================================================== -->
+                          <!-- CONTENT -->
 
                           <div class="map-business-info">
                             <!-- TOP -->
@@ -627,6 +656,7 @@
                               @if (business.isPro) {
                                 <span class="pro-badge">
                                   <i class="bx bx-crown"></i>
+
                                   PRO
                                 </span>
                               }
@@ -640,9 +670,11 @@
 
                             <!-- TYPE -->
 
-                            <p class="map-business-type">
-                              {{ business.businessType }}
-                            </p>
+                            @if (business.businessType) {
+                              <p class="map-business-type">
+                                {{ business.businessType }}
+                              </p>
+                            }
 
                             <!-- LOCATION -->
 
@@ -659,8 +691,6 @@
                             <!-- BOTTOM -->
 
                             <div class="map-business-bottom">
-                              <!-- RATING -->
-
                               <span class="map-rating">
                                 <i class="bx bxs-star"></i>
 
@@ -671,8 +701,6 @@
                                 <span> ({{ business.reviews }}) </span>
                               </span>
 
-                              <!-- ARROW -->
-
                               <i
                                 class="bx bx-right-arrow-alt map-business-arrow"
                               ></i>
@@ -682,9 +710,7 @@
                       }
                     </div>
                   } @else {
-                    <!-- =================================================
-                         MAP EMPTY
-                    ================================================== -->
+                    <!-- MAP EMPTY -->
 
                     <div class="map-empty">
                       <div class="map-empty-icon">

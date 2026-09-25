@@ -1,162 +1,285 @@
-<a class="business-card" [routerLink]="['/business', business().id]">
+@if (variant() === "list") {
   <!-- =====================================================
-       COVER IMAGE
+       LIST VIEW
   ====================================================== -->
 
-  <div class="business-image">
-    @if (business().coverImage && !imageError()) {
-      <img
-        class="cover-image"
-        [src]="business().coverImage!"
-        [alt]="business().name + ' cover'"
-        loading="lazy"
-        (error)="onImageError()"
-      />
-    } @else if (business().image && !imageError()) {
-      <!-- FALLBACK TO FEATURE IMAGE -->
-
-      <img
-        class="cover-image"
-        [src]="business().image!"
-        [alt]="business().name"
-        loading="lazy"
-        (error)="onImageError()"
-      />
-    } @else {
-      <div class="business-image-placeholder">
-        <i class="bx bx-store-alt"></i>
-      </div>
-    }
-
+  <a
+    class="business-card business-card-list"
+    [routerLink]="['/business', business().id]"
+  >
     <!-- =================================================
-         IMAGE OVERLAY
+         LIST IMAGE
     ================================================== -->
 
-    <div class="image-overlay"></div>
+    <div class="business-list-image">
+      @if (business().coverImage && !imageError()) {
+        <img
+          class="list-cover-image"
+          [src]="business().coverImage!"
+          [alt]="business().name + ' cover'"
+          loading="lazy"
+          decoding="async"
+          (error)="onImageError()"
+        />
+      } @else if (business().image && !imageError()) {
+        <img
+          class="list-cover-image"
+          [src]="business().image!"
+          [alt]="business().name"
+          loading="lazy"
+          decoding="async"
+          (error)="onImageError()"
+        />
+      } @else {
+        <div class="business-list-image-placeholder" aria-hidden="true">
+          <i class="bx bx-store-alt"></i>
+        </div>
+      }
+
+      <!-- IMAGE GRADIENT -->
+
+      <div class="list-image-overlay"></div>
+
+      <!-- PRO -->
+
+      @if (business().isPro) {
+        <span class="list-pro-badge">
+          <i class="bx bx-crown"></i>
+          PRO
+        </span>
+      }
+    </div>
 
     <!-- =================================================
-         BADGES
+         LIST CONTENT
     ================================================== -->
 
-    @if (business().isPro || business().verified) {
-      <div class="badges">
-        @if (business().isPro) {
-          <span class="pro-badge">
-            <i class="bx bx-crown"></i>
+    <div class="business-list-content">
+      <!-- TOP META -->
 
-            PRO
-          </span>
-        }
+      <div class="business-list-top">
+        <span class="list-category">
+          {{ business().category }}
+        </span>
 
         @if (business().verified) {
-          <span class="verified-badge">
+          <span class="list-verified">
             <i class="bx bx-check"></i>
-
             Verified
           </span>
         }
       </div>
-    }
 
-    <!-- =================================================
-         PROFILE IMAGE
-    ================================================== -->
+      <!-- BUSINESS NAME -->
 
-    <div class="profile-image-wrapper">
-      @if (business().profileImage) {
-        <img
-          class="profile-image"
-          [src]="business().profileImage!"
-          [alt]="business().name + ' profile'"
-          loading="lazy"
-        />
-      } @else {
-        <div class="profile-image-fallback">
+      <h3 class="list-business-name">
+        {{ business().name }}
+      </h3>
+
+      <!-- BUSINESS TYPE -->
+
+      @if (business().businessType) {
+        <p class="list-business-type">
+          <i class="bx bx-store"></i>
+
           <span>
-            {{
-              business().name ? business().name.charAt(0).toUpperCase() : "S"
-            }}
+            {{ business().businessType }}
+          </span>
+        </p>
+      }
+
+      <!-- LOCATION -->
+
+      @if (business().location) {
+        <p class="list-location" [title]="business().location">
+          <i class="bx bx-map"></i>
+
+          <span>
+            {{ business().location }}
+          </span>
+        </p>
+      }
+
+      <!-- BOTTOM -->
+
+      <div class="business-list-bottom">
+        <div class="list-rating">
+          <i class="bx bxs-star"></i>
+
+          <strong>
+            {{ business().rating.toFixed(1) }}
+          </strong>
+
+          <span>
+            · {{ business().reviews }}
+            {{ business().reviews === 1 ? "review" : "reviews" }}
           </span>
         </div>
-      }
-    </div>
-  </div>
 
+        <span class="list-view">
+          <span>View business</span>
+
+          <i class="bx bx-right-arrow-alt"></i>
+        </span>
+      </div>
+    </div>
+
+    <!-- =================================================
+         LIST ARROW
+    ================================================== -->
+
+    <div class="business-list-arrow" aria-hidden="true">
+      <i class="bx bx-right-arrow-alt"></i>
+    </div>
+  </a>
+} @else {
   <!-- =====================================================
-       CONTENT
+       NORMAL CARD VIEW
   ====================================================== -->
 
-  <div class="business-content">
+  <a class="business-card" [routerLink]="['/business', business().id]">
     <!-- =================================================
-         TOP META
+         IMAGE
     ================================================== -->
 
-    <div class="business-top">
-      <span class="category">
-        {{ business().category }}
-      </span>
+    <div class="business-image">
+      @if (business().coverImage && !imageError()) {
+        <img
+          class="cover-image"
+          [src]="business().coverImage!"
+          [alt]="business().name + ' cover'"
+          loading="lazy"
+          decoding="async"
+          (error)="onImageError()"
+        />
+      } @else if (business().image && !imageError()) {
+        <img
+          class="cover-image"
+          [src]="business().image!"
+          [alt]="business().name"
+          loading="lazy"
+          decoding="async"
+          (error)="onImageError()"
+        />
+      } @else {
+        <div class="business-image-placeholder" aria-hidden="true">
+          <i class="bx bx-store-alt"></i>
+        </div>
+      }
 
-      <span class="rating">
-        <i class="bx bxs-star"></i>
+      <!-- OVERLAY -->
 
-        {{ business().reviews === 1 ? "review" : "reviews" }}
-      </span>
+      <div class="image-overlay"></div>
+
+      <!-- BADGES -->
+
+      @if (business().isPro || business().verified) {
+        <div class="badges">
+          @if (business().isPro) {
+            <span class="pro-badge">
+              <i class="bx bx-crown"></i>
+              PRO
+            </span>
+          }
+
+          @if (business().verified) {
+            <span class="verified-badge">
+              <i class="bx bx-check"></i>
+              Verified
+            </span>
+          }
+        </div>
+      }
+
+      <!-- PROFILE IMAGE -->
+
+      <div class="profile-image-wrapper">
+        @if (business().profileImage) {
+          <img
+            class="profile-image"
+            [src]="business().profileImage!"
+            [alt]="business().name + ' profile'"
+            loading="lazy"
+            decoding="async"
+          />
+        } @else {
+          <div class="profile-image-fallback">
+            <span>
+              {{
+                business().name ? business().name.charAt(0).toUpperCase() : "S"
+              }}
+            </span>
+          </div>
+        }
+      </div>
     </div>
 
     <!-- =================================================
-         NAME
+         CARD CONTENT
     ================================================== -->
 
-    <h3>
-      {{ business().name }}
-    </h3>
+    <div class="business-content">
+      <!-- TOP META -->
 
-    <!-- =================================================
-         BUSINESS TYPE
-    ================================================== -->
-
-    @if (business().businessType) {
-      <p class="business-type">
-        <i class="bx bx-store"></i>
-
-        <span>
-          {{ business().businessType }}
+      <div class="business-top">
+        <span class="category">
+          {{ business().category }}
         </span>
-      </p>
-    }
 
-    <!-- =================================================
-         LOCATION
-    ================================================== -->
+        <span class="rating">
+          <i class="bx bxs-star"></i>
 
-    @if (business().location) {
-      <p class="location" [title]="business().location">
-        <i class="bx bx-map"></i>
-
-        <span>
-          {{ business().location }}
+          {{ business().rating.toFixed(1) }}
         </span>
-      </p>
-    }
+      </div>
 
-    <!-- =================================================
-         FOOTER
-    ================================================== -->
+      <!-- NAME -->
 
-    <div class="business-footer">
-      <span class="reviews">
-        <i class="bx bx-message-rounded"></i>
+      <h3>
+        {{ business().name }}
+      </h3>
 
-        {{ business().reviews }}
+      <!-- BUSINESS TYPE -->
 
-        {{ business().reviews === 1 ? "review" : "reviews" }}
-      </span>
+      @if (business().businessType) {
+        <p class="business-type">
+          <i class="bx bx-store"></i>
 
-      <span class="view-link">
-        View
+          <span>
+            {{ business().businessType }}
+          </span>
+        </p>
+      }
 
-        <i class="bx bx-right-arrow-alt"></i>
-      </span>
+      <!-- LOCATION -->
+
+      @if (business().location) {
+        <p class="location" [title]="business().location">
+          <i class="bx bx-map"></i>
+
+          <span>
+            {{ business().location }}
+          </span>
+        </p>
+      }
+
+      <!-- FOOTER -->
+
+      <div class="business-footer">
+        <span class="reviews">
+          <i class="bx bx-message-rounded"></i>
+
+          {{ business().reviews }}
+
+          {{ business().reviews === 1 ? "review" : "reviews" }}
+        </span>
+
+        <span class="view-link">
+          View
+
+          <i class="bx bx-right-arrow-alt"></i>
+        </span>
+      </div>
     </div>
-  </div>
-</a>
+  </a>
+}
