@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sj-tuklas",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-09-25",
+  "assets": {
+    "directory": "./dist/sj-tuklas/browser",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+  },
+}
