@@ -8,13 +8,11 @@ using SjTuklas.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 // ============================================================
 // SERVICES
 // ============================================================
 
 builder.Services.AddOpenApi();
-
 
 // ============================================================
 // BUSINESS SERVICES
@@ -26,13 +24,11 @@ builder.Services.AddScoped<ProfileService>();
 
 builder.Services.AddScoped<FavoriteService>();
 
-
 // ============================================================
 // AUTH SERVICE
 // ============================================================
 
 builder.Services.AddHttpClient<AuthService>();
-
 
 // ============================================================
 // SUPABASE STORAGE
@@ -43,7 +39,6 @@ builder.Services.AddHttpClient<
     SupabaseStorageService
 >();
 
-
 // ============================================================
 // SIGNALR USER ID PROVIDER
 // ============================================================
@@ -53,13 +48,11 @@ builder.Services.AddSingleton<
     BusinessUserIdProvider
 >();
 
-
 // ============================================================
 // SIGNALR
 // ============================================================
 
 builder.Services.AddSignalR();
-
 
 // ============================================================
 // SUPABASE JWT CONFIGURATION
@@ -70,7 +63,6 @@ const string supabaseIssuer =
 
 const string supabaseAudience =
     "authenticated";
-
 
 builder.Services
     .AddAuthentication(
@@ -91,14 +83,12 @@ builder.Services
         options.RequireHttpsMetadata =
             true;
 
-
         // ====================================================
         // KEEP ORIGINAL JWT CLAIM NAMES
         // ====================================================
 
         options.MapInboundClaims =
             false;
-
 
         // ====================================================
         // TOKEN VALIDATION
@@ -131,7 +121,6 @@ builder.Services
                 NameClaimType =
                     "sub",
             };
-
 
         // ====================================================
         // JWT EVENTS
@@ -183,7 +172,6 @@ builder.Services
                     return Task.CompletedTask;
                 },
 
-
                 // ==================================================
                 // TOKEN VALIDATED
                 // ==================================================
@@ -223,7 +211,6 @@ builder.Services
                     return Task.CompletedTask;
                 },
 
-
                 // ==================================================
                 // AUTHENTICATION FAILED
                 // ==================================================
@@ -258,7 +245,6 @@ builder.Services
 
                     return Task.CompletedTask;
                 },
-
 
                 // ==================================================
                 // AUTHORIZATION CHALLENGE
@@ -297,13 +283,11 @@ builder.Services
             };
     });
 
-
 // ============================================================
 // AUTHORIZATION
 // ============================================================
 
 builder.Services.AddAuthorization();
-
 
 // ============================================================
 // ANTIFORGERY
@@ -311,30 +295,24 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddAntiforgery();
 
-
 // ============================================================
 // CORS
 // ============================================================
 
-builder.Services.AddCors(
-    options =>
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
     {
-        options.AddPolicy(
-            "Angular",
-            policy =>
-            {
-                policy
-                    .WithOrigins(
-                        "http://localhost:4200"
-                    )
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowCredentials();
-            }
-        );
-    }
-);
-
+        policy
+            .WithOrigins(
+                "https://sj-tuklas.sjtuklas.workers.dev",
+                "http://localhost:4200"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 
 // ============================================================
 // BUILD APPLICATION
@@ -342,7 +320,6 @@ builder.Services.AddCors(
 
 var app =
     builder.Build();
-
 
 // ============================================================
 // OPENAPI
@@ -355,12 +332,11 @@ if (
     app.MapOpenApi();
 }
 
-
 // ============================================================
 // MIDDLEWARE
 // ============================================================
 
-app.UseCors("Angular");
+app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 
@@ -368,13 +344,11 @@ app.UseAuthorization();
 
 app.UseAntiforgery();
 
-
 // ============================================================
 // AUTH ENDPOINTS
 // ============================================================
 
 app.MapAuthEndpoints();
-
 
 // ============================================================
 // BUSINESS ENDPOINTS
@@ -382,20 +356,17 @@ app.MapAuthEndpoints();
 
 app.MapBusinessEndpoints();
 
-
 // ============================================================
 // FAVORITE ENDPOINTS
 // ============================================================
 
 app.MapFavoriteEndpoints();
 
-
 // ============================================================
 // STATS ENDPOINTS
 // ============================================================
 
 app.MapStatsEndpoints();
-
 
 // ============================================================
 // SIGNALR
@@ -404,7 +375,6 @@ app.MapStatsEndpoints();
 app.MapHub<BusinessHub>(
     "/hubs/business"
 );
-
 
 // ============================================================
 // RUN
