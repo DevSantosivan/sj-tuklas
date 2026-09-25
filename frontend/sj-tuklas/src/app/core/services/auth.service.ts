@@ -3,7 +3,6 @@ import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
 import { API_CONFIG } from '../config/api.config';
-
 import { AccountRole, AuthResponse, AuthUser } from '../models/auth.model';
 
 @Injectable({
@@ -46,13 +45,9 @@ export class AuthService {
         `${this.apiUrl}/register`,
         {
           email: email.trim().toLowerCase(),
-
           password,
-
           fullName: fullName.trim(),
-
           role,
-
           phone: phone?.trim() || null,
         },
         {
@@ -60,10 +55,6 @@ export class AuthService {
         },
       ),
     );
-
-    // -------------------------------------------------------
-    // UPDATE CURRENT USER
-    // -------------------------------------------------------
 
     if (response.user) {
       this._currentUser.set(response.user);
@@ -82,18 +73,16 @@ export class AuthService {
         `${this.apiUrl}/login`,
         {
           email: email.trim().toLowerCase(),
-
           password,
         },
         {
+          // IMPORTANT:
+          // Allows browser to receive/store HttpOnly cookies
+          // from the Render API.
           withCredentials: true,
         },
       ),
     );
-
-    // -------------------------------------------------------
-    // UPDATE CURRENT USER
-    // -------------------------------------------------------
 
     if (response.user) {
       this._currentUser.set(response.user);
@@ -108,10 +97,10 @@ export class AuthService {
 
   async getUser(): Promise<AuthUser | null> {
     try {
-      // -----------------------------------------------------
+      // -------------------------------------------------------
       // FIRST:
-      // TRY CURRENT ACCESS TOKEN
-      // -----------------------------------------------------
+      // TRY ACCESS TOKEN
+      // -------------------------------------------------------
 
       const user = await firstValueFrom(
         this.http.get<AuthUser>(`${this.apiUrl}/me`, {
@@ -123,10 +112,10 @@ export class AuthService {
 
       return user;
     } catch {
-      // -----------------------------------------------------
-      // ACCESS TOKEN FAILED / EXPIRED
+      // -------------------------------------------------------
+      // ACCESS TOKEN FAILED
       // TRY REFRESH TOKEN
-      // -----------------------------------------------------
+      // -------------------------------------------------------
 
       try {
         await firstValueFrom(
@@ -139,10 +128,10 @@ export class AuthService {
           ),
         );
 
-        // ---------------------------------------------------
+        // -----------------------------------------------------
         // REFRESH SUCCESSFUL
         // GET USER AGAIN
-        // ---------------------------------------------------
+        // -----------------------------------------------------
 
         const user = await firstValueFrom(
           this.http.get<AuthUser>(`${this.apiUrl}/me`, {
@@ -154,10 +143,9 @@ export class AuthService {
 
         return user;
       } catch {
-        // ---------------------------------------------------
-        // REFRESH ALSO FAILED
+        // -----------------------------------------------------
         // SESSION INVALID / EXPIRED
-        // ---------------------------------------------------
+        // -----------------------------------------------------
 
         this._currentUser.set(null);
 
@@ -169,24 +157,8 @@ export class AuthService {
   // =========================================================
   // GET USER BY ID
   // =========================================================
-  //
-  // Used by admin pages to load the owner of a business.
-  //
-  // Example:
-  //
-  // business.ownerId
-  //       ↓
-  // getUserById(ownerId)
-  //       ↓
-  // GET /api/auth/users/{userId}
-  //
-  // =========================================================
 
   async getUserById(userId: string): Promise<AuthUser | null> {
-    // -------------------------------------------------------
-    // VALIDATE USER ID
-    // -------------------------------------------------------
-
     if (!userId?.trim()) {
       return null;
     }
@@ -211,10 +183,6 @@ export class AuthService {
         return null;
       }
 
-      // -----------------------------------------------------
-      // OTHER API ERROR
-      // -----------------------------------------------------
-
       console.error('Failed to load user by ID:', error);
 
       throw error;
@@ -231,10 +199,6 @@ export class AuthService {
     try {
       return await this.getUser();
     } finally {
-      // -----------------------------------------------------
-      // AUTH CHECK FINISHED
-      // -----------------------------------------------------
-
       this._authLoading.set(false);
     }
   }
@@ -250,19 +214,15 @@ export class AuthService {
       return null;
     }
 
-    // -------------------------------------------------------
-    // ALL VALID ACCOUNT ROLES
-    // -------------------------------------------------------
+    switch (user.role) {
+      case 'visitor':
+      case 'business_owner':
+      case 'admin':
+        return user.role;
 
-    if (
-      user.role === 'visitor' ||
-      user.role === 'business_owner' ||
-      user.role === 'admin'
-    ) {
-      return user.role;
+      default:
+        return null;
     }
-
-    return null;
   }
 
   // =========================================================
@@ -272,7 +232,7 @@ export class AuthService {
   async refresh(): Promise<boolean> {
     try {
       // -----------------------------------------------------
-      // GET NEW ACCESS TOKEN
+      // REQUEST NEW ACCESS TOKEN
       // -----------------------------------------------------
 
       await firstValueFrom(
@@ -286,7 +246,7 @@ export class AuthService {
       );
 
       // -----------------------------------------------------
-      // GET CURRENT USER
+      // GET UPDATED USER
       // -----------------------------------------------------
 
       const user = await firstValueFrom(
@@ -322,7 +282,7 @@ export class AuthService {
       );
     } finally {
       // -----------------------------------------------------
-      // CLEAR USER FROM ANGULAR MEMORY
+      // CLEAR ANGULAR USER STATE
       // -----------------------------------------------------
 
       this._currentUser.set(null);
