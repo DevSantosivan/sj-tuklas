@@ -16,234 +16,228 @@ public static class AuthEndpoints
             .MapGroup("/api/auth")
             .WithTags("Authentication");
 
-      // ========================================================
-// REGISTER
-// ========================================================
+        // ========================================================
+        // REGISTER
+        // ========================================================
 
-group.MapPost(
-    "/register",
-    async (
-        RegisterRequestDto request,
-        HttpContext context,
-        AuthService authService,
-        IHubContext<BusinessHub> hubContext) =>
-    {
-        // ------------------------------------------------
-        // BASIC VALIDATION
-        // ------------------------------------------------
-
-        if (
-            string.IsNullOrWhiteSpace(request.Email)
-            ||
-            string.IsNullOrWhiteSpace(request.Password)
-            ||
-            string.IsNullOrWhiteSpace(request.FullName)
-        )
-        {
-            return Results.BadRequest(new
+        group.MapPost(
+            "/register",
+            async (
+                RegisterRequestDto request,
+                HttpContext context,
+                AuthService authService,
+                IHubContext<BusinessHub> hubContext) =>
             {
-                message =
-                    "Email, password, and full name are required."
-            });
-        }
+                // ------------------------------------------------
+                // BASIC VALIDATION
+                // ------------------------------------------------
 
-        if (
-            request.Role != "visitor"
-            &&
-            request.Role != "business_owner"
-        )
-        {
-            return Results.BadRequest(new
-            {
-                message =
-                    "Invalid account role."
-            });
-        }
-
-        try
-        {
-            // ------------------------------------------------
-            // CREATE SUPABASE AUTH USER
-            // ------------------------------------------------
-
-            var result =
-                await authService.SignUpAsync(
-                    request
-                );
-
-            // ------------------------------------------------
-            // VALIDATE SUPABASE RESPONSE
-            // ------------------------------------------------
-
-            if (result.User is null)
-            {
-                return Results.BadRequest(new
-                {
-                    message =
-                        "Registration failed."
-                });
-            }
-
-            // ------------------------------------------------
-            // STORE TOKENS IF AVAILABLE
-            // ------------------------------------------------
-
-            if (
-                !string.IsNullOrWhiteSpace(
-                    result.AccessToken
+                if (
+                    string.IsNullOrWhiteSpace(request.Email)
+                    ||
+                    string.IsNullOrWhiteSpace(request.Password)
+                    ||
+                    string.IsNullOrWhiteSpace(request.FullName)
                 )
-                &&
-                !string.IsNullOrWhiteSpace(
-                    result.RefreshToken
-                )
-            )
-            {
-                SetAuthenticationCookies(
-                    context,
-                    result
-                );
-            }
-
-            // ------------------------------------------------
-            // 🔥 REALTIME USER REGISTERED EVENT
-            // ------------------------------------------------
-            //
-            // IMPORTANT:
-            // This is sent only AFTER SignUpAsync succeeds.
-            //
-            // If SignUpAsync also creates the profiles row,
-            // then the community stats count can safely
-            // re-fetch after receiving this event.
-            // ------------------------------------------------
-
-            Console.WriteLine(
-                "=========================================="
-            );
-
-            Console.WriteLine(
-                "USER REGISTERED - BROADCASTING REALTIME EVENT"
-            );
-
-            Console.WriteLine(
-                $"User ID: {result.User.Id}"
-            );
-
-            Console.WriteLine(
-                $"Email: {result.User.Email}"
-            );
-
-            Console.WriteLine(
-                $"Role: {request.Role}"
-            );
-
-            await hubContext.Clients.All.SendAsync(
-                "UserRegistered",
-                new
                 {
-                    userId = result.User.Id
+                    return Results.BadRequest(new
+                    {
+                        message =
+                            "Email, password, and full name are required."
+                    });
                 }
-            );
 
-            Console.WriteLine(
-                "USER REGISTERED EVENT SENT"
-            );
-
-            Console.WriteLine(
-                "=========================================="
-            );
-
-            // ------------------------------------------------
-            // RETURN API DTO
-            // ------------------------------------------------
-
-            return Results.Ok(
-                new AuthResponseDto
+                if (
+                    request.Role != "visitor"
+                    &&
+                    request.Role != "business_owner"
+                )
                 {
-                    User =
-                        new AuthUserDto
+                    return Results.BadRequest(new
+                    {
+                        message =
+                            "Invalid account role."
+                    });
+                }
+
+                try
+                {
+                    // ------------------------------------------------
+                    // CREATE SUPABASE AUTH USER
+                    // ------------------------------------------------
+
+                    var result =
+                        await authService.SignUpAsync(
+                            request
+                        );
+
+                    // ------------------------------------------------
+                    // VALIDATE SUPABASE RESPONSE
+                    // ------------------------------------------------
+
+                    if (result.User is null)
+                    {
+                        return Results.BadRequest(new
                         {
-                            Id =
-                                result.User.Id,
+                            message =
+                                "Registration failed."
+                        });
+                    }
 
-                            Email =
-                                result.User.Email,
+                    // ------------------------------------------------
+                    // STORE TOKENS IF AVAILABLE
+                    // ------------------------------------------------
 
-                            FullName =
-                                GetMetadataValue(
-                                    result.User.UserMetadata,
-                                    "full_name"
-                                ),
+                    if (
+                        !string.IsNullOrWhiteSpace(
+                            result.AccessToken
+                        )
+                        &&
+                        !string.IsNullOrWhiteSpace(
+                            result.RefreshToken
+                        )
+                    )
+                    {
+                        SetAuthenticationCookies(
+                            context,
+                            result
+                        );
+                    }
 
-                            Role =
-                                GetMetadataValue(
-                                    result.User.UserMetadata,
-                                    "role"
-                                )
-                        },
+                    // ------------------------------------------------
+                    // REALTIME USER REGISTERED EVENT
+                    // ------------------------------------------------
 
-                    ExpiresIn =
-                        result.ExpiresIn
+                    Console.WriteLine(
+                        "=========================================="
+                    );
+
+                    Console.WriteLine(
+                        "USER REGISTERED - BROADCASTING REALTIME EVENT"
+                    );
+
+                    Console.WriteLine(
+                        $"User ID: {result.User.Id}"
+                    );
+
+                    Console.WriteLine(
+                        $"Email: {result.User.Email}"
+                    );
+
+                    Console.WriteLine(
+                        $"Role: {request.Role}"
+                    );
+
+                    await hubContext.Clients.All.SendAsync(
+                        "UserRegistered",
+                        new
+                        {
+                            userId = result.User.Id
+                        }
+                    );
+
+                    Console.WriteLine(
+                        "USER REGISTERED EVENT SENT"
+                    );
+
+                    Console.WriteLine(
+                        "=========================================="
+                    );
+
+                    // ------------------------------------------------
+                    // RETURN API DTO
+                    // ------------------------------------------------
+
+                    return Results.Ok(
+                        new AuthResponseDto
+                        {
+                            User =
+                                new AuthUserDto
+                                {
+                                    Id =
+                                        result.User.Id,
+
+                                    Email =
+                                        result.User.Email,
+
+                                    FullName =
+                                        GetMetadataValue(
+                                            result.User.UserMetadata,
+                                            "full_name"
+                                        ),
+
+                                    Role =
+                                        GetMetadataValue(
+                                            result.User.UserMetadata,
+                                            "role"
+                                        )
+                                },
+
+                            ExpiresIn =
+                                result.ExpiresIn
+                        }
+                    );
                 }
-            );
-        }
-        catch (InvalidOperationException ex)
-        {
-            Console.WriteLine(
-                "=========================================="
-            );
+                catch (InvalidOperationException ex)
+                {
+                    Console.WriteLine(
+                        "=========================================="
+                    );
 
-            Console.WriteLine(
-                "REGISTRATION VALIDATION ERROR"
-            );
+                    Console.WriteLine(
+                        "REGISTRATION VALIDATION ERROR"
+                    );
 
-            Console.WriteLine(
-                $"Message: {ex.Message}"
-            );
+                    Console.WriteLine(
+                        $"Message: {ex.Message}"
+                    );
 
-            Console.WriteLine(
-                "=========================================="
-            );
+                    Console.WriteLine(
+                        "=========================================="
+                    );
 
-            return Results.BadRequest(new
-            {
-                message =
-                    ex.Message
-            });
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(
-                "=========================================="
-            );
+                    return Results.BadRequest(new
+                    {
+                        message =
+                            ex.Message
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(
+                        "=========================================="
+                    );
 
-            Console.WriteLine(
-                "REGISTRATION ERROR"
-            );
+                    Console.WriteLine(
+                        "REGISTRATION ERROR"
+                    );
 
-            Console.WriteLine(
-                $"Type: {ex.GetType().Name}"
-            );
+                    Console.WriteLine(
+                        $"Type: {ex.GetType().Name}"
+                    );
 
-            Console.WriteLine(
-                $"Message: {ex.Message}"
-            );
+                    Console.WriteLine(
+                        $"Message: {ex.Message}"
+                    );
 
-            Console.WriteLine(
-                ex.ToString()
-            );
+                    Console.WriteLine(
+                        ex.ToString()
+                    );
 
-            Console.WriteLine(
-                "=========================================="
-            );
+                    Console.WriteLine(
+                        "=========================================="
+                    );
 
-            return Results.Problem(
-                detail: ex.Message,
-                statusCode: 500
-            );
-        }
-    }
-);
-      
+                    return Results.Problem(
+                        detail:
+                            "Registration failed.",
+                        statusCode:
+                            StatusCodes.Status500InternalServerError
+                    );
+                }
+            }
+        );
+
 
         // ========================================================
         // LOGIN
@@ -491,7 +485,7 @@ group.MapPost(
                 catch (Exception ex)
                 {
                     // ------------------------------------------------
-                    // IMPORTANT LOGIN DEBUGGING
+                    // LOGIN ERROR
                     // ------------------------------------------------
 
                     Console.WriteLine(
@@ -522,11 +516,15 @@ group.MapPost(
                         "=========================================="
                     );
 
+                    // ------------------------------------------------
+                    // DO NOT EXPOSE RAW EXCEPTION IN PRODUCTION
+                    // ------------------------------------------------
+
                     return Results.Json(
                         new
                         {
                             message =
-                                ex.Message
+                                "Login failed. Please check your email and password."
                         },
                         statusCode:
                             StatusCodes.Status401Unauthorized
@@ -534,6 +532,7 @@ group.MapPost(
                 }
             }
         );
+
 
         // ========================================================
         // CURRENT USER
@@ -635,6 +634,7 @@ group.MapPost(
         )
         .RequireAuthorization();
 
+
         // ========================================================
         // GET USER BY ID
         // ========================================================
@@ -734,6 +734,7 @@ group.MapPost(
             }
         )
         .RequireAuthorization();
+
 
         // ========================================================
         // REFRESH
@@ -841,6 +842,7 @@ group.MapPost(
             }
         );
 
+
         // ========================================================
         // LOGOUT
         // ========================================================
@@ -901,6 +903,7 @@ group.MapPost(
         return app;
     }
 
+
     // ============================================================
     // METADATA HELPER
     // ============================================================
@@ -926,6 +929,7 @@ group.MapPost(
         return value.ToString();
     }
 
+
     // ============================================================
     // SET AUTHENTICATION COOKIES
     // ============================================================
@@ -941,20 +945,21 @@ group.MapPost(
         var isDevelopment =
             environment.IsDevelopment();
 
-        // --------------------------------------------------------
-        // ACCESS TOKEN
-        // --------------------------------------------------------
+        // ========================================================
+        // ACCESS TOKEN COOKIE
+        // ========================================================
 
         var accessCookie =
             new CookieOptions
             {
+                // Browser JavaScript cannot read the token.
                 HttpOnly = true,
 
-                Secure =
-                    !isDevelopment,
+                // Required for HTTPS production.
+                Secure = !isDevelopment,
 
-                SameSite =
-                    SameSiteMode.Lax,
+                // Required for cross-origin frontend/API.
+                SameSite = SameSiteMode.None,
 
                 Path = "/",
 
@@ -979,20 +984,22 @@ group.MapPost(
             );
         }
 
-        // --------------------------------------------------------
-        // REFRESH TOKEN
-        // --------------------------------------------------------
+
+        // ========================================================
+        // REFRESH TOKEN COOKIE
+        // ========================================================
 
         var refreshCookie =
             new CookieOptions
             {
+                // Browser JavaScript cannot read the token.
                 HttpOnly = true,
 
-                Secure =
-                    !isDevelopment,
+                // Required for HTTPS production.
+                Secure = !isDevelopment,
 
-                SameSite =
-                    SameSiteMode.Lax,
+                // Required for cross-origin frontend/API.
+                SameSite = SameSiteMode.None,
 
                 Path = "/",
 
@@ -1014,6 +1021,7 @@ group.MapPost(
         }
     }
 
+
     // ============================================================
     // CLEAR AUTHENTICATION COOKIES
     // ============================================================
@@ -1033,11 +1041,10 @@ group.MapPost(
             {
                 HttpOnly = true,
 
-                Secure =
-                    !isDevelopment,
+                Secure = !isDevelopment,
 
-                SameSite =
-                    SameSiteMode.Lax,
+                // Must match the original cookie.
+                SameSite = SameSiteMode.None,
 
                 Path = "/"
             };
