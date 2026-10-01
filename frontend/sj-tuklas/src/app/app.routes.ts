@@ -182,6 +182,14 @@ export const routes: Routes = [
           ),
       },
 
+      {
+        path: 'inquiries',
+        loadComponent: () =>
+          import('./features/visitor-dashboard/pages/inquiries/inquiries.component').then(
+            (m) => m.InquiriesComponent,
+          ),
+      },
+
       // -------------------------------------------------------
       // ANALYTICS
       // -------------------------------------------------------
