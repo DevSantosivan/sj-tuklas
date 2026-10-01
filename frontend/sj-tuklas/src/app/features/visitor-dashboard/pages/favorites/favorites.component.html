@@ -5,26 +5,22 @@
 
   <header class="favorites-header">
     <div class="header-copy">
-      <span class="eyebrow"> MY DASHBOARD </span>
+      <span class="eyebrow">MY DASHBOARD</span>
 
       <div class="title-row">
         <div class="title-copy">
           <h1>Favorites</h1>
-
           <p>Businesses and places you've saved for later.</p>
         </div>
 
         <!-- FAVORITE COUNT -->
-
         <div class="favorite-count">
           <div class="count-icon">
             <i class="bx bxs-heart"></i>
           </div>
 
           <div class="count-copy">
-            <strong>
-              {{ favorites.length }}
-            </strong>
+            <strong>{{ favorites.length }}</strong>
 
             <span>
               {{
@@ -41,18 +37,13 @@
        LOADING STATE
   ====================================================== -->
 
-  <section *ngIf="isLoading" class="favorites-loading">
-    <div class="loading-card">
-      <div class="loading-icon">
-        <i class="bx bx-loader-alt bx-spin"></i>
-      </div>
-
-      <div class="loading-copy">
-        <strong> Loading your favorites </strong>
-
-        <span> Please wait while we load your saved businesses. </span>
-      </div>
-    </div>
+  <section
+    *ngIf="isLoading"
+    class="favorites-loading"
+    aria-label="Loading your favorites"
+    aria-busy="true"
+  >
+    <app-skeleton type="favorites" [count]="6" />
   </section>
 
   <!-- =====================================================
@@ -90,9 +81,7 @@
 
       <div class="toolbar-right">
         <span class="toolbar-count">
-          <strong>
-            {{ filteredFavorites.length }}
-          </strong>
+          <strong>{{ filteredFavorites.length }}</strong>
 
           {{ filteredFavorites.length === 1 ? "business" : "businesses" }}
         </span>
@@ -106,11 +95,9 @@
     <section *ngIf="favorites.length > 0" class="category-section">
       <div class="category-heading">
         <div>
-          <span class="section-label"> BROWSE BY CATEGORY </span>
+          <span class="section-label">BROWSE BY CATEGORY</span>
 
-          <h2>
-            {{ selectedCategoryName }}
-          </h2>
+          <h2>{{ selectedCategoryName }}</h2>
         </div>
 
         <span class="result-count">
@@ -133,7 +120,7 @@
             <i class="bx bx-grid-alt"></i>
           </span>
 
-          <span> All </span>
+          <span>All</span>
         </button>
 
         <!-- DYNAMIC CATEGORIES -->
@@ -149,9 +136,7 @@
             <i class="bx" [ngClass]="category.icon"></i>
           </span>
 
-          <span>
-            {{ category.name }}
-          </span>
+          <span>{{ category.name }}</span>
         </button>
       </div>
     </section>
@@ -170,9 +155,7 @@
           *ngFor="let business of filteredFavorites; trackBy: trackByBusiness"
           class="favorite-card"
         >
-          <!-- =================================================
-               BUSINESS IMAGE
-          ================================================== -->
+          <!-- BUSINESS IMAGE -->
 
           <div class="business-image">
             <img [src]="business.image" [alt]="business.name" loading="lazy" />
@@ -206,18 +189,14 @@
             </button>
           </div>
 
-          <!-- =================================================
-               BUSINESS BODY
-          ================================================== -->
+          <!-- BUSINESS BODY -->
 
           <div class="business-body">
             <!-- TITLE -->
 
             <div class="business-title-row">
               <div class="business-title">
-                <h3>
-                  {{ business.name }}
-                </h3>
+                <h3>{{ business.name }}</h3>
 
                 <span class="business-type">
                   <i
@@ -247,9 +226,7 @@
             <div class="business-location">
               <i class="bx bx-map"></i>
 
-              <span>
-                {{ business.location }}
-              </span>
+              <span>{{ business.location }}</span>
             </div>
 
             <!-- DESCRIPTION -->
@@ -270,13 +247,13 @@
                   {{ business.rating | number: "1.1-1" }}
                 </strong>
 
-                <span> ({{ business.reviews }}) </span>
+                <span>({{ business.reviews }})</span>
               </div>
 
               <!-- VIEW -->
 
               <button type="button" class="view-button">
-                <span> View business </span>
+                <span>View business</span>
 
                 <i class="bx bx-right-arrow-alt"></i>
               </button>
@@ -297,7 +274,7 @@
           <i class="bx bx-search"></i>
         </div>
 
-        <span class="empty-eyebrow"> NO MATCHES </span>
+        <span class="empty-eyebrow">NO MATCHES</span>
 
         <h3>No favorites found</h3>
 
@@ -332,7 +309,7 @@
 
         <!-- TEXT -->
 
-        <span class="empty-eyebrow"> YOUR SAVED PLACES </span>
+        <span class="empty-eyebrow">YOUR SAVED PLACES</span>
 
         <h2>No favorite businesses yet</h2>
 
@@ -345,7 +322,7 @@
         <!-- ACTION -->
 
         <a routerLink="/search" class="discover-button">
-          <span> Discover businesses </span>
+          <span>Discover businesses</span>
 
           <i class="bx bx-right-arrow-alt"></i>
         </a>

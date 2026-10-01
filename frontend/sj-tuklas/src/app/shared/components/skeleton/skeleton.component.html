@@ -510,4 +510,105 @@
       </div>
     </section>
   }
+
+  <!-- =====================================================
+     FAVORITES PAGE
+====================================================== -->
+  @if (type() === "favorites") {
+    <section class="skeleton-favorites" aria-label="Loading favorites">
+      <!-- PAGE HEADER -->
+      <header class="skeleton-favorites-header">
+        <div class="skeleton-favorites-heading">
+          <span class="skeleton skeleton-favorites-eyebrow"></span>
+
+          <div class="skeleton-favorites-title-row">
+            <div class="skeleton-favorites-title-copy">
+              <span class="skeleton skeleton-favorites-title"></span>
+              <span class="skeleton skeleton-favorites-subtitle"></span>
+            </div>
+
+            <div class="skeleton-favorites-count">
+              <span class="skeleton skeleton-favorites-count-icon"></span>
+
+              <div class="skeleton-favorites-count-copy">
+                <span class="skeleton skeleton-favorites-count-number"></span>
+                <span class="skeleton skeleton-favorites-count-label"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- TOOLBAR -->
+      <section class="skeleton-favorites-toolbar">
+        <span class="skeleton skeleton-favorites-search"></span>
+        <span class="skeleton skeleton-favorites-result-count"></span>
+      </section>
+
+      <!-- CATEGORY FILTER -->
+      <section class="skeleton-favorites-categories">
+        <div class="skeleton-favorites-category-heading">
+          <div>
+            <span class="skeleton skeleton-favorites-section-label"></span>
+            <span class="skeleton skeleton-favorites-category-title"></span>
+          </div>
+
+          <span class="skeleton skeleton-favorites-category-result"></span>
+        </div>
+
+        <div class="skeleton-favorites-category-list">
+          @for (category of [1, 2, 3, 4, 5, 6]; track category) {
+            <span class="skeleton skeleton-favorites-chip"></span>
+          }
+        </div>
+      </section>
+
+      <!-- FAVORITES GRID -->
+      <section class="skeleton-favorites-content">
+        <div class="skeleton-favorites-grid">
+          @for (item of items(); track $index) {
+            <article class="skeleton-favorite-card">
+              <!-- IMAGE -->
+              <div class="skeleton-favorite-image">
+                <span class="skeleton skeleton-favorite-category"></span>
+                <span class="skeleton skeleton-favorite-heart"></span>
+              </div>
+
+              <!-- BODY -->
+              <div class="skeleton-favorite-body">
+                <!-- TITLE + STATUS -->
+                <div class="skeleton-favorite-title-row">
+                  <div class="skeleton-favorite-title-copy">
+                    <span class="skeleton skeleton-favorite-name"></span>
+                    <span class="skeleton skeleton-favorite-type"></span>
+                  </div>
+
+                  <span class="skeleton skeleton-favorite-status"></span>
+                </div>
+
+                <!-- LOCATION -->
+                <span class="skeleton skeleton-favorite-location"></span>
+
+                <!-- DESCRIPTION -->
+                <div class="skeleton-favorite-description">
+                  <span
+                    class="skeleton skeleton-favorite-description-line"
+                  ></span>
+                  <span
+                    class="skeleton skeleton-favorite-description-line short"
+                  ></span>
+                </div>
+
+                <!-- META -->
+                <div class="skeleton-favorite-meta">
+                  <span class="skeleton skeleton-favorite-rating"></span>
+                  <span class="skeleton skeleton-favorite-view"></span>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+    </section>
+  }
 </div>

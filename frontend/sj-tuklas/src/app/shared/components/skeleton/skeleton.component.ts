@@ -19,7 +19,8 @@ export type SkeletonType =
   | 'stats'
   | 'table'
   | 'search-results'
-  | 'business-details';
+  | 'business-details'
+  | 'favorites';
 
 @Component({
   selector: 'app-skeleton',

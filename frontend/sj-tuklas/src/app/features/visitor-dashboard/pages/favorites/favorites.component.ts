@@ -10,6 +10,7 @@ import {
 
 import { FavoriteService } from '../../../../core/services/favorite.service';
 import { FavoriteBusiness as ApiFavoriteBusiness } from '../../../../core/models/favorite.model';
+import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
 
 interface FavoriteBusiness {
   id: string;
@@ -31,7 +32,7 @@ interface FavoriteBusiness {
 @Component({
   selector: 'app-favorites',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SkeletonComponent],
   templateUrl: './favorites.component.html',
   styleUrl: './favorites.component.scss',
 })
