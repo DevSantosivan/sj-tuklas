@@ -90,10 +90,6 @@
             </a>
           </div>
 
-          <!-- ===============================================
-               BUSINESS TOOLS
-          ================================================ -->
-
           <div class="nav-section">
             <span class="nav-label"> BUSINESS TOOLS </span>
 
@@ -105,22 +101,19 @@
                   class="nav-item"
                 >
                   <i [class]="'bx ' + feature.icon"></i>
-
-                  <span>
-                    {{ feature.title }}
-                  </span>
+                  <span>{{ feature.title }}</span>
                 </a>
               } @else {
                 <div class="nav-item locked-item" aria-disabled="true">
                   <i [class]="'bx ' + feature.icon"></i>
-
-                  <span>
-                    {{ feature.title }}
-                  </span>
-
-                  <span class="pro-badge"> PRO </span>
+                  <span>{{ feature.title }}</span>
+                  <span class="pro-badge">PRO</span>
                 </div>
               }
+            }
+
+            @if (businessFeatures().length === 0) {
+              <span class="nav-empty">No business tools configured</span>
             }
           </div>
 
