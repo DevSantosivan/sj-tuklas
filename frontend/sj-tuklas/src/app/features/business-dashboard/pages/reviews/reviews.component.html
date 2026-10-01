@@ -12,85 +12,143 @@
         class="secondary-button"
         type="button"
         (click)="exportReviews()"
-        [disabled]="!filteredReviews().length"
+        [disabled]="isLoading() || !filteredReviews().length"
       >
         <i class="bx bx-download"></i>
         Export
       </button>
+
+      <button
+        class="secondary-button"
+        type="button"
+        (click)="loadReviews()"
+        [disabled]="isLoading() || !businessId"
+        aria-label="Refresh reviews"
+      >
+        <i class="bx bx-refresh"></i>
+        Refresh
+      </button>
     </div>
   </header>
 
-  <!-- LOADING -->
-  @if (isLoading()) {
-    <section class="reviews-loading" aria-live="polite">
-      <span class="loading-spinner"></span>
-      <p>Loading customer reviews...</p>
+  <!-- MISSING BUSINESS -->
+  @if (!businessId) {
+    <section class="reviews-empty">
+      <div class="empty-icon">
+        <i class="bx bx-store"></i>
+      </div>
+      <h3>Business not selected</h3>
+      <p>
+        We couldn't find your business information. Please refresh the dashboard
+        or select your business.
+      </p>
     </section>
   } @else {
-    <!-- ERROR -->
-    @if (errorMessage()) {
-      <div class="reviews-error" role="alert">
-        <i class="bx bx-error-circle"></i>
-        <span>{{ errorMessage() }}</span>
-        <button type="button" (click)="loadReviews()">Try again</button>
-      </div>
+    <!-- LOADING REVIEWS -->
+    @if (isLoading()) {
+      <section class="reviews-loading" aria-live="polite">
+        <span class="loading-spinner"></span>
+        <p>Loading customer reviews...</p>
+        <span class="loading-hint">
+          Please wait while we retrieve your business feedback.
+        </span>
+      </section>
+    } @else if (errorMessage()) {
+      <!-- ERROR -->
+      <section class="reviews-error" role="alert">
+        <div class="error-icon">
+          <i class="bx bx-error-circle"></i>
+        </div>
+
+        <div class="error-content">
+          <h3>Unable to load reviews</h3>
+          <p>{{ errorMessage() }}</p>
+        </div>
+
+        <button type="button" class="secondary-button" (click)="loadReviews()">
+          <i class="bx bx-refresh"></i>
+          Try again
+        </button>
+      </section>
     } @else {
       <!-- RATING OVERVIEW -->
       <section class="rating-grid">
+        <!-- OVERALL RATING -->
         <div class="rating-card rating-summary">
           <span class="card-eyebrow">OVERALL RATING</span>
 
-          <div class="rating-score">
-            <strong>
-              {{ summary()?.averageRating ?? 0 | number: "1.1-1" }}
-            </strong>
-
-            <div class="rating-info">
-              <div class="stars" aria-label="Overall rating">
-                @for (star of [1, 2, 3, 4, 5]; track star) {
-                  <i
-                    class="bx"
-                    [class.bxs-star]="star <= (summary()?.averageRating ?? 0)"
-                    [class.bx-star]="star > (summary()?.averageRating ?? 0)"
-                  ></i>
-                }
-              </div>
-
-              <span>
-                Based on {{ summary()?.totalReviews ?? 0 }}
-                {{ summary()?.totalReviews === 1 ? "review" : "reviews" }}
-              </span>
+          @if (isSummaryLoading()) {
+            <div class="summary-loading">
+              <span class="loading-spinner"></span>
+              <span>Calculating rating...</span>
             </div>
-          </div>
+          } @else {
+            <div class="rating-score">
+              <strong>
+                {{ summary()?.averageRating ?? 0 | number: "1.1-1" }}
+              </strong>
+
+              <div class="rating-info">
+                <div class="stars" aria-label="Overall rating">
+                  @for (star of [1, 2, 3, 4, 5]; track star) {
+                    <i
+                      class="bx"
+                      [class.bxs-star]="star <= (summary()?.averageRating ?? 0)"
+                      [class.bx-star]="star > (summary()?.averageRating ?? 0)"
+                    ></i>
+                  }
+                </div>
+
+                <span>
+                  Based on {{ summary()?.totalReviews ?? 0 }}
+                  {{ summary()?.totalReviews === 1 ? "review" : "reviews" }}
+                </span>
+              </div>
+            </div>
+
+            @if (summaryError()) {
+              <p class="summary-error" role="status">
+                {{ summaryError() }}
+              </p>
+            }
+          }
         </div>
 
+        <!-- RATING BREAKDOWN -->
         <div class="rating-card">
           <span class="card-eyebrow">RATING BREAKDOWN</span>
 
-          <div class="rating-breakdown">
-            @for (row of ratingRows(); track row.rating) {
-              <div class="rating-row">
-                <span>{{ row.rating }}</span>
-                <i class="bx bxs-star"></i>
+          @if (isSummaryLoading()) {
+            <div class="breakdown-loading">
+              <span class="loading-spinner"></span>
+              <span>Loading rating breakdown...</span>
+            </div>
+          } @else {
+            <div class="rating-breakdown">
+              @for (row of ratingRows(); track row.rating) {
+                <div class="rating-row">
+                  <span>{{ row.rating }}</span>
+                  <i class="bx bxs-star"></i>
 
-                <div
-                  class="rating-bar"
-                  role="progressbar"
-                  [attr.aria-valuenow]="row.count"
-                  [attr.aria-valuemin]="0"
-                  [attr.aria-valuemax]="summary()?.totalReviews ?? 0"
-                  [attr.aria-label]="row.rating + ' star reviews'"
-                >
                   <div
-                    class="rating-fill"
-                    [style.width.%]="row.percentage"
-                  ></div>
-                </div>
+                    class="rating-bar"
+                    role="progressbar"
+                    [attr.aria-valuenow]="row.count"
+                    [attr.aria-valuemin]="0"
+                    [attr.aria-valuemax]="summary()?.totalReviews ?? 0"
+                    [attr.aria-label]="row.rating + ' star reviews'"
+                  >
+                    <div
+                      class="rating-fill"
+                      [style.width.%]="row.percentage"
+                    ></div>
+                  </div>
 
-                <strong>{{ row.count }}</strong>
-              </div>
-            }
-          </div>
+                  <strong>{{ row.count }}</strong>
+                </div>
+              }
+            </div>
+          }
         </div>
       </section>
 
@@ -109,8 +167,10 @@
         </div>
 
         <div class="filters">
+          <!-- SEARCH -->
           <div class="search-box">
             <i class="bx bx-search"></i>
+
             <input
               type="search"
               placeholder="Search reviews..."
@@ -118,6 +178,7 @@
               [ngModel]="searchQuery()"
               (ngModelChange)="setSearch($event)"
             />
+
             @if (searchQuery()) {
               <button
                 type="button"
@@ -130,6 +191,7 @@
             }
           </div>
 
+          <!-- RATING FILTER -->
           <select
             aria-label="Filter by rating"
             [ngModel]="selectedRating()"
@@ -143,6 +205,7 @@
             <option value="1">1 Star</option>
           </select>
 
+          <!-- SORT -->
           <select
             aria-label="Sort reviews"
             [ngModel]="sortBy()"
@@ -156,20 +219,18 @@
         </div>
       </section>
 
-      <!-- REVIEWS -->
+      <!-- REVIEWS LIST -->
       <section class="dashboard-card reviews-container">
-        @if (filteredReviews().length) {
+        @if (filteredReviews().length > 0) {
           <div class="review-list">
-            @for (
-              review of filteredReviews();
-              track trackByReviewId($index, review)
-            ) {
+            @for (review of filteredReviews(); track review.id) {
               <article class="review-item">
+                <!-- AVATAR -->
                 @if (review.userAvatar) {
                   <img
                     class="review-avatar"
                     [src]="review.userAvatar"
-                    [alt]="review.userName + ' avatar'"
+                    [alt]="(review.userName || 'Guest') + ' avatar'"
                     loading="lazy"
                   />
                 } @else {
@@ -178,10 +239,13 @@
                   </div>
                 }
 
+                <!-- REVIEW CONTENT -->
                 <div class="review-content">
                   <div class="review-top">
                     <div class="review-author">
-                      <strong>{{ review.userName || "Guest" }}</strong>
+                      <strong>
+                        {{ review.userName || "Guest" }}
+                      </strong>
                     </div>
 
                     <time
@@ -193,6 +257,7 @@
                     </time>
                   </div>
 
+                  <!-- STARS -->
                   <div
                     class="stars"
                     [attr.aria-label]="review.rating + ' out of 5 stars'"
@@ -206,8 +271,12 @@
                     }
                   </div>
 
-                  <p class="review-comment">{{ review.comment }}</p>
+                  <!-- COMMENT -->
+                  <p class="review-comment">
+                    {{ review.comment }}
+                  </p>
 
+                  <!-- ACTIONS -->
                   <div class="review-actions">
                     <button
                       type="button"
@@ -232,20 +301,29 @@
             }
           </div>
         } @else {
+          <!-- EMPTY STATE -->
           <div class="reviews-empty">
             <div class="empty-icon">
-              <i class="bx bx-message-square-detail"></i>
+              @if (reviews().length > 0) {
+                <i class="bx bx-search-alt"></i>
+              } @else {
+                <i class="bx bx-message-square-detail"></i>
+              }
             </div>
 
-            @if (reviews().length) {
+            @if (reviews().length > 0) {
               <h3>No matching reviews</h3>
-              <p>Try changing your search or rating filters.</p>
+              <p>
+                Try changing your search or rating filters to find the reviews
+                you're looking for.
+              </p>
 
               <button
                 type="button"
                 class="secondary-button"
-                (click)="setSearch(''); setRating('all'); setSort('newest')"
+                (click)="clearFilters()"
               >
+                <i class="bx bx-filter-alt"></i>
                 Clear filters
               </button>
             } @else {
