@@ -2,9 +2,11 @@ import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+
 import { InquiryService } from '../../../../core/services/inquiry.service';
 import { Inquiry, InquiryMessage } from '../../../../core/models/inquiry';
+
+import { Subject, takeUntil, combineLatest } from 'rxjs';
 
 type InquiryMode = 'visitor' | 'business';
 
@@ -134,20 +136,18 @@ export class InquiriesComponent implements OnInit, OnDestroy {
   // =========================================================
   // LIFECYCLE
   // =========================================================
-
   ngOnInit(): void {
-    this.route.data.pipe(takeUntil(this.destroy$)).subscribe((data) => {
-      this.mode = data['inquiryMode'] === 'business' ? 'business' : 'visitor';
-      this.loadInquiries();
-    });
-
-    this.route.queryParamMap
+    combineLatest([this.route.data, this.route.queryParamMap])
       .pipe(takeUntil(this.destroy$))
-      .subscribe((params) => {
+      .subscribe(([data, params]) => {
+        this.mode = data['inquiryMode'] === 'business' ? 'business' : 'visitor';
+
         const businessId = params.get('businessId');
 
-        if (businessId && this.mode === 'visitor') {
-          this.openBusinessInquiry(businessId);
+        if (businessId && !this.isBusinessOwner) {
+          void this.openBusinessInquiry(businessId);
+        } else {
+          void this.loadInquiries();
         }
       });
   }

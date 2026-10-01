@@ -184,6 +184,9 @@ export const routes: Routes = [
 
       {
         path: 'inquiries',
+        data: {
+          inquiryMode: 'business',
+        },
         loadComponent: () =>
           import('./features/visitor-dashboard/pages/inquiries/inquiries.component').then(
             (m) => m.InquiriesComponent,
@@ -325,6 +328,9 @@ export const routes: Routes = [
 
       {
         path: 'inquiries',
+        data: {
+          inquiryMode: 'visitor',
+        },
         loadComponent: () =>
           import('./features/visitor-dashboard/pages/inquiries/inquiries.component').then(
             (m) => m.InquiriesComponent,
