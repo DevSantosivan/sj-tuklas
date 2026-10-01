@@ -1,12 +1,11 @@
-import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subject, takeUntil, combineLatest } from 'rxjs';
 
 import { InquiryService } from '../../../../core/services/inquiry.service';
 import { Inquiry, InquiryMessage } from '../../../../core/models/inquiry';
-
-import { Subject, takeUntil, combineLatest } from 'rxjs';
 
 type InquiryMode = 'visitor' | 'business';
 
@@ -136,6 +135,7 @@ export class InquiriesComponent implements OnInit, OnDestroy {
   // =========================================================
   // LIFECYCLE
   // =========================================================
+
   ngOnInit(): void {
     combineLatest([this.route.data, this.route.queryParamMap])
       .pipe(takeUntil(this.destroy$))
@@ -250,6 +250,7 @@ export class InquiriesComponent implements OnInit, OnDestroy {
     try {
       const messages = await this.inquiryService.getMessages(inquiry.id);
 
+      // Prevent an older request from replacing the newly selected chat.
       if (this.selectedInquiry?.id !== inquiry.id) {
         return;
       }
@@ -269,7 +270,9 @@ export class InquiriesComponent implements OnInit, OnDestroy {
       console.error('Failed to load inquiry messages:', error);
       this.sendError = 'Unable to load messages. Please try again.';
     } finally {
-      this.isLoadingMessages = false;
+      if (this.selectedInquiry?.id === inquiry.id) {
+        this.isLoadingMessages = false;
+      }
     }
   }
 
@@ -300,6 +303,7 @@ export class InquiriesComponent implements OnInit, OnDestroy {
         message,
       );
 
+      // Backend returns sender = "self" for the authenticated sender.
       const currentMessages = this.selectedInquiry?.messages ?? [];
 
       this.selectedInquiry = {
@@ -384,30 +388,39 @@ export class InquiriesComponent implements OnInit, OnDestroy {
 
   // =========================================================
   // MESSAGE SENDER HELPERS
+  // Backend sender values: "self" and "other"
   // =========================================================
 
-  isVisitorMessage(sender: string): boolean {
-    return (
-      sender?.toLowerCase() === 'visitor' || sender?.toLowerCase() === 'user'
-    );
-  }
-
-  isBusinessMessage(sender: string): boolean {
-    return (
-      sender?.toLowerCase() === 'business' || sender?.toLowerCase() === 'owner'
-    );
+  private normalizeSender(sender: string | null | undefined): string {
+    return (sender ?? '').trim().toLowerCase();
   }
 
   isCurrentUserMessage(sender: string): boolean {
-    const normalized = (sender ?? '').toLowerCase();
-
-    return this.isBusinessOwner
-      ? normalized === 'business' || normalized === 'owner'
-      : normalized === 'visitor' || normalized === 'user';
+    return this.normalizeSender(sender) === 'self';
   }
 
   isOtherUserMessage(sender: string): boolean {
-    return !this.isCurrentUserMessage(sender);
+    return this.normalizeSender(sender) === 'other';
+  }
+
+  isVisitorMessage(sender: string): boolean {
+    const normalized = this.normalizeSender(sender);
+
+    if (this.isBusinessOwner) {
+      return normalized === 'other';
+    }
+
+    return normalized === 'self';
+  }
+
+  isBusinessMessage(sender: string): boolean {
+    const normalized = this.normalizeSender(sender);
+
+    if (this.isBusinessOwner) {
+      return normalized === 'self';
+    }
+
+    return normalized === 'other';
   }
 
   // =========================================================

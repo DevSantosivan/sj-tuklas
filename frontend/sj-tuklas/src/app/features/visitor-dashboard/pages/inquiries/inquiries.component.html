@@ -429,16 +429,14 @@
           <div
             class="message-row"
             *ngFor="let message of inquiry.messages; trackBy: trackMessage"
-            [class.visitor]="isVisitorMessage(message.sender)"
-            [class.business]="isBusinessMessage(message.sender)"
-            [class.current-user]="isCurrentUserMessage(message.sender)"
-            [class.other-user]="isOtherUserMessage(message.sender)"
+            [class.current-user]="message.sender === 'self'"
+            [class.other-user]="message.sender === 'other'"
           >
-            <!-- OTHER PARTICIPANT AVATAR -->
+            <!-- OTHER PARTICIPANT AVATAR: LEFT -->
 
             <div
-              class="message-avatar business-message-avatar"
-              *ngIf="isOtherUserMessage(message.sender)"
+              class="message-avatar other-message-avatar"
+              *ngIf="message.sender === 'other'"
             >
               <img
                 *ngIf="
@@ -468,11 +466,11 @@
               </time>
             </div>
 
-            <!-- CURRENT USER AVATAR -->
+            <!-- CURRENT USER AVATAR: RIGHT -->
 
             <div
-              class="message-avatar visitor-message-avatar"
-              *ngIf="isCurrentUserMessage(message.sender)"
+              class="message-avatar current-message-avatar"
+              *ngIf="message.sender === 'self'"
             >
               <span class="avatar-fallback">
                 {{

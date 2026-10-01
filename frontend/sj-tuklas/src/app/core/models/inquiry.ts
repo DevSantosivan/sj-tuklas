@@ -1,5 +1,6 @@
 export type InquiryStatus = 'new' | 'replied' | 'closed';
-export type InquirySender = 'visitor' | 'business';
+
+export type InquirySender = 'self' | 'other';
 
 export interface InquiryMessage {
   id: string;
