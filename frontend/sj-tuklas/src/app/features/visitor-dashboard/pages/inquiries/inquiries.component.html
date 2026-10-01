@@ -1,12 +1,17 @@
 <section class="inquiries-page">
+  <!-- ===================================================== -->
   <!-- PAGE HEADER -->
+  <!-- ===================================================== -->
+
   <header class="inquiries-header">
     <div class="header-copy">
-      <span class="eyebrow">MESSAGES</span>
-      <h1>Inquiries</h1>
-      <p>
-        Chat with businesses and keep track of your questions and conversations.
-      </p>
+      <span class="eyebrow">
+        {{ isBusinessOwner ? "CUSTOMER SUPPORT" : "MESSAGES" }}
+      </span>
+
+      <h1>{{ pageTitle }}</h1>
+
+      <p>{{ pageDescription }}</p>
     </div>
 
     <div class="inquiry-count">
@@ -16,19 +21,34 @@
 
       <div class="count-copy">
         <strong>{{ inquiries.length }}</strong>
-        <span>Conversations</span>
+        <span>{{ conversationLabel }}</span>
       </div>
     </div>
   </header>
 
+  <!-- ===================================================== -->
   <!-- INQUIRY LAYOUT -->
-  <div class="inquiries-layout" [class.mobile-chat-open]="mobileChatOpen">
+  <!-- ===================================================== -->
+
+  <div
+    class="inquiries-layout"
+    [class.mobile-chat-open]="mobileChatOpen"
+    [class.business-mode]="isBusinessOwner"
+  >
+    <!-- =================================================== -->
     <!-- CONVERSATION SIDEBAR -->
+    <!-- =================================================== -->
+
     <aside class="conversation-panel">
+      <!-- PANEL HEADER -->
+
       <div class="panel-header">
         <div>
-          <span class="section-label">YOUR INBOX</span>
-          <h2>Messages</h2>
+          <span class="section-label">{{ inboxLabel }}</span>
+
+          <h2>
+            {{ isBusinessOwner ? "Customer messages" : "Messages" }}
+          </h2>
         </div>
 
         <span class="message-count">
@@ -37,12 +57,15 @@
       </div>
 
       <!-- SEARCH -->
+
       <div class="search-box">
         <i class="bx bx-search"></i>
 
         <input
           type="text"
-          placeholder="Search conversations..."
+          [placeholder]="
+            isBusinessOwner ? 'Search customers...' : 'Search conversations...'
+          "
           [(ngModel)]="searchTerm"
           aria-label="Search conversations"
         />
@@ -59,38 +82,48 @@
       </div>
 
       <!-- CONVERSATION LIST -->
+
       <div class="conversation-list">
         <!-- LOADING -->
+
         <div class="list-state" *ngIf="isLoading">
           <span class="loading-spinner"></span>
+
           <strong>Loading conversations</strong>
+
           <span>Please wait a moment...</span>
         </div>
 
         <!-- ERROR -->
+
         <div class="list-state error-state" *ngIf="!isLoading && errorMessage">
           <span class="state-icon">
             <i class="bx bx-error-circle"></i>
           </span>
 
           <strong>Something went wrong</strong>
+
           <span>{{ errorMessage }}</span>
 
           <button type="button" class="retry-button" (click)="loadInquiries()">
+            <i class="bx bx-refresh"></i>
             Try again
           </button>
         </div>
 
-        <!-- OPENING -->
+        <!-- OPENING CONVERSATION -->
+
         <div
           class="list-state compact-state"
           *ngIf="!isLoading && isOpeningInquiry"
         >
           <span class="loading-spinner"></span>
+
           <span>Opening conversation...</span>
         </div>
 
-        <!-- CONVERSATION ITEM -->
+        <!-- CONVERSATION ITEMS -->
+
         <button
           type="button"
           class="conversation-item"
@@ -99,24 +132,37 @@
           [class.has-unread]="inquiry.unread > 0"
           (click)="selectInquiry(inquiry)"
         >
+          <!-- AVATAR -->
+
           <div class="conversation-avatar">
             <img
-              *ngIf="inquiry.businessImage; else businessFallback"
-              [src]="inquiry.businessImage"
-              [alt]="inquiry.businessName"
+              *ngIf="
+                getConversationImage(inquiry) as conversationImage;
+                else conversationFallback
+              "
+              [src]="conversationImage"
+              [alt]="getConversationName(inquiry)"
+              loading="lazy"
             />
 
-            <ng-template #businessFallback>
+            <ng-template #conversationFallback>
               <span class="avatar-fallback">
-                {{ getInitials(inquiry.businessName) }}
+                {{ getInitials(getConversationName(inquiry)) }}
               </span>
             </ng-template>
           </div>
 
+          <!-- CONVERSATION CONTENT -->
+
           <div class="conversation-content">
             <div class="conversation-top">
-              <strong>{{ inquiry.businessName }}</strong>
-              <time>{{ inquiry.lastMessageTime }}</time>
+              <strong>
+                {{ getConversationName(inquiry) }}
+              </strong>
+
+              <time>
+                {{ inquiry.lastMessageTime }}
+              </time>
             </div>
 
             <div class="conversation-subject">
@@ -136,6 +182,7 @@
         </button>
 
         <!-- EMPTY CONVERSATIONS -->
+
         <div
           class="empty-conversations"
           *ngIf="
@@ -147,21 +194,14 @@
         >
           <div class="empty-illustration">
             <i class="bx bx-message-square-dots"></i>
+
             <span class="empty-spark spark-one"></span>
             <span class="empty-spark spark-two"></span>
           </div>
 
-          <strong>
-            {{ searchTerm ? "No conversations found" : "No inquiries yet" }}
-          </strong>
+          <strong>{{ emptyTitle }}</strong>
 
-          <p>
-            {{
-              searchTerm
-                ? "Try another business name or keyword."
-                : "When you contact a business, your conversations will appear here."
-            }}
-          </p>
+          <p>{{ emptyDescription }}</p>
 
           <button
             *ngIf="searchTerm"
@@ -169,28 +209,43 @@
             class="clear-filter-button"
             (click)="searchTerm = ''"
           >
+            <i class="bx bx-x"></i>
             Clear search
           </button>
         </div>
       </div>
 
       <!-- SIDEBAR FOOTER -->
+
       <footer
         class="conversation-footer"
-        *ngIf="!isLoading && inquiries.length"
+        *ngIf="!isLoading && inquiries.length > 0"
       >
         <span class="footer-dot"></span>
-        <span>Your conversations are private</span>
+
+        <span>
+          {{
+            isBusinessOwner
+              ? "Customer conversations are private"
+              : "Your conversations are private"
+          }}
+        </span>
       </footer>
     </aside>
 
+    <!-- =================================================== -->
     <!-- CHAT PANEL -->
+    <!-- =================================================== -->
+
     <main
       class="chat-panel"
       *ngIf="selectedInquiry as inquiry; else noChatSelected"
     >
       <!-- CHAT HEADER -->
+
       <header class="chat-header">
+        <!-- MOBILE BACK -->
+
         <button
           type="button"
           class="mobile-back-button"
@@ -200,26 +255,42 @@
           <i class="bx bx-arrow-back"></i>
         </button>
 
+        <!-- CHAT PARTICIPANT -->
+
         <div class="chat-business">
           <div class="chat-avatar">
             <img
-              *ngIf="inquiry.businessImage; else chatFallback"
-              [src]="inquiry.businessImage"
-              [alt]="inquiry.businessName"
+              *ngIf="
+                getConversationImage(inquiry) as chatImage;
+                else chatFallback
+              "
+              [src]="chatImage"
+              [alt]="getConversationName(inquiry)"
             />
 
             <ng-template #chatFallback>
               <span class="avatar-fallback">
-                {{ getInitials(inquiry.businessName) }}
+                {{ getInitials(getConversationName(inquiry)) }}
               </span>
             </ng-template>
           </div>
 
           <div class="chat-business-info">
-            <strong>{{ inquiry.businessName }}</strong>
-            <span>{{ inquiry.subject || "General inquiry" }}</span>
+            <strong>
+              {{ getConversationName(inquiry) }}
+            </strong>
+
+            <span>
+              {{
+                isBusinessOwner
+                  ? inquiry.subject || "Customer inquiry"
+                  : inquiry.businessName || "Business"
+              }}
+            </span>
           </div>
         </div>
+
+        <!-- STATUS -->
 
         <span
           class="status-badge"
@@ -228,24 +299,34 @@
           [class.closed]="inquiry.status === 'closed'"
         >
           <span class="status-dot"></span>
+
           {{ getStatusLabel(inquiry.status) }}
         </span>
       </header>
 
+      <!-- ================================================= -->
       <!-- CHAT BODY -->
+      <!-- ================================================= -->
+
       <div class="chat-body">
+        <!-- CONVERSATION DIVIDER -->
+
         <div class="chat-date">
           <span>Conversation</span>
         </div>
 
         <!-- LOADING MESSAGES -->
+
         <div class="chat-state" *ngIf="isLoadingMessages">
           <span class="loading-spinner"></span>
+
           <strong>Loading messages</strong>
+
           <span>Getting your conversation ready...</span>
         </div>
 
         <!-- MESSAGE LOAD ERROR -->
+
         <div
           class="chat-state error-state"
           *ngIf="
@@ -257,6 +338,7 @@
           </span>
 
           <strong>Unable to load messages</strong>
+
           <span>{{ sendError }}</span>
 
           <button
@@ -264,11 +346,13 @@
             class="retry-button"
             (click)="selectInquiry(inquiry)"
           >
+            <i class="bx bx-refresh"></i>
             Try again
           </button>
         </div>
 
         <!-- EMPTY CHAT -->
+
         <div
           class="empty-chat"
           *ngIf="
@@ -276,25 +360,40 @@
           "
         >
           <div class="empty-chat-art">
+            <!-- OTHER PARTICIPANT -->
+
             <div class="empty-chat-avatar">
               <img
-                *ngIf="inquiry.businessImage; else emptyChatFallback"
-                [src]="inquiry.businessImage"
-                [alt]="inquiry.businessName"
+                *ngIf="
+                  getConversationImage(inquiry) as emptyChatImage;
+                  else emptyChatFallback
+                "
+                [src]="emptyChatImage"
+                [alt]="getConversationName(inquiry)"
               />
 
               <ng-template #emptyChatFallback>
                 <span class="avatar-fallback">
-                  {{ getInitials(inquiry.businessName) }}
+                  {{ getInitials(getConversationName(inquiry)) }}
                 </span>
               </ng-template>
             </div>
 
+            <!-- CURRENT USER -->
+
             <div class="empty-chat-user-avatar">
               <span class="avatar-fallback">
-                {{ getInitials(visitorName) }}
+                {{
+                  getInitials(
+                    isBusinessOwner
+                      ? inquiry.businessName || "Business"
+                      : visitorName
+                  )
+                }}
               </span>
             </div>
+
+            <!-- DECORATIVE MESSAGE ICONS -->
 
             <span class="empty-chat-message message-one">
               <i class="bx bx-dots-horizontal-rounded"></i>
@@ -305,41 +404,60 @@
             </span>
           </div>
 
-          <span class="empty-chat-eyebrow">NEW CONVERSATION</span>
+          <span class="empty-chat-eyebrow"> NEW CONVERSATION </span>
+
           <h3>Start the conversation</h3>
+
           <p>
-            Send a message to {{ inquiry.businessName }}. Your messages will
-            appear here.
+            {{
+              isBusinessOwner
+                ? "Reply to " +
+                  getConversationName(inquiry) +
+                  " to continue this conversation."
+                : "Send a message to " +
+                  getConversationName(inquiry) +
+                  ". Your messages will appear here."
+            }}
           </p>
         </div>
 
+        <!-- ================================================= -->
         <!-- MESSAGES -->
+        <!-- ================================================= -->
+
         <ng-container *ngIf="!isLoadingMessages">
           <div
             class="message-row"
             *ngFor="let message of inquiry.messages; trackBy: trackMessage"
             [class.visitor]="isVisitorMessage(message.sender)"
             [class.business]="isBusinessMessage(message.sender)"
+            [class.current-user]="isCurrentUserMessage(message.sender)"
+            [class.other-user]="isOtherUserMessage(message.sender)"
           >
-            <!-- BUSINESS AVATAR - LEFT -->
+            <!-- OTHER PARTICIPANT AVATAR -->
+
             <div
               class="message-avatar business-message-avatar"
-              *ngIf="isBusinessMessage(message.sender)"
+              *ngIf="isOtherUserMessage(message.sender)"
             >
               <img
-                *ngIf="inquiry.businessImage; else businessMessageFallback"
-                [src]="inquiry.businessImage"
-                [alt]="inquiry.businessName + ' profile'"
+                *ngIf="
+                  getConversationImage(inquiry) as otherMessageImage;
+                  else otherMessageFallback
+                "
+                [src]="otherMessageImage"
+                [alt]="getConversationName(inquiry) + ' profile'"
               />
 
-              <ng-template #businessMessageFallback>
+              <ng-template #otherMessageFallback>
                 <span class="avatar-fallback">
-                  {{ getInitials(inquiry.businessName) }}
+                  {{ getInitials(getConversationName(inquiry)) }}
                 </span>
               </ng-template>
             </div>
 
             <!-- MESSAGE BUBBLE -->
+
             <div class="message-wrapper">
               <div class="message-bubble">
                 {{ message.message }}
@@ -350,29 +468,43 @@
               </time>
             </div>
 
-            <!-- VISITOR AVATAR - RIGHT -->
+            <!-- CURRENT USER AVATAR -->
+
             <div
               class="message-avatar visitor-message-avatar"
-              *ngIf="isVisitorMessage(message.sender)"
+              *ngIf="isCurrentUserMessage(message.sender)"
             >
               <span class="avatar-fallback">
-                {{ getInitials(visitorName) }}
+                {{
+                  getInitials(
+                    isBusinessOwner
+                      ? inquiry.businessName || "Business"
+                      : visitorName
+                  )
+                }}
               </span>
             </div>
           </div>
         </ng-container>
       </div>
 
+      <!-- ================================================= -->
       <!-- SEND ERROR -->
+      <!-- ================================================= -->
+
       <div
         class="composer-error"
         *ngIf="sendError && inquiry.messages.length > 0"
       >
         <i class="bx bx-error-circle"></i>
+
         <span>{{ sendError }}</span>
       </div>
 
+      <!-- ================================================= -->
       <!-- COMPOSER -->
+      <!-- ================================================= -->
+
       <form
         class="chat-composer"
         (ngSubmit)="sendMessage()"
@@ -403,23 +535,36 @@
       </form>
 
       <!-- CLOSED NOTICE -->
+
       <div class="closed-notice" *ngIf="inquiry.status === 'closed'">
         <i class="bx bx-lock-alt"></i>
+
         This conversation is closed and can no longer receive messages.
       </div>
     </main>
 
+    <!-- =================================================== -->
     <!-- NO SELECTED CHAT -->
+    <!-- =================================================== -->
+
     <ng-template #noChatSelected>
       <main class="chat-panel chat-empty">
         <div class="chat-empty-art">
           <i class="bx bx-message-square-dots"></i>
         </div>
 
-        <span class="empty-chat-eyebrow">YOUR INBOX</span>
+        <span class="empty-chat-eyebrow">
+          {{ inboxLabel }}
+        </span>
+
         <h2>Select a conversation</h2>
+
         <p>
-          Choose a business from your conversations to read messages and reply.
+          {{
+            isBusinessOwner
+              ? "Choose a customer inquiry to read the message and reply."
+              : "Choose a business from your conversations to read messages and reply."
+          }}
         </p>
       </main>
     </ng-template>

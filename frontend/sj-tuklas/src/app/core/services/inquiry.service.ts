@@ -1,6 +1,6 @@
-import { inject, Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
 import {
   CreateInquiryRequest,
@@ -11,72 +11,193 @@ import {
   SendInquiryMessageRequest,
 } from '../models/inquiry';
 
+import { API_CONFIG } from '../config/api.config';
+
 @Injectable({
   providedIn: 'root',
 })
 export class InquiryService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = '/api/inquiries';
 
-  getMyInquiries(): Observable<Inquiry[]> {
-    return this.http
-      .get<InquiryDto[]>(this.apiUrl, { withCredentials: true })
-      .pipe(map((items) => (items ?? []).map((item) => this.mapInquiry(item))));
-  }
+  private readonly apiUrl = `${API_CONFIG.baseUrl}/inquiries`;
 
-  getInquiryById(inquiryId: string): Observable<Inquiry> {
-    return this.http
-      .get<InquiryDto>(`${this.apiUrl}/${encodeURIComponent(inquiryId)}`, {
+  // =========================================================
+  // GET MY INQUIRIES
+  // VISITOR
+  // =========================================================
+
+  async getMyInquiries(): Promise<Inquiry[]> {
+    const items = await firstValueFrom(
+      this.http.get<InquiryDto[]>(this.apiUrl, {
         withCredentials: true,
-      })
-      .pipe(map((item) => this.mapInquiry(item)));
+      }),
+    );
+
+    return (items ?? []).map((item) => this.mapInquiry(item));
   }
 
-  getMessages(inquiryId: string): Observable<InquiryMessage[]> {
-    return this.http
-      .get<
-        InquiryMessageDto[]
-      >(`${this.apiUrl}/${encodeURIComponent(inquiryId)}/messages`, { withCredentials: true })
-      .pipe(map((items) => (items ?? []).map((item) => this.mapMessage(item))));
-  }
+  // =========================================================
+  // GET BUSINESS INQUIRIES
+  // BUSINESS OWNER
+  // =========================================================
+  //
+  // Endpoint:
+  // GET /api/inquiries/business
+  //
+  // Backend should return inquiries received by the
+  // authenticated owner's business.
+  // =========================================================
 
-  createInquiry(request: CreateInquiryRequest): Observable<Inquiry> {
-    return this.http
-      .post<InquiryDto>(this.apiUrl, request, {
+  async getBusinessInquiries(): Promise<Inquiry[]> {
+    const items = await firstValueFrom(
+      this.http.get<InquiryDto[]>(`${this.apiUrl}/business`, {
         withCredentials: true,
-      })
-      .pipe(map((item) => this.mapInquiry(item)));
+      }),
+    );
+
+    return (items ?? []).map((item) => this.mapInquiry(item));
   }
 
-  findOrCreateForBusiness(businessId: string): Observable<Inquiry> {
-    return this.http
-      .post<InquiryDto>(
+  // =========================================================
+  // GET INQUIRY BY ID
+  // PROTECTED
+  // =========================================================
+
+  async getInquiryById(inquiryId: string): Promise<Inquiry> {
+    if (!inquiryId?.trim()) {
+      throw new Error('Inquiry ID is required.');
+    }
+
+    const item = await firstValueFrom(
+      this.http.get<InquiryDto>(
+        `${this.apiUrl}/${encodeURIComponent(inquiryId)}`,
+        {
+          withCredentials: true,
+        },
+      ),
+    );
+
+    return this.mapInquiry(item);
+  }
+
+  // =========================================================
+  // GET INQUIRY MESSAGES
+  // PROTECTED
+  // =========================================================
+
+  async getMessages(inquiryId: string): Promise<InquiryMessage[]> {
+    if (!inquiryId?.trim()) {
+      throw new Error('Inquiry ID is required.');
+    }
+
+    const items = await firstValueFrom(
+      this.http.get<InquiryMessageDto[]>(
+        `${this.apiUrl}/${encodeURIComponent(inquiryId)}/messages`,
+        {
+          withCredentials: true,
+        },
+      ),
+    );
+
+    return (items ?? []).map((item) => this.mapMessage(item));
+  }
+
+  // =========================================================
+  // CREATE INQUIRY
+  // VISITOR
+  // =========================================================
+
+  async createInquiry(request: CreateInquiryRequest): Promise<Inquiry> {
+    const item = await firstValueFrom(
+      this.http.post<InquiryDto>(this.apiUrl, request, {
+        withCredentials: true,
+      }),
+    );
+
+    return this.mapInquiry(item);
+  }
+
+  // =========================================================
+  // FIND OR CREATE INQUIRY FOR BUSINESS
+  // VISITOR
+  // =========================================================
+
+  async findOrCreateForBusiness(businessId: string): Promise<Inquiry> {
+    if (!businessId?.trim()) {
+      throw new Error('Business ID is required.');
+    }
+
+    const item = await firstValueFrom(
+      this.http.post<InquiryDto>(
         `${this.apiUrl}/business/${encodeURIComponent(businessId)}`,
         {},
-        { withCredentials: true },
-      )
-      .pipe(map((item) => this.mapInquiry(item)));
+        {
+          withCredentials: true,
+        },
+      ),
+    );
+
+    return this.mapInquiry(item);
   }
 
-  sendMessage(inquiryId: string, message: string): Observable<InquiryMessage> {
-    const request: SendInquiryMessageRequest = { message };
+  // =========================================================
+  // SEND MESSAGE
+  // VISITOR / BUSINESS OWNER
+  // =========================================================
 
-    return this.http
-      .post<InquiryMessageDto>(
+  async sendMessage(
+    inquiryId: string,
+    message: string,
+  ): Promise<InquiryMessage> {
+    if (!inquiryId?.trim()) {
+      throw new Error('Inquiry ID is required.');
+    }
+
+    if (!message?.trim()) {
+      throw new Error('Message is required.');
+    }
+
+    const request: SendInquiryMessageRequest = {
+      message: message.trim(),
+    };
+
+    const item = await firstValueFrom(
+      this.http.post<InquiryMessageDto>(
         `${this.apiUrl}/${encodeURIComponent(inquiryId)}/messages`,
         request,
-        { withCredentials: true },
-      )
-      .pipe(map((item) => this.mapMessage(item)));
+        {
+          withCredentials: true,
+        },
+      ),
+    );
+
+    return this.mapMessage(item);
   }
 
-  markAsRead(inquiryId: string): Observable<void> {
-    return this.http.patch<void>(
-      `${this.apiUrl}/${encodeURIComponent(inquiryId)}/read`,
-      {},
-      { withCredentials: true },
+  // =========================================================
+  // MARK INQUIRY AS READ
+  // VISITOR / BUSINESS OWNER
+  // =========================================================
+
+  async markAsRead(inquiryId: string): Promise<void> {
+    if (!inquiryId?.trim()) {
+      throw new Error('Inquiry ID is required.');
+    }
+
+    await firstValueFrom(
+      this.http.patch<void>(
+        `${this.apiUrl}/${encodeURIComponent(inquiryId)}/read`,
+        {},
+        {
+          withCredentials: true,
+        },
+      ),
     );
   }
+
+  // =========================================================
+  // MAP INQUIRY DTO
+  // =========================================================
 
   private mapInquiry(dto: InquiryDto): Inquiry {
     const lastMessageTime = dto.lastMessageTime
@@ -97,6 +218,10 @@ export class InquiryService {
     };
   }
 
+  // =========================================================
+  // MAP MESSAGE DTO
+  // =========================================================
+
   private mapMessage(dto: InquiryMessageDto): InquiryMessage {
     return {
       id: dto.id,
@@ -105,6 +230,10 @@ export class InquiryService {
       createdAt: dto.createdAt,
     };
   }
+
+  // =========================================================
+  // FORMAT MESSAGE TIME
+  // =========================================================
 
   private formatTime(value: string): string {
     const date = new Date(value);
