@@ -17,6 +17,85 @@ public sealed class InquiryService : IInquiryService
             );
     }
 
+
+
+// =========================================================
+// GET BUSINESS INQUIRIES
+// BUSINESS OWNER
+// =========================================================
+
+public async Task<IReadOnlyList<InquiryResponse>> GetBusinessInquiriesAsync(
+    Guid userId,
+    CancellationToken cancellationToken)
+{
+    const string sql = """
+        SELECT
+            i.id,
+            i.business_id,
+            b.name,
+            b.image,
+            i.subject,
+            i.status,
+            i.visitor_id,
+            i.owner_id,
+            i.visitor_last_read_at,
+            i.owner_last_read_at,
+            i.created_at,
+            i.updated_at,
+            COALESCE((
+                SELECT m.message
+                FROM public.inquiry_messages m
+                WHERE m.inquiry_id = i.id
+                ORDER BY m.created_at DESC
+                LIMIT 1
+            ), '') AS last_message,
+            (
+                SELECT m.created_at
+                FROM public.inquiry_messages m
+                WHERE m.inquiry_id = i.id
+                ORDER BY m.created_at DESC
+                LIMIT 1
+            ) AS last_message_time,
+            (
+                SELECT COUNT(*)::int
+                FROM public.inquiry_messages m
+                WHERE m.inquiry_id = i.id
+                  AND m.sender_id <> @user_id
+                  AND m.created_at > COALESCE(
+                    i.owner_last_read_at,
+                    '-infinity'::timestamptz
+                  )
+            ) AS unread
+        FROM public.inquiries i
+        INNER JOIN public.businesses b
+            ON b.id = i.business_id
+        WHERE b.owner_id = @user_id
+          AND i.owner_id = @user_id
+        ORDER BY i.updated_at DESC;
+        """;
+
+    var results = new List<InquiryResponse>();
+
+    await using var connection =
+        new NpgsqlConnection(_connectionString);
+
+    await connection.OpenAsync(cancellationToken);
+
+    await using var command =
+        new NpgsqlCommand(sql, connection);
+
+    command.Parameters.AddWithValue("user_id", userId);
+
+    await using var reader =
+        await command.ExecuteReaderAsync(cancellationToken);
+
+    while (await reader.ReadAsync(cancellationToken))
+    {
+        results.Add(MapInquiry(reader));
+    }
+
+    return results;
+}
     // =========================================================
     // GET MY INQUIRIES
     // =========================================================

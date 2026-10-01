@@ -101,6 +101,24 @@ public static class InquiryEndpoints
             }
         });
 
+
+        // GET: /api/inquiries/business
+// BUSINESS OWNER: Get inquiries received by owned businesses
+group.MapGet("/business", async (
+    ClaimsPrincipal user,
+    IInquiryService inquiryService,
+    CancellationToken cancellationToken) =>
+{
+    if (!TryGetUserId(user, out var userId))
+        return Results.Unauthorized();
+
+    var inquiries = await inquiryService.GetBusinessInquiriesAsync(
+        userId,
+        cancellationToken);
+
+    return Results.Ok(inquiries);
+});
+
         // POST: /api/inquiries/business/{businessId}
         group.MapPost("/business/{businessId:guid}", async (
             Guid businessId,
