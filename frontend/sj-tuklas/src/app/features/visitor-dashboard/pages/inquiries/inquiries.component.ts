@@ -35,6 +35,15 @@ export class InquiriesComponent implements OnInit, OnDestroy {
 
   mobileChatOpen = false;
 
+  /**
+   * Fallback name used when the inquiry does not contain
+   * the visitor's profile name.
+   *
+   * If your auth/profile service provides the signed-in user's name,
+   * assign it here when the component loads.
+   */
+  visitorName = 'You';
+
   ngOnInit(): void {
     this.loadInquiries();
 
@@ -75,11 +84,83 @@ export class InquiriesComponent implements OnInit, OnDestroy {
     );
   }
 
+  /**
+   * Visitor name for the selected inquiry.
+   * Supports optional name fields if your API includes them,
+   * without requiring changes to the Inquiry interface.
+   */
+  get currentVisitorName(): string {
+    const inquiry = this.selectedInquiry as
+      | (Inquiry & Record<string, unknown>)
+      | null;
+
+    if (!inquiry) {
+      return this.visitorName;
+    }
+
+    const directNames = [
+      inquiry['visitorName'],
+      inquiry['customerName'],
+      inquiry['userName'],
+      inquiry['fullName'],
+    ];
+
+    for (const value of directNames) {
+      if (typeof value === 'string' && value.trim()) {
+        return value.trim();
+      }
+    }
+
+    const nestedProfiles = [
+      inquiry['visitor'],
+      inquiry['customer'],
+      inquiry['user'],
+      inquiry['profile'],
+    ];
+
+    for (const profile of nestedProfiles) {
+      if (
+        profile &&
+        typeof profile === 'object' &&
+        'name' in profile &&
+        typeof (profile as Record<string, unknown>)['name'] === 'string'
+      ) {
+        const name = (profile as Record<string, unknown>)['name'] as string;
+
+        if (name.trim()) {
+          return name.trim();
+        }
+      }
+
+      if (
+        profile &&
+        typeof profile === 'object' &&
+        'fullName' in profile &&
+        typeof (profile as Record<string, unknown>)['fullName'] === 'string'
+      ) {
+        const name = (profile as Record<string, unknown>)['fullName'] as string;
+
+        if (name.trim()) {
+          return name.trim();
+        }
+      }
+    }
+
+    return this.visitorName;
+  }
+
+  /**
+   * Generate initials for business and visitor avatars.
+   * Examples:
+   * Ivan Santos -> IS
+   * SJ Tuklas -> ST
+   * Ivan -> IV
+   */
   getInitials(name: string | null | undefined): string {
     const cleanName = (name ?? '').trim();
 
     if (!cleanName) {
-      return 'B';
+      return '?';
     }
 
     const parts = cleanName.split(/\s+/).filter(Boolean);
@@ -89,6 +170,35 @@ export class InquiriesComponent implements OnInit, OnDestroy {
     }
 
     return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+  }
+
+  /**
+   * Supports sender values from different API mappings:
+   * visitor/self/user/customer are the signed-in visitor.
+   */
+  isVisitorMessage(sender: string | null | undefined): boolean {
+    const normalized = (sender ?? '').trim().toLowerCase();
+
+    return ['visitor', 'self', 'user', 'customer', 'client', 'sender'].includes(
+      normalized,
+    );
+  }
+
+  /**
+   * Supports business/owner/other values for business replies.
+   */
+  isBusinessMessage(sender: string | null | undefined): boolean {
+    const normalized = (sender ?? '').trim().toLowerCase();
+
+    return [
+      'business',
+      'other',
+      'owner',
+      'businessowner',
+      'business_owner',
+      'admin',
+      'recipient',
+    ].includes(normalized);
   }
 
   loadInquiries(): void {

@@ -58,7 +58,7 @@
         </button>
       </div>
 
-      <!-- LIST -->
+      <!-- CONVERSATION LIST -->
       <div class="conversation-list">
         <!-- LOADING -->
         <div class="list-state" *ngIf="isLoading">
@@ -135,7 +135,7 @@
           </div>
         </button>
 
-        <!-- EMPTY SEARCH / NO CONVERSATIONS -->
+        <!-- EMPTY CONVERSATIONS -->
         <div
           class="empty-conversations"
           *ngIf="
@@ -255,6 +255,7 @@
           <span class="state-icon">
             <i class="bx bx-error-circle"></i>
           </span>
+
           <strong>Unable to load messages</strong>
           <span>{{ sendError }}</span>
 
@@ -289,6 +290,12 @@
               </ng-template>
             </div>
 
+            <div class="empty-chat-user-avatar">
+              <span class="avatar-fallback">
+                {{ getInitials(visitorName) }}
+              </span>
+            </div>
+
             <span class="empty-chat-message message-one">
               <i class="bx bx-dots-horizontal-rounded"></i>
             </span>
@@ -311,24 +318,28 @@
           <div
             class="message-row"
             *ngFor="let message of inquiry.messages; trackBy: trackMessage"
-            [class.visitor]="message.sender === 'visitor'"
-            [class.business]="message.sender === 'business'"
+            [class.visitor]="isVisitorMessage(message.sender)"
+            [class.business]="isBusinessMessage(message.sender)"
           >
-            <!-- BUSINESS AVATAR -->
-            <div class="message-avatar" *ngIf="message.sender === 'business'">
+            <!-- BUSINESS AVATAR - LEFT -->
+            <div
+              class="message-avatar business-message-avatar"
+              *ngIf="isBusinessMessage(message.sender)"
+            >
               <img
-                *ngIf="inquiry.businessImage; else messageFallback"
+                *ngIf="inquiry.businessImage; else businessMessageFallback"
                 [src]="inquiry.businessImage"
-                [alt]="inquiry.businessName"
+                [alt]="inquiry.businessName + ' profile'"
               />
 
-              <ng-template #messageFallback>
+              <ng-template #businessMessageFallback>
                 <span class="avatar-fallback">
                   {{ getInitials(inquiry.businessName) }}
                 </span>
               </ng-template>
             </div>
 
+            <!-- MESSAGE BUBBLE -->
             <div class="message-wrapper">
               <div class="message-bubble">
                 {{ message.message }}
@@ -337,6 +348,16 @@
               <time class="message-time">
                 {{ message.createdAt | date: "shortTime" }}
               </time>
+            </div>
+
+            <!-- VISITOR AVATAR - RIGHT -->
+            <div
+              class="message-avatar visitor-message-avatar"
+              *ngIf="isVisitorMessage(message.sender)"
+            >
+              <span class="avatar-fallback">
+                {{ getInitials(visitorName) }}
+              </span>
             </div>
           </div>
         </ng-container>
@@ -381,6 +402,7 @@
         </button>
       </form>
 
+      <!-- CLOSED NOTICE -->
       <div class="closed-notice" *ngIf="inquiry.status === 'closed'">
         <i class="bx bx-lock-alt"></i>
         This conversation is closed and can no longer receive messages.
