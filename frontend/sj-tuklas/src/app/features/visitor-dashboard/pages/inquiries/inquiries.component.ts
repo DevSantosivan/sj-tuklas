@@ -1,25 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 
-interface InquiryMessage {
-  id: string;
-  sender: 'visitor' | 'business';
-  message: string;
-  time: string;
-}
-
-interface Inquiry {
-  id: string;
-  businessName: string;
-  businessImage: string;
-  subject: string;
-  lastMessage: string;
-  lastMessageTime: string;
-  status: 'new' | 'replied' | 'closed';
-  unread: number;
-  messages: InquiryMessage[];
-}
+import { Inquiry, InquiryStatus } from '../../../../core/models/inquiry';
+import { InquiryService } from '../../../../core/services/inquiry.service';
 
 @Component({
   selector: 'app-inquiries',
@@ -28,174 +14,257 @@ interface Inquiry {
   templateUrl: './inquiries.component.html',
   styleUrl: './inquiries.component.scss',
 })
-export class InquiriesComponent {
+export class InquiriesComponent implements OnInit, OnDestroy {
+  private readonly route = inject(ActivatedRoute);
+  private readonly inquiryService = inject(InquiryService);
+  private readonly destroy$ = new Subject<void>();
+
   searchTerm = '';
   messageText = '';
 
+  inquiries: Inquiry[] = [];
   selectedInquiry: Inquiry | null = null;
 
-  inquiries: Inquiry[] = [
-    {
-      id: 'inq-001',
-      businessName: 'Casa Verde Restaurant',
-      businessImage:
-        'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=300&q=80',
-      subject: 'Table reservation inquiry',
-      lastMessage: 'Yes, we can accommodate 6 guests.',
-      lastMessageTime: '10:42 AM',
-      status: 'replied',
-      unread: 0,
-      messages: [
-        {
-          id: 'msg-001',
-          sender: 'visitor',
-          message:
-            'Hi! I would like to ask if you can accommodate 6 guests this Saturday at 7:00 PM?',
-          time: '10:35 AM',
-        },
-        {
-          id: 'msg-002',
-          sender: 'business',
-          message:
-            'Hello! Yes, we can accommodate 6 guests. Would you like to proceed with the reservation?',
-          time: '10:42 AM',
-        },
-      ],
-    },
+  isLoading = true;
+  isOpeningInquiry = false;
+  isSending = false;
+  isLoadingMessages = false;
+  errorMessage: string | null = null;
+  sendError: string | null = null;
+  mobileChatOpen = false;
 
-    {
-      id: 'inq-002',
-      businessName: 'Brew District Café',
-      businessImage:
-        'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=300&q=80',
-      subject: 'Private table availability',
-      lastMessage: 'Is the private table still available?',
-      lastMessageTime: 'Yesterday',
-      status: 'new',
-      unread: 1,
-      messages: [
-        {
-          id: 'msg-003',
-          sender: 'visitor',
-          message: 'Hi! Is your private table still available for October 2?',
-          time: 'Yesterday',
-        },
-      ],
-    },
+  ngOnInit(): void {
+    this.loadInquiries();
 
-    {
-      id: 'inq-003',
-      businessName: 'Glow Beauty Studio',
-      businessImage:
-        'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=300&q=80',
-      subject: 'Hair & Beauty Package',
-      lastMessage: 'Thank you for the information!',
-      lastMessageTime: 'Sep 22',
-      status: 'closed',
-      unread: 0,
-      messages: [
-        {
-          id: 'msg-004',
-          sender: 'visitor',
-          message: 'Can I ask what is included in your Hair & Beauty Package?',
-          time: 'Sep 22',
-        },
-        {
-          id: 'msg-005',
-          sender: 'business',
-          message:
-            'The package includes haircut, styling, treatment, and basic makeup.',
-          time: 'Sep 22',
-        },
-        {
-          id: 'msg-006',
-          sender: 'visitor',
-          message: 'Thank you for the information!',
-          time: 'Sep 22',
-        },
-      ],
-    },
+    this.route.queryParamMap
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((params) => {
+        const businessId = params.get('businessId');
 
-    {
-      id: 'inq-004',
-      businessName: 'Sunset Bay Resort',
-      businessImage:
-        'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=300&q=80',
-      subject: 'Family room inquiry',
-      lastMessage: 'Do you have a family room for 5 guests?',
-      lastMessageTime: 'Sep 21',
-      status: 'new',
-      unread: 1,
-      messages: [
-        {
-          id: 'msg-007',
-          sender: 'visitor',
-          message:
-            'Good day! Do you have a family room available for 5 guests on October 10?',
-          time: 'Sep 21',
-        },
-      ],
-    },
-  ];
+        if (businessId) {
+          this.openBusinessInquiry(businessId);
+        }
+      });
+  }
 
-  constructor() {
-    this.selectedInquiry = this.inquiries[0];
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   get filteredInquiries(): Inquiry[] {
     const search = this.searchTerm.trim().toLowerCase();
 
-    if (!search) {
-      return this.inquiries;
-    }
+    if (!search) return this.inquiries;
 
-    return this.inquiries.filter(
-      (inquiry) =>
-        inquiry.businessName.toLowerCase().includes(search) ||
-        inquiry.subject.toLowerCase().includes(search) ||
-        inquiry.lastMessage.toLowerCase().includes(search),
+    return this.inquiries.filter((inquiry) =>
+      [inquiry.businessName, inquiry.subject, inquiry.lastMessage].some(
+        (value) => value.toLowerCase().includes(search),
+      ),
     );
+  }
+
+  get unreadTotal(): number {
+    return this.inquiries.reduce((total, inquiry) => total + inquiry.unread, 0);
+  }
+
+  loadInquiries(): void {
+    this.isLoading = true;
+    this.errorMessage = null;
+
+    this.inquiryService
+      .getMyInquiries()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (inquiries) => {
+          this.inquiries = inquiries;
+          this.isLoading = false;
+
+          if (this.selectedInquiry) {
+            const refreshed = inquiries.find(
+              (item) => item.id === this.selectedInquiry?.id,
+            );
+
+            if (refreshed) {
+              this.selectedInquiry = {
+                ...refreshed,
+                messages: this.selectedInquiry.messages,
+              };
+            }
+          }
+        },
+        error: (error) => {
+          console.error('Failed to load inquiries:', error);
+          this.errorMessage =
+            error?.status === 401
+              ? 'Please sign in again to view your inquiries.'
+              : 'Unable to load your conversations. Please try again.';
+          this.isLoading = false;
+        },
+      });
+  }
+
+  openBusinessInquiry(businessId: string): void {
+    if (this.isOpeningInquiry) return;
+
+    this.isOpeningInquiry = true;
+    this.errorMessage = null;
+
+    this.inquiryService
+      .findOrCreateForBusiness(businessId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (inquiry) => {
+          this.isOpeningInquiry = false;
+
+          const existingIndex = this.inquiries.findIndex(
+            (item) => item.id === inquiry.id,
+          );
+
+          if (existingIndex >= 0) {
+            this.inquiries[existingIndex] = inquiry;
+          } else {
+            this.inquiries = [inquiry, ...this.inquiries];
+          }
+
+          this.selectInquiry(inquiry);
+        },
+        error: (error) => {
+          console.error('Failed to open business inquiry:', error);
+          this.isOpeningInquiry = false;
+          this.errorMessage =
+            error?.status === 401
+              ? 'Please sign in to start an inquiry.'
+              : 'Unable to open this conversation. Please try again.';
+        },
+      });
   }
 
   selectInquiry(inquiry: Inquiry): void {
     this.selectedInquiry = inquiry;
-    inquiry.unread = 0;
+    this.mobileChatOpen = true;
+    this.sendError = null;
+    this.isLoadingMessages = true;
+
+    this.inquiryService
+      .getMessages(inquiry.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (messages) => {
+          if (this.selectedInquiry?.id !== inquiry.id) return;
+
+          this.selectedInquiry = {
+            ...inquiry,
+            messages,
+            unread: 0,
+          };
+
+          this.updateInquiry(this.selectedInquiry);
+          this.isLoadingMessages = false;
+
+          this.inquiryService
+            .markAsRead(inquiry.id)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              error: (error) =>
+                console.error('Unable to mark inquiry as read:', error),
+            });
+        },
+        error: (error) => {
+          console.error('Failed to load inquiry messages:', error);
+          this.isLoadingMessages = false;
+          this.sendError = 'Unable to load messages. Please try again.';
+        },
+      });
   }
 
-  getStatusLabel(status: Inquiry['status']): string {
+  sendMessage(): void {
+    const message = this.messageText.trim();
+    const inquiry = this.selectedInquiry;
+
+    if (!message || !inquiry || this.isSending) return;
+
+    if (inquiry.status === 'closed') {
+      this.sendError = 'This conversation is closed.';
+      return;
+    }
+
+    this.isSending = true;
+    this.sendError = null;
+
+    this.inquiryService
+      .sendMessage(inquiry.id, message)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (savedMessage) => {
+          if (this.selectedInquiry?.id !== inquiry.id) {
+            this.isSending = false;
+            return;
+          }
+
+          const updated: Inquiry = {
+            ...inquiry,
+            messages: [...inquiry.messages, savedMessage],
+            lastMessage: savedMessage.message,
+            lastMessageTime: this.formatTime(savedMessage.createdAt),
+            status: 'new',
+          };
+
+          this.selectedInquiry = updated;
+          this.updateInquiry(updated);
+          this.messageText = '';
+          this.isSending = false;
+        },
+        error: (error) => {
+          console.error('Failed to send inquiry message:', error);
+          this.sendError =
+            error?.status === 401
+              ? 'Your session has expired. Please sign in again.'
+              : 'Message was not sent. Please try again.';
+          this.isSending = false;
+        },
+      });
+  }
+
+  getStatusLabel(status: InquiryStatus): string {
     switch (status) {
       case 'new':
         return 'New';
-
       case 'replied':
         return 'Replied';
-
       case 'closed':
         return 'Closed';
-
       default:
         return 'Inquiry';
     }
   }
 
-  sendMessage(): void {
-    const message = this.messageText.trim();
+  backToConversations(): void {
+    this.mobileChatOpen = false;
+  }
 
-    if (!message || !this.selectedInquiry) {
-      return;
-    }
+  trackInquiry(_: number, inquiry: Inquiry): string {
+    return inquiry.id;
+  }
 
-    this.selectedInquiry.messages.push({
-      id: `msg-${Date.now()}`,
-      sender: 'visitor',
-      message,
-      time: 'Just now',
-    });
+  trackMessage(_: number, message: { id: string }): string {
+    return message.id;
+  }
 
-    this.selectedInquiry.lastMessage = message;
-    this.selectedInquiry.lastMessageTime = 'Just now';
-    this.selectedInquiry.status = 'new';
+  private updateInquiry(updated: Inquiry): void {
+    this.inquiries = this.inquiries.map((item) =>
+      item.id === updated.id ? updated : item,
+    );
+  }
 
-    this.messageText = '';
+  private formatTime(value: string): string {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return value;
+
+    return new Intl.DateTimeFormat('en-PH', {
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(date);
   }
 }
