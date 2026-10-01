@@ -8,264 +8,256 @@
     </div>
 
     <div class="header-actions">
-      <button class="secondary-button" type="button">
+      <button
+        class="secondary-button"
+        type="button"
+        (click)="exportReviews()"
+        [disabled]="!filteredReviews().length"
+      >
         <i class="bx bx-download"></i>
         Export
       </button>
     </div>
   </header>
 
-  <!-- RATING OVERVIEW -->
-  <section class="rating-grid">
-    <div class="rating-card rating-summary">
-      <span class="card-eyebrow">OVERALL RATING</span>
-
-      <div class="rating-score">
-        <strong>4.8</strong>
-
-        <div class="rating-info">
-          <div class="stars">
-            <i class="bx bxs-star"></i>
-            <i class="bx bxs-star"></i>
-            <i class="bx bxs-star"></i>
-            <i class="bx bxs-star"></i>
-            <i class="bx bxs-star-half"></i>
-          </div>
-
-          <span>Based on 48 reviews</span>
-        </div>
+  <!-- LOADING -->
+  @if (isLoading()) {
+    <section class="reviews-loading" aria-live="polite">
+      <span class="loading-spinner"></span>
+      <p>Loading customer reviews...</p>
+    </section>
+  } @else {
+    <!-- ERROR -->
+    @if (errorMessage()) {
+      <div class="reviews-error" role="alert">
+        <i class="bx bx-error-circle"></i>
+        <span>{{ errorMessage() }}</span>
+        <button type="button" (click)="loadReviews()">Try again</button>
       </div>
-    </div>
+    } @else {
+      <!-- RATING OVERVIEW -->
+      <section class="rating-grid">
+        <div class="rating-card rating-summary">
+          <span class="card-eyebrow">OVERALL RATING</span>
 
-    <div class="rating-card">
-      <span class="card-eyebrow">RATING BREAKDOWN</span>
+          <div class="rating-score">
+            <strong>
+              {{ summary()?.averageRating ?? 0 | number: "1.1-1" }}
+            </strong>
 
-      <div class="rating-breakdown">
-        <div class="rating-row">
-          <span>5</span>
-          <i class="bx bxs-star"></i>
+            <div class="rating-info">
+              <div class="stars" aria-label="Overall rating">
+                @for (star of [1, 2, 3, 4, 5]; track star) {
+                  <i
+                    class="bx"
+                    [class.bxs-star]="star <= (summary()?.averageRating ?? 0)"
+                    [class.bx-star]="star > (summary()?.averageRating ?? 0)"
+                  ></i>
+                }
+              </div>
 
-          <div class="rating-bar">
-            <div class="rating-fill" style="width: 84%"></div>
-          </div>
-
-          <strong>40</strong>
-        </div>
-
-        <div class="rating-row">
-          <span>4</span>
-          <i class="bx bxs-star"></i>
-
-          <div class="rating-bar">
-            <div class="rating-fill" style="width: 10%"></div>
-          </div>
-
-          <strong>5</strong>
-        </div>
-
-        <div class="rating-row">
-          <span>3</span>
-          <i class="bx bxs-star"></i>
-
-          <div class="rating-bar">
-            <div class="rating-fill" style="width: 4%"></div>
-          </div>
-
-          <strong>2</strong>
-        </div>
-
-        <div class="rating-row">
-          <span>2</span>
-          <i class="bx bxs-star"></i>
-
-          <div class="rating-bar">
-            <div class="rating-fill" style="width: 2%"></div>
-          </div>
-
-          <strong>1</strong>
-        </div>
-
-        <div class="rating-row">
-          <span>1</span>
-          <i class="bx bxs-star"></i>
-
-          <div class="rating-bar">
-            <div class="rating-fill" style="width: 0%"></div>
-          </div>
-
-          <strong>0</strong>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- REVIEW FILTERS -->
-  <section class="dashboard-card filters-card">
-    <div class="card-header">
-      <div>
-        <span class="card-eyebrow">CUSTOMER REVIEWS</span>
-        <h3>All Reviews</h3>
-      </div>
-
-      <span class="review-count">48 reviews</span>
-    </div>
-
-    <div class="filters">
-      <div class="search-box">
-        <i class="bx bx-search"></i>
-        <input type="text" placeholder="Search reviews..." />
-      </div>
-
-      <select>
-        <option>All Ratings</option>
-        <option>5 Stars</option>
-        <option>4 Stars</option>
-        <option>3 Stars</option>
-        <option>2 Stars</option>
-        <option>1 Star</option>
-      </select>
-
-      <select>
-        <option>Newest First</option>
-        <option>Oldest First</option>
-        <option>Highest Rating</option>
-        <option>Lowest Rating</option>
-      </select>
-    </div>
-  </section>
-
-  <!-- REVIEWS -->
-  <section class="dashboard-card">
-    <div class="review-list">
-      <!-- REVIEW 1 -->
-      <article class="review-item">
-        <div class="review-avatar">JS</div>
-
-        <div class="review-content">
-          <div class="review-top">
-            <div>
-              <strong>Juan Santos</strong>
-
-              <span class="verified">
-                <i class="bx bx-check-circle"></i>
-                Verified
+              <span>
+                Based on {{ summary()?.totalReviews ?? 0 }}
+                {{ summary()?.totalReviews === 1 ? "review" : "reviews" }}
               </span>
             </div>
-
-            <span class="review-date">2 days ago</span>
-          </div>
-
-          <div class="stars">
-            <i class="bx bxs-star"></i>
-            <i class="bx bxs-star"></i>
-            <i class="bx bxs-star"></i>
-            <i class="bx bxs-star"></i>
-            <i class="bx bxs-star"></i>
-          </div>
-
-          <p>
-            Great service and very accommodating staff. The place was clean and
-            everything was handled quickly.
-          </p>
-
-          <div class="review-actions">
-            <button type="button">
-              <i class="bx bx-reply"></i>
-              Reply
-            </button>
-
-            <button type="button">
-              <i class="bx bx-flag"></i>
-              Report
-            </button>
           </div>
         </div>
-      </article>
 
-      <!-- REVIEW 2 -->
-      <article class="review-item">
-        <div class="review-avatar">MC</div>
+        <div class="rating-card">
+          <span class="card-eyebrow">RATING BREAKDOWN</span>
 
-        <div class="review-content">
-          <div class="review-top">
-            <div>
-              <strong>Maria Cruz</strong>
+          <div class="rating-breakdown">
+            @for (row of ratingRows(); track row.rating) {
+              <div class="rating-row">
+                <span>{{ row.rating }}</span>
+                <i class="bx bxs-star"></i>
 
-              <span class="verified">
-                <i class="bx bx-check-circle"></i>
-                Verified
-              </span>
+                <div
+                  class="rating-bar"
+                  role="progressbar"
+                  [attr.aria-valuenow]="row.count"
+                  [attr.aria-valuemin]="0"
+                  [attr.aria-valuemax]="summary()?.totalReviews ?? 0"
+                  [attr.aria-label]="row.rating + ' star reviews'"
+                >
+                  <div
+                    class="rating-fill"
+                    [style.width.%]="row.percentage"
+                  ></div>
+                </div>
+
+                <strong>{{ row.count }}</strong>
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- REVIEW FILTERS -->
+      <section class="dashboard-card filters-card">
+        <div class="card-header">
+          <div>
+            <span class="card-eyebrow">CUSTOMER REVIEWS</span>
+            <h3>All Reviews</h3>
+          </div>
+
+          <span class="review-count">
+            {{ filteredReviews().length }}
+            {{ filteredReviews().length === 1 ? "review" : "reviews" }}
+          </span>
+        </div>
+
+        <div class="filters">
+          <div class="search-box">
+            <i class="bx bx-search"></i>
+            <input
+              type="search"
+              placeholder="Search reviews..."
+              aria-label="Search reviews"
+              [ngModel]="searchQuery()"
+              (ngModelChange)="setSearch($event)"
+            />
+            @if (searchQuery()) {
+              <button
+                type="button"
+                class="clear-search"
+                aria-label="Clear search"
+                (click)="setSearch('')"
+              >
+                <i class="bx bx-x"></i>
+              </button>
+            }
+          </div>
+
+          <select
+            aria-label="Filter by rating"
+            [ngModel]="selectedRating()"
+            (ngModelChange)="setRating($event)"
+          >
+            <option value="all">All Ratings</option>
+            <option value="5">5 Stars</option>
+            <option value="4">4 Stars</option>
+            <option value="3">3 Stars</option>
+            <option value="2">2 Stars</option>
+            <option value="1">1 Star</option>
+          </select>
+
+          <select
+            aria-label="Sort reviews"
+            [ngModel]="sortBy()"
+            (ngModelChange)="setSort($event)"
+          >
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="highest">Highest Rating</option>
+            <option value="lowest">Lowest Rating</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- REVIEWS -->
+      <section class="dashboard-card reviews-container">
+        @if (filteredReviews().length) {
+          <div class="review-list">
+            @for (
+              review of filteredReviews();
+              track trackByReviewId($index, review)
+            ) {
+              <article class="review-item">
+                @if (review.userAvatar) {
+                  <img
+                    class="review-avatar"
+                    [src]="review.userAvatar"
+                    [alt]="review.userName + ' avatar'"
+                    loading="lazy"
+                  />
+                } @else {
+                  <div class="review-avatar">
+                    {{ getInitials(review.userName) }}
+                  </div>
+                }
+
+                <div class="review-content">
+                  <div class="review-top">
+                    <div class="review-author">
+                      <strong>{{ review.userName || "Guest" }}</strong>
+                    </div>
+
+                    <time
+                      class="review-date"
+                      [attr.datetime]="review.createdAt"
+                      [title]="review.createdAt | date: 'medium'"
+                    >
+                      {{ getRelativeDate(review.createdAt) }}
+                    </time>
+                  </div>
+
+                  <div
+                    class="stars"
+                    [attr.aria-label]="review.rating + ' out of 5 stars'"
+                  >
+                    @for (star of [1, 2, 3, 4, 5]; track star) {
+                      <i
+                        class="bx"
+                        [class.bxs-star]="star <= review.rating"
+                        [class.bx-star]="star > review.rating"
+                      ></i>
+                    }
+                  </div>
+
+                  <p class="review-comment">{{ review.comment }}</p>
+
+                  <div class="review-actions">
+                    <button
+                      type="button"
+                      disabled
+                      title="Reply feature coming soon"
+                    >
+                      <i class="bx bx-reply"></i>
+                      Reply
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled
+                      title="Report feature coming soon"
+                    >
+                      <i class="bx bx-flag"></i>
+                      Report
+                    </button>
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+        } @else {
+          <div class="reviews-empty">
+            <div class="empty-icon">
+              <i class="bx bx-message-square-detail"></i>
             </div>
 
-            <span class="review-date">5 days ago</span>
+            @if (reviews().length) {
+              <h3>No matching reviews</h3>
+              <p>Try changing your search or rating filters.</p>
+
+              <button
+                type="button"
+                class="secondary-button"
+                (click)="setSearch(''); setRating('all'); setSort('newest')"
+              >
+                Clear filters
+              </button>
+            } @else {
+              <h3>No reviews yet</h3>
+              <p>
+                Customer reviews will appear here once someone leaves feedback
+                for your business.
+              </p>
+            }
           </div>
-
-          <div class="stars">
-            <i class="bx bxs-star"></i>
-            <i class="bx bxs-star"></i>
-            <i class="bx bxs-star"></i>
-            <i class="bx bxs-star"></i>
-            <i class="bx bx-star"></i>
-          </div>
-
-          <p>
-            Good experience overall. Staff were friendly and the service was
-            easy to deal with.
-          </p>
-
-          <div class="review-actions">
-            <button type="button">
-              <i class="bx bx-reply"></i>
-              Reply
-            </button>
-
-            <button type="button">
-              <i class="bx bx-flag"></i>
-              Report
-            </button>
-          </div>
-        </div>
-      </article>
-
-      <!-- REVIEW 3 -->
-      <article class="review-item">
-        <div class="review-avatar">AG</div>
-
-        <div class="review-content">
-          <div class="review-top">
-            <div>
-              <strong>Alex Garcia</strong>
-            </div>
-
-            <span class="review-date">1 week ago</span>
-          </div>
-
-          <div class="stars">
-            <i class="bx bxs-star"></i>
-            <i class="bx bxs-star"></i>
-            <i class="bx bxs-star"></i>
-            <i class="bx bxs-star"></i>
-            <i class="bx bx-star"></i>
-          </div>
-
-          <p>
-            Nice place and good customer service. Would definitely consider
-            coming back again.
-          </p>
-
-          <div class="review-actions">
-            <button type="button">
-              <i class="bx bx-reply"></i>
-              Reply
-            </button>
-
-            <button type="button">
-              <i class="bx bx-flag"></i>
-              Report
-            </button>
-          </div>
-        </div>
-      </article>
-    </div>
-  </section>
+        }
+      </section>
+    }
+  }
 </div>
