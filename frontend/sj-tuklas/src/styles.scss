@@ -99,3 +99,51 @@ img {
     padding: 56px 0;
   }
 }
+
+/* =========================================
+   GLOBAL SCROLLBAR — SJ TUKLAS
+========================================= */
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #111111 #f3f3f1;
+}
+
+/* Chrome, Edge, Safari */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f3f3f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #111111;
+  border-radius: 20px;
+  border: 2px solid #f3f3f1;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #333333;
+}
+
+/* Horizontal scrollbar */
+::-webkit-scrollbar-corner {
+  background: #f3f3f1;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  * {
+    scrollbar-width: thin;
+  }
+}

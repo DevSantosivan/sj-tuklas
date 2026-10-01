@@ -1,0 +1,224 @@
+<section class="business-reviews" [class.overview-mode]="mode() === 'overview'">
+  <!-- SECTION HEADER -->
+  <header class="reviews-heading">
+    <div class="reviews-heading-copy">
+      <span class="eyebrow">
+        <span class="eyebrow-line"></span>
+        CUSTOMER FEEDBACK
+      </span>
+
+      <h2>{{ mode() === "overview" ? "Reviews" : "Guest reviews" }}</h2>
+
+      <p>
+        {{
+          mode() === "overview"
+            ? "See what customers are saying about this business."
+            : "Ratings and experiences shared by people who visited this business."
+        }}
+      </p>
+    </div>
+
+    <span class="review-total-badge">
+      {{ totalReviews() }} {{ totalReviews() === 1 ? "review" : "reviews" }}
+    </span>
+  </header>
+
+  <!-- LOADING -->
+  @if (reviewsLoading()) {
+    <div class="reviews-loading" role="status" aria-live="polite">
+      <span class="loading-spinner"></span>
+      <span>Loading reviews...</span>
+    </div>
+  } @else if (reviewError()) {
+    <!-- ERROR -->
+    <div class="reviews-message error-message" role="alert">
+      <span class="message-icon">
+        <i class="bx bx-error-circle"></i>
+      </span>
+      <div>
+        <strong>Reviews are unavailable</strong>
+        <p>{{ reviewError() }}</p>
+      </div>
+    </div>
+  } @else {
+    <!-- SUMMARY -->
+    <div class="reviews-summary">
+      <div class="rating-overview">
+        <div class="overall-rating">
+          <span class="rating-label">Overall rating</span>
+
+          <strong class="rating-score">
+            {{ totalReviews() ? averageRating().toFixed(1) : "—" }}
+          </strong>
+
+          <div class="rating-stars" aria-label="Average rating">
+            @for (star of [1, 2, 3, 4, 5]; track star) {
+              <i
+                class="bx"
+                [class.bxs-star]="star <= Math.round(averageRating())"
+                [class.bx-star]="star > Math.round(averageRating())"
+              ></i>
+            }
+          </div>
+
+          <span class="rating-total">
+            Based on {{ totalReviews() }}
+            {{ totalReviews() === 1 ? "review" : "reviews" }}
+          </span>
+        </div>
+
+        <div class="rating-distribution">
+          <div class="distribution-heading">
+            <h3>Rating breakdown</h3>
+            <span>By star level</span>
+          </div>
+
+          @for (rating of ratingLevels; track rating) {
+            <div class="rating-row">
+              <span class="rating-number">{{ rating }}</span>
+              <i class="bx bxs-star rating-row-star"></i>
+
+              <div
+                class="rating-track"
+                role="progressbar"
+                [attr.aria-label]="rating + ' star reviews'"
+                [attr.aria-valuenow]="getRatingPercentage(rating)"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
+                <span
+                  class="rating-fill"
+                  [style.width.%]="getRatingPercentage(rating)"
+                ></span>
+              </div>
+
+              <span class="rating-count">
+                {{ getRatingCount(rating) }}
+              </span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <footer class="reviews-summary-footer">
+        <div class="summary-note">
+          <span class="note-icon">
+            <i class="bx bx-message-square-detail"></i>
+          </span>
+          <span>Have you visited this business? Share your experience.</span>
+        </div>
+
+        <button
+          type="button"
+          class="write-review-button"
+          (click)="onWriteReview()"
+        >
+          <i class="bx bx-edit-alt"></i>
+          Write a review
+        </button>
+      </footer>
+    </div>
+
+    <!-- REVIEW LIST -->
+    <div class="all-reviews">
+      <div class="all-reviews-header">
+        <div>
+          <h3>
+            {{ mode() === "overview" ? "Recent reviews" : "All reviews" }}
+          </h3>
+          <p>
+            {{
+              mode() === "overview"
+                ? "A preview of recent customer feedback."
+                : "Feedback shared by customers of this business."
+            }}
+          </p>
+        </div>
+
+        @if (mode() === "overview" && hasMoreReviews()) {
+          <button
+            type="button"
+            class="view-all-button"
+            (click)="onShowAllReviews()"
+          >
+            View all reviews
+            <i class="bx bx-right-arrow-alt"></i>
+          </button>
+        }
+      </div>
+
+      @if (displayedReviews().length > 0) {
+        <div class="reviews-list">
+          @for (
+            review of displayedReviews();
+            track trackReview($index, review)
+          ) {
+            <article class="review-card">
+              <div class="review-card-top">
+                @if (reviewerAvatar(review); as avatar) {
+                  <img
+                    class="review-avatar image-avatar"
+                    [src]="avatar"
+                    [alt]="reviewerName(review) + ' profile photo'"
+                    loading="lazy"
+                  />
+                } @else {
+                  <span class="review-avatar">
+                    {{ reviewerInitials(review) }}
+                  </span>
+                }
+
+                <div class="review-user">
+                  <strong>{{ reviewerName(review) }}</strong>
+                  <span>{{ reviewDate(review) || "Customer review" }}</span>
+                </div>
+
+                <span class="review-rating-pill">
+                  <i class="bx bxs-star"></i>
+                  {{ ratingOf(review).toFixed(1) }}
+                </span>
+              </div>
+
+              <div class="review-card-rating" aria-label="Review rating">
+                @for (star of [1, 2, 3, 4, 5]; track star) {
+                  <i
+                    class="bx"
+                    [class.bxs-star]="star <= ratingOf(review)"
+                    [class.bx-star]="star > ratingOf(review)"
+                  ></i>
+                }
+              </div>
+
+              @if (reviewComment(review); as comment) {
+                <p class="review-comment">{{ comment }}</p>
+              } @else {
+                <p class="review-no-comment">No written comment provided.</p>
+              }
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="empty-reviews">
+          <span class="empty-reviews-icon">
+            <i class="bx bx-message-rounded-dots"></i>
+          </span>
+
+          <h3>No reviews yet</h3>
+          <p>
+            Be the first to share your experience and help others discover this
+            business.
+          </p>
+
+          <button
+            type="button"
+            class="empty-review-action"
+            (click)="onWriteReview()"
+          >
+            <i class="bx bx-edit-alt"></i>
+            Write the first review
+          </button>
+        </div>
+      }
+    </div>
+  }
+</section>

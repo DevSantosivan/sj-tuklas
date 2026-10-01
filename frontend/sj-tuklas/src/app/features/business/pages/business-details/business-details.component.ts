@@ -22,10 +22,16 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { FavoriteService } from '../../../../core/services/favorite.service';
 import { ReviewService } from '../../../../core/services/review.service';
 import { Review, ReviewSummary } from '../../../../core/models/review';
+import { BusinessReviewsComponent } from '../../components/business-reviews/business-reviews.component';
 
 @Component({
   selector: 'app-business-details',
-  imports: [RouterLink, EmptyStateComponent, SkeletonComponent],
+  imports: [
+    RouterLink,
+    EmptyStateComponent,
+    SkeletonComponent,
+    BusinessReviewsComponent,
+  ],
   templateUrl: './business-details.component.html',
   styleUrl: './business-details.component.scss',
 })
@@ -94,6 +100,7 @@ export class BusinessDetailsComponent {
   readonly reviewSubmitted = signal(false);
 
   readonly reviews = signal<Review[]>([]);
+  readonly myReview = signal<Review | null>(null);
   readonly reviewSummary = signal<ReviewSummary>({
     averageRating: 0,
     totalReviews: 0,
@@ -157,31 +164,43 @@ export class BusinessDetailsComponent {
 
   async loadBusiness(id: string): Promise<void> {
     this.loading.set(true);
+
     this.isLoading.set(true);
+
     this.error.set(null);
+
     this.business.set(null);
+
+    // Reset favorite and review state while changing business.
     this.isFavorite.set(false);
+    this.reviews.set([]);
+    this.myReview.set(null);
+    this.reviewSummary.set({
+      averageRating: 0,
+      totalReviews: 0,
+      breakdown: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+    });
+    this.reviewsLoading.set(false);
+    this.reviewError.set(null);
 
     try {
       const business = await this.businessService.getBusinessById(id);
 
       if (!business) {
         this.error.set('Business not found.');
+
         return;
       }
 
       this.business.set(business);
-
-      // Wait for auth initialization before loading user-specific data.
-      if (this.authService.authLoading()) {
-        await this.authService.initialize();
-      }
-
-      if (this.businessId() !== id) {
-        return;
-      }
-
       this.loadReviews(id);
+
+      /*
+       * Load favorite status separately.
+       *
+       * This uses the currently authenticated user
+       * from the backend through the HttpOnly auth cookie.
+       */
       this.loadFavoriteStatus(id);
     } catch (error) {
       console.error('Failed to load business:', error);
@@ -193,6 +212,7 @@ export class BusinessDetailsComponent {
       this.business.set(null);
     } finally {
       this.loading.set(false);
+
       this.isLoading.set(false);
     }
   }
@@ -205,12 +225,16 @@ export class BusinessDetailsComponent {
       next: (reviews) => {
         if (this.businessId() !== businessId) return;
 
-        this.reviews.set(reviews);
+        this.reviews.set(reviews ?? []);
         this.reviewsLoading.set(false);
       },
       error: (error) => {
+        if (this.businessId() !== businessId) return;
+
         console.error('Failed to load reviews:', error);
-        this.reviewError.set('Unable to load reviews.');
+        this.reviewError.set(
+          error?.error?.message ?? 'Unable to load reviews. Please try again.',
+        );
         this.reviewsLoading.set(false);
       },
     });
@@ -218,10 +242,38 @@ export class BusinessDetailsComponent {
     this.reviewService.getSummary(businessId).subscribe({
       next: (summary) => {
         if (this.businessId() !== businessId) return;
-        this.reviewSummary.set(summary);
+
+        this.reviewSummary.set(
+          summary ?? {
+            averageRating: 0,
+            totalReviews: 0,
+            breakdown: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+          },
+        );
       },
       error: (error) => {
+        if (this.businessId() !== businessId) return;
         console.error('Failed to load review summary:', error);
+      },
+    });
+
+    this.reviewService.getMyReview(businessId).subscribe({
+      next: (review) => {
+        if (this.businessId() !== businessId) return;
+        this.myReview.set(review ?? null);
+      },
+      error: (error) => {
+        if (this.businessId() !== businessId) return;
+        // Public reviews remain available even if this request fails
+        // (for example, when the visitor is not authenticated).
+        if (
+          error.status !== 401 &&
+          error.status !== 403 &&
+          error.status !== 404
+        ) {
+          console.error('Failed to load current user review:', error);
+        }
+        this.myReview.set(null);
       },
     });
   }
@@ -1045,7 +1097,22 @@ export class BusinessDetailsComponent {
     this.reviewText.set(textarea.value);
   }
 
-  async submitReview(): Promise<void> {
+  getAverageRating(): number {
+    const summary = this.reviewSummary();
+
+    return summary?.averageRating ?? 0;
+  }
+
+  getReviewTotal(): number {
+    const summary = this.reviewSummary();
+
+    return summary?.totalReviews ?? this.reviews().length;
+  }
+
+  // =========================================================
+  // REVIEW — SUBMIT
+  // =========================================================
+  submitReview(): void {
     const businessId = this.businessId();
     const rating = this.selectedRating();
     const comment = this.reviewText().trim();
@@ -1058,14 +1125,6 @@ export class BusinessDetailsComponent {
       this.reviewSubmitting()
     ) {
       return;
-    }
-
-    if (this.authService.authLoading()) {
-      try {
-        await this.authService.initialize();
-      } catch (error) {
-        console.error('Failed to initialize authentication:', error);
-      }
     }
 
     if (!this.authService.currentUser()) {
@@ -1082,29 +1141,32 @@ export class BusinessDetailsComponent {
     this.reviewSubmitting.set(true);
     this.reviewError.set(null);
 
-    this.reviewService.createReview(businessId, { rating, comment }).subscribe({
-      next: () => {
-        this.reviewSubmitting.set(false);
-        this.reviewSubmitted.set(true);
-        this.selectedRating.set(0);
-        this.reviewText.set('');
+    this.reviewService
+      .createReview(businessId, {
+        rating,
+        comment,
+      })
+      .subscribe({
+        next: () => {
+          this.reviewSubmitting.set(false);
+          this.reviewSubmitted.set(true);
+          this.selectedRating.set(0);
+          this.reviewText.set('');
 
-        this.loadReviews(businessId);
-      },
-      error: (error) => {
-        console.error('Failed to submit review:', error);
+          this.loadReviews(businessId);
+        },
+        error: (error) => {
+          console.error('Failed to submit review:', error);
 
-        this.reviewSubmitting.set(false);
+          this.reviewSubmitting.set(false);
 
-        this.reviewError.set(
-          error.status === 409
-            ? 'You have already reviewed this business.'
-            : error.status === 401
-              ? 'Your session may have expired. Please log in again.'
+          this.reviewError.set(
+            error.status === 409
+              ? 'You have already reviewed this business.'
               : 'Unable to submit your review. Please try again.',
-        );
-      },
-    });
+          );
+        },
+      });
   }
 
   async openReviewDialog(): Promise<void> {

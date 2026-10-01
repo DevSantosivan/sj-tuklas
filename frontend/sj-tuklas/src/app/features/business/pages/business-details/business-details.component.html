@@ -1,8 +1,4 @@
 @if (isLoading()) {
-  <!-- =====================================================
-       BUSINESS DETAILS LOADING
-  ====================================================== -->
-
   <section
     class="details-page"
     aria-label="Loading business details"
@@ -18,19 +14,13 @@
   @if (business(); as business) {
     <section class="details-page">
       <div class="container">
-        <!-- =====================================================
-             BACK
-        ====================================================== -->
-
+        <!-- BACK -->
         <a routerLink="/search" class="back-link">
           <i class="bx bx-left-arrow-alt"></i>
           <span>Back to results</span>
         </a>
 
-        <!-- =====================================================
-             BUSINESS HERO
-        ====================================================== -->
-
+        <!-- BUSINESS HERO -->
         <section class="business-profile-hero">
           <div class="business-cover">
             @if (business.image) {
@@ -63,18 +53,12 @@
             </div>
 
             <div class="cover-bottom">
-              <div class="cover-category">
-                {{ business.category }}
-              </div>
-
-              <div class="cover-title">
-                {{ business.name }}
-              </div>
+              <div class="cover-category">{{ business.category }}</div>
+              <div class="cover-title">{{ business.name }}</div>
             </div>
           </div>
 
           <!-- BUSINESS PROFILE -->
-
           <div class="business-profile-content">
             <div class="business-profile-main">
               <div class="profile-image-wrapper">
@@ -100,9 +84,7 @@
 
               <div class="business-profile-info">
                 <div class="top-row">
-                  <span class="category">
-                    {{ business.category }}
-                  </span>
+                  <span class="category">{{ business.category }}</span>
 
                   @if (business.verified) {
                     <span class="verified">
@@ -119,21 +101,19 @@
                   }
                 </div>
 
-                <h1>
-                  {{ business.name }}
-                </h1>
+                <h1>{{ business.name }}</h1>
 
                 <div class="rating-row">
                   <span class="rating">
                     <i class="bx bxs-star"></i>
-                    {{ business.rating }}
+                    {{ getAverageRating() }}
                   </span>
 
                   <span class="rating-divider"></span>
 
                   <span>
-                    {{ business.reviews }}
-                    {{ business.reviews === 1 ? "review" : "reviews" }}
+                    {{ getReviewTotal() }}
+                    {{ getReviewTotal() === 1 ? "review" : "reviews" }}
                   </span>
                 </div>
 
@@ -158,8 +138,6 @@
                     <i class="bx bx-navigation"></i>
                     <span>Directions</span>
                   </button>
-
-                  <!-- FAVORITE -->
 
                   <button
                     type="button"
@@ -188,10 +166,7 @@
           </div>
         </section>
 
-        <!-- =====================================================
-             TAB BAR
-        ====================================================== -->
-
+        <!-- TAB BAR -->
         <nav class="business-tabs" aria-label="Business sections">
           <button
             type="button"
@@ -234,14 +209,10 @@
           </button>
         </nav>
 
-        <!-- =====================================================
-             OVERVIEW
-        ====================================================== -->
-
+        <!-- OVERVIEW -->
         @if (activeTab() === "overview") {
           <div class="tab-section">
             <!-- FEATURES -->
-
             @if (business.isPro && features().length > 0) {
               <section class="overview-card">
                 <div class="card-heading">
@@ -270,8 +241,9 @@
               </section>
             }
 
-            <!-- PHOTOS -->
             <br />
+
+            <!-- PHOTOS -->
             <section class="overview-card photos-section">
               <div class="card-heading">
                 <div>
@@ -320,7 +292,6 @@
             <br />
 
             <!-- ABOUT -->
-
             <section class="overview-card about-section">
               <div class="card-heading">
                 <div>
@@ -396,7 +367,6 @@
             <br />
 
             <!-- LOCATION -->
-
             <section class="overview-card">
               <div class="card-heading">
                 <div>
@@ -453,551 +423,36 @@
             <br />
 
             <!-- OVERVIEW REVIEWS -->
-
-            <section class="overview-card reviews-section">
-              <div class="reviews-summary">
-                <div class="reviews-summary-header">
-                  <div>
-                    <span class="section-eyebrow">REVIEWS</span>
-                    <h2>Customer reviews</h2>
-                  </div>
-
-                  <button
-                    type="button"
-                    class="reviews-help"
-                    aria-label="About reviews"
-                  >
-                    <i class="bx bx-help-circle"></i>
-                  </button>
-                </div>
-
-                <div class="reviews-summary-content">
-                  <div class="rating-breakdown">
-                    @for (rating of [5, 4, 3, 2, 1]; track rating) {
-                      <div class="rating-breakdown-row">
-                        <span class="rating-number">{{ rating }}</span>
-
-                        <div class="rating-bar">
-                          <div
-                            class="rating-bar-fill"
-                            [style.width.%]="
-                              business.reviews > 0
-                                ? rating === 5
-                                  ? 78
-                                  : rating === 4
-                                    ? 48
-                                    : rating === 3
-                                      ? 22
-                                      : rating === 2
-                                        ? 9
-                                        : 6
-                                : 0
-                            "
-                          ></div>
-                        </div>
-                      </div>
-                    }
-                  </div>
-
-                  <div class="overall-rating">
-                    <strong class="overall-score">
-                      {{ business.rating }}
-                    </strong>
-
-                    <div class="overall-stars">
-                      @for (star of [1, 2, 3, 4, 5]; track star) {
-                        <i
-                          class="bx"
-                          [class.bxs-star]="star <= business.rating"
-                          [class.bx-star]="star > business.rating"
-                        ></i>
-                      }
-                    </div>
-
-                    <span class="overall-count">
-                      {{ business.reviews }}
-                      {{ business.reviews === 1 ? "review" : "reviews" }}
-                    </span>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  class="write-review-button"
-                  (click)="openReviewDialog()"
-                >
-                  <i class="bx bx-edit"></i>
-                  <span>Write a review</span>
-                </button>
-              </div>
-
-              <div class="all-reviews">
-                <div class="all-reviews-header">
-                  <h2>All reviews</h2>
-
-                  <button
-                    type="button"
-                    class="review-search-button"
-                    aria-label="Search reviews"
-                  >
-                    <i class="bx bx-search"></i>
-                  </button>
-                </div>
-
-                <div class="reviews-list">
-                  @if (reviewsLoading()) {
-                    <app-skeleton type="line" />
-                  } @else {
-                    @for (review of reviews(); track review.id) {
-                      <article class="review-card">
-                        <div class="review-card-top">
-                          <div class="review-avatar">
-                            @if (review.userAvatar) {
-                              <img
-                                [src]="review.userAvatar"
-                                [alt]="review.userName"
-                              />
-                            } @else {
-                              {{ review.userName.charAt(0).toUpperCase() }}
-                            }
-                          </div>
-
-                          <div class="review-user">
-                            <strong>{{ review.userName }}</strong>
-                            <span>{{ review.createdAt }}</span>
-                          </div>
-                        </div>
-
-                        <div class="review-card-rating">
-                          @for (star of [1, 2, 3, 4, 5]; track star) {
-                            <i
-                              class="bx"
-                              [class.bxs-star]="star <= review.rating"
-                              [class.bx-star]="star > review.rating"
-                            ></i>
-                          }
-                        </div>
-
-                        <p>{{ review.comment }}</p>
-                      </article>
-                    } @empty {
-                      <div class="empty-reviews">
-                        <div class="empty-reviews-icon">
-                          <i class="bx bx-message-square-detail"></i>
-                        </div>
-
-                        <strong>No reviews yet</strong>
-                        <p>
-                          Be the first to share your experience with
-                          {{ business.name }}.
-                        </p>
-
-                        <button
-                          type="button"
-                          class="empty-review-action"
-                          (click)="openReviewDialog()"
-                        >
-                          <i class="bx bx-edit"></i>
-                          <span>Write the first review</span>
-                        </button>
-                      </div>
-                    }
-                  }
-                </div>
-
-                @if (!reviewSubmitted()) {
-                  <dialog #reviewDialog class="review-dialog">
-                    <button
-                      type="button"
-                      class="login-required-close"
-                      aria-label="Close review form"
-                      (click)="reviewDialog.close()"
-                    >
-                      <i class="bx bx-x"></i>
-                    </button>
-
-                    <div class="review-form-card">
-                      <div class="review-form-header">
-                        <span>SHARE YOUR EXPERIENCE</span>
-                        <h3>Write a review</h3>
-                      </div>
-
-                      <div class="review-rating-field">
-                        <label>Your rating</label>
-
-                        <div class="rating-selector">
-                          @for (star of [1, 2, 3, 4, 5]; track star) {
-                            <button
-                              type="button"
-                              class="rating-star"
-                              [class.active]="star <= selectedRating()"
-                              (click)="setRating(star)"
-                              [attr.aria-label]="'Rate ' + star + ' out of 5'"
-                            >
-                              <i
-                                class="bx"
-                                [class.bxs-star]="star <= selectedRating()"
-                                [class.bx-star]="star > selectedRating()"
-                              ></i>
-                            </button>
-                          }
-                        </div>
-
-                        @if (selectedRating() === 0) {
-                          <span class="rating-hint">Select a rating</span>
-                        } @else {
-                          <span class="rating-hint">
-                            {{
-                              selectedRating() === 1
-                                ? "Poor"
-                                : selectedRating() === 2
-                                  ? "Fair"
-                                  : selectedRating() === 3
-                                    ? "Good"
-                                    : selectedRating() === 4
-                                      ? "Very good"
-                                      : "Excellent"
-                            }}
-                          </span>
-                        }
-                      </div>
-
-                      <div class="review-comment-field">
-                        <label for="reviewCommentOverview">Your review</label>
-
-                        <textarea
-                          id="reviewCommentOverview"
-                          rows="5"
-                          maxlength="1000"
-                          placeholder="Tell others about your experience..."
-                          [value]="reviewText()"
-                          (input)="onReviewTextChange($event)"
-                        ></textarea>
-
-                        <div class="character-count">
-                          {{ reviewText().length }} / 1000
-                        </div>
-                      </div>
-
-                      <div class="review-form-actions">
-                        <button
-                          type="button"
-                          class="review-submit-button"
-                          [disabled]="
-                            selectedRating() === 0 || !reviewText().trim()
-                          "
-                          (click)="submitReview()"
-                        >
-                          <i class="bx bx-send"></i>
-                          <span>Submit review</span>
-                        </button>
-                      </div>
-                    </div>
-                  </dialog>
-                }
-
-                @if (reviewSubmitted()) {
-                  <div class="review-success">
-                    <div class="review-success-icon">
-                      <i class="bx bx-check"></i>
-                    </div>
-
-                    <div class="review-success-content">
-                      <strong>Review submitted</strong>
-                      <p>Thanks for sharing your experience.</p>
-                    </div>
-
-                    <button
-                      type="button"
-                      class="another-review-button"
-                      (click)="writeAnotherReview()"
-                    >
-                      Write another
-                    </button>
-                  </div>
-                }
-              </div>
-            </section>
+            <app-business-reviews
+              [reviews]="reviews()"
+              [reviewSummary]="reviewSummary()"
+              [reviewsLoading]="reviewsLoading()"
+              [reviewError]="reviewError()"
+              [mode]="'overview'"
+              [previewCount]="3"
+              (writeReview)="openReviewDialog()"
+              (showAllReviews)="setActiveTab('reviews')"
+            />
 
             <br />
           </div>
         }
 
-        <!-- =====================================================
-             REVIEWS TAB
-        ====================================================== -->
-
+        <!-- REVIEWS TAB -->
         @if (activeTab() === "reviews") {
           <section class="tab-section reviews-section">
-            <div class="reviews-summary">
-              <div class="reviews-summary-header">
-                <div>
-                  <span class="section-eyebrow">REVIEWS</span>
-                  <h2>Customer reviews</h2>
-                </div>
-
-                <button
-                  type="button"
-                  class="reviews-help"
-                  aria-label="About reviews"
-                >
-                  <i class="bx bx-help-circle"></i>
-                </button>
-              </div>
-
-              <div class="reviews-summary-content">
-                <div class="rating-breakdown">
-                  @for (rating of [5, 4, 3, 2, 1]; track rating) {
-                    <div class="rating-breakdown-row">
-                      <span class="rating-number">{{ rating }}</span>
-
-                      <div class="rating-bar">
-                        <div
-                          class="rating-bar-fill"
-                          [style.width.%]="
-                            business.reviews > 0
-                              ? rating === 5
-                                ? 78
-                                : rating === 4
-                                  ? 48
-                                  : rating === 3
-                                    ? 22
-                                    : rating === 2
-                                      ? 9
-                                      : 6
-                              : 0
-                          "
-                        ></div>
-                      </div>
-                    </div>
-                  }
-                </div>
-
-                <div class="overall-rating">
-                  <strong class="overall-score">
-                    {{ business.rating }}
-                  </strong>
-
-                  <div class="overall-stars">
-                    @for (star of [1, 2, 3, 4, 5]; track star) {
-                      <i
-                        class="bx"
-                        [class.bxs-star]="star <= business.rating"
-                        [class.bx-star]="star > business.rating"
-                      ></i>
-                    }
-                  </div>
-
-                  <span class="overall-count">
-                    {{ business.reviews }}
-                    {{ business.reviews === 1 ? "review" : "reviews" }}
-                  </span>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                class="write-review-button"
-                (click)="openReviewDialog()"
-              >
-                <i class="bx bx-edit"></i>
-                <span>Write a review</span>
-              </button>
-            </div>
-
-            <div class="all-reviews">
-              <div class="all-reviews-header">
-                <h2>All reviews</h2>
-
-                <button
-                  type="button"
-                  class="review-search-button"
-                  aria-label="Search reviews"
-                >
-                  <i class="bx bx-search"></i>
-                </button>
-              </div>
-
-              <div class="reviews-list">
-                @if (reviewsLoading()) {
-                  <app-skeleton type="line" />
-                } @else {
-                  @for (review of reviews(); track review.id) {
-                    <article class="review-card">
-                      <div class="review-card-top">
-                        <div class="review-avatar">
-                          @if (review.userAvatar) {
-                            <img
-                              [src]="review.userAvatar"
-                              [alt]="review.userName"
-                            />
-                          } @else {
-                            {{ review.userName.charAt(0).toUpperCase() }}
-                          }
-                        </div>
-
-                        <div class="review-user">
-                          <strong>{{ review.userName }}</strong>
-                          <span>{{ review.createdAt }}</span>
-                        </div>
-                      </div>
-
-                      <div class="review-card-rating">
-                        @for (star of [1, 2, 3, 4, 5]; track star) {
-                          <i
-                            class="bx"
-                            [class.bxs-star]="star <= review.rating"
-                            [class.bx-star]="star > review.rating"
-                          ></i>
-                        }
-                      </div>
-
-                      <p>{{ review.comment }}</p>
-                    </article>
-                  } @empty {
-                    <div class="empty-reviews">
-                      <div class="empty-reviews-icon">
-                        <i class="bx bx-message-square-detail"></i>
-                      </div>
-
-                      <strong>No reviews yet</strong>
-                      <p>
-                        Be the first to share your experience with
-                        {{ business.name }}.
-                      </p>
-
-                      <button
-                        type="button"
-                        class="empty-review-action"
-                        (click)="openReviewDialog()"
-                      >
-                        <i class="bx bx-edit"></i>
-                        <span>Write the first review</span>
-                      </button>
-                    </div>
-                  }
-                }
-              </div>
-
-              @if (!reviewSubmitted()) {
-                <dialog #reviewDialog class="review-dialog">
-                  <button
-                    type="button"
-                    class="login-required-close"
-                    aria-label="Close review form"
-                    (click)="reviewDialog.close()"
-                  >
-                    <i class="bx bx-x"></i>
-                  </button>
-
-                  <div class="review-form-card">
-                    <div class="review-form-header">
-                      <span>SHARE YOUR EXPERIENCE</span>
-                      <h3>Write a review</h3>
-                    </div>
-
-                    <div class="review-rating-field">
-                      <label>Your rating</label>
-
-                      <div class="rating-selector">
-                        @for (star of [1, 2, 3, 4, 5]; track star) {
-                          <button
-                            type="button"
-                            class="rating-star"
-                            [class.active]="star <= selectedRating()"
-                            (click)="setRating(star)"
-                            [attr.aria-label]="'Rate ' + star + ' out of 5'"
-                          >
-                            <i
-                              class="bx"
-                              [class.bxs-star]="star <= selectedRating()"
-                              [class.bx-star]="star > selectedRating()"
-                            ></i>
-                          </button>
-                        }
-                      </div>
-
-                      @if (selectedRating() === 0) {
-                        <span class="rating-hint">Select a rating</span>
-                      } @else {
-                        <span class="rating-hint">
-                          {{
-                            selectedRating() === 1
-                              ? "Poor"
-                              : selectedRating() === 2
-                                ? "Fair"
-                                : selectedRating() === 3
-                                  ? "Good"
-                                  : selectedRating() === 4
-                                    ? "Very good"
-                                    : "Excellent"
-                          }}
-                        </span>
-                      }
-                    </div>
-
-                    <div class="review-comment-field">
-                      <label for="reviewCommentTab">Your review</label>
-
-                      <textarea
-                        id="reviewCommentTab"
-                        rows="5"
-                        maxlength="1000"
-                        placeholder="Tell others about your experience..."
-                        [value]="reviewText()"
-                        (input)="onReviewTextChange($event)"
-                      ></textarea>
-
-                      <div class="character-count">
-                        {{ reviewText().length }} / 1000
-                      </div>
-                    </div>
-
-                    <div class="review-form-actions">
-                      <button
-                        type="button"
-                        class="review-submit-button"
-                        [disabled]="
-                          selectedRating() === 0 || !reviewText().trim()
-                        "
-                        (click)="submitReview()"
-                      >
-                        <i class="bx bx-send"></i>
-                        <span>Submit review</span>
-                      </button>
-                    </div>
-                  </div>
-                </dialog>
-              }
-
-              @if (reviewSubmitted()) {
-                <div class="review-success">
-                  <div class="review-success-icon">
-                    <i class="bx bx-check"></i>
-                  </div>
-
-                  <div class="review-success-content">
-                    <strong>Review submitted</strong>
-                    <p>Thanks for sharing your experience.</p>
-                  </div>
-
-                  <button
-                    type="button"
-                    class="another-review-button"
-                    (click)="writeAnotherReview()"
-                  >
-                    Write another
-                  </button>
-                </div>
-              }
-            </div>
+            <app-business-reviews
+              [reviews]="reviews()"
+              [reviewSummary]="reviewSummary()"
+              [reviewsLoading]="reviewsLoading()"
+              [reviewError]="reviewError()"
+              [mode]="'full'"
+              (writeReview)="openReviewDialog()"
+            />
           </section>
         }
 
-        <!-- =====================================================
-             PHOTOS TAB
-        ====================================================== -->
-
+        <!-- PHOTOS TAB -->
         @if (activeTab() === "photos") {
           <section class="tab-section photos-section">
             <div class="section-heading">
@@ -1036,10 +491,7 @@
 
         <br />
 
-        <!-- =====================================================
-             ABOUT TAB
-        ====================================================== -->
-
+        <!-- ABOUT TAB -->
         @if (activeTab() === "about") {
           <section class="tab-section about-section">
             <div class="section-heading">
@@ -1102,13 +554,139 @@
             </div>
           </section>
         }
+
+        <!-- SHARED REVIEW DIALOG -->
+        @if (!reviewSubmitted()) {
+          <dialog
+            #reviewDialog
+            class="review-dialog"
+            [style.display]="reviewDialog.open ? 'block' : 'none'"
+          >
+            <button
+              type="button"
+              class="login-required-close"
+              aria-label="Close review form"
+              (click)="reviewDialog.close()"
+            >
+              <i class="bx bx-x"></i>
+            </button>
+
+            <div class="review-form-card">
+              <div class="review-form-header">
+                <span>SHARE YOUR EXPERIENCE</span>
+                <h3>Write a review</h3>
+                <p>How was your experience with {{ business.name }}?</p>
+              </div>
+
+              <div class="review-rating-field">
+                <label>Your rating</label>
+
+                <div class="rating-selector">
+                  @for (star of [1, 2, 3, 4, 5]; track star) {
+                    <button
+                      type="button"
+                      class="rating-star"
+                      [class.active]="star <= selectedRating()"
+                      (click)="setRating(star)"
+                      [attr.aria-label]="'Rate ' + star + ' out of 5'"
+                    >
+                      <i
+                        class="bx"
+                        [class.bxs-star]="star <= selectedRating()"
+                        [class.bx-star]="star > selectedRating()"
+                      ></i>
+                    </button>
+                  }
+                </div>
+
+                @if (selectedRating() === 0) {
+                  <span class="rating-hint">Select a rating</span>
+                } @else {
+                  <span class="rating-hint">
+                    {{
+                      selectedRating() === 1
+                        ? "Poor"
+                        : selectedRating() === 2
+                          ? "Fair"
+                          : selectedRating() === 3
+                            ? "Good"
+                            : selectedRating() === 4
+                              ? "Very good"
+                              : "Excellent"
+                    }}
+                  </span>
+                }
+              </div>
+
+              <div class="review-comment-field">
+                <label for="reviewCommentShared">Your review</label>
+
+                <textarea
+                  id="reviewCommentShared"
+                  rows="5"
+                  maxlength="1000"
+                  placeholder="Tell others about your experience..."
+                  [value]="reviewText()"
+                  (input)="onReviewTextChange($event)"
+                ></textarea>
+
+                <div class="character-count">
+                  {{ reviewText().length }} / 1000
+                </div>
+              </div>
+
+              @if (reviewError()) {
+                <p class="review-error" role="alert">
+                  {{ reviewError() }}
+                </p>
+              }
+
+              <div class="review-form-actions">
+                <button
+                  type="button"
+                  class="review-submit-button"
+                  [disabled]="
+                    selectedRating() === 0 ||
+                    !reviewText().trim() ||
+                    reviewSubmitting()
+                  "
+                  (click)="submitReview()"
+                >
+                  <i class="bx bx-send"></i>
+                  <span>
+                    {{ reviewSubmitting() ? "Submitting..." : "Submit review" }}
+                  </span>
+                </button>
+              </div>
+            </div>
+          </dialog>
+        }
+
+        <!-- REVIEW SUBMISSION SUCCESS -->
+        @if (reviewSubmitted()) {
+          <div class="review-success">
+            <div class="review-success-icon">
+              <i class="bx bx-check"></i>
+            </div>
+
+            <div class="review-success-content">
+              <strong>Review submitted</strong>
+              <p>Thanks for sharing your experience.</p>
+            </div>
+
+            <button
+              type="button"
+              class="another-review-button"
+              (click)="writeAnotherReview()"
+            >
+              Write another
+            </button>
+          </div>
+        }
       </div>
     </section>
 
-    <!-- =====================================================
-         FAVORITE / LOGIN MODAL
-    ====================================================== -->
-
+    <!-- FAVORITE / LOGIN MODAL -->
     @if (showFavoriteModal()) {
       <div
         class="login-required-backdrop"
@@ -1255,7 +833,6 @@
     }
   } @else {
     <!-- BUSINESS NOT FOUND -->
-
     <app-empty-state
       title="Business not found"
       message="The business you're looking for doesn't exist or may have been removed."

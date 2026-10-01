@@ -81,7 +81,7 @@ export class SearchPageComponent implements OnInit {
     'Foods & Drinks',
     'Hotels',
     'Shops',
-    'Service',
+    'Services',
     'Boarding House',
     'Places',
   ];

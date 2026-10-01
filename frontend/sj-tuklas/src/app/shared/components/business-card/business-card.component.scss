@@ -1,1093 +1,742 @@
 :host {
   display: block;
   width: 100%;
+  min-width: 0;
+  height: 100%;
+  color: #171717;
+  font-family: inherit;
 }
 
-/* =========================================================
-   BASE CARD
-========================================================= */
+* {
+  box-sizing: border-box;
+}
 
 .business-card {
-  position: relative;
-
-  display: block;
-
+  display: flex;
+  flex-direction: column;
   width: 100%;
+  height: 100%;
   min-width: 0;
-
   overflow: hidden;
-
-  border: 1px solid var(--border);
-  border-radius: 18px;
-
-  background: var(--surface);
-  color: var(--text);
-
-  text-decoration: none;
-
+  background: #fff;
+  border: 1px solid #e9e9e9;
+  border-radius: 14px;
   transition:
-    transform 0.22s ease,
-    border-color 0.22s ease,
-    box-shadow 0.22s ease;
+    border-color 180ms ease,
+    transform 180ms ease;
 }
 
 .business-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--text-muted);
-  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.08);
+  transform: translateY(-3px);
+  border-color: #cfcfcf;
 }
-
-/* =========================================================
-   NORMAL CARD
-========================================================= */
 
 .business-image {
   position: relative;
-
-  width: 100%;
-  height: 205px;
-
-  overflow: visible;
-
-  background: var(--surface-muted);
-}
-
-.cover-image {
   display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: #f3f3f3;
+  color: inherit;
+  text-decoration: none;
+}
 
+.business-image img,
+.business-list-image img {
+  display: block;
   width: 100%;
   height: 100%;
-
   object-fit: cover;
-
-  border-radius: 17px 17px 0 0;
+  transition: transform 350ms ease;
 }
 
-/* =========================================================
-   PLACEHOLDER
-========================================================= */
-
-.business-image-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 100%;
-  height: 100%;
-
-  border-radius: 17px 17px 0 0;
-
-  background: linear-gradient(135deg, var(--surface-muted), var(--background));
-
-  color: var(--text-muted);
+.business-card:hover .business-image img {
+  transform: scale(1.045);
 }
-
-.business-image-placeholder i {
-  font-size: 42px;
-}
-
-/* =========================================================
-   IMAGE OVERLAY
-========================================================= */
 
 .image-overlay {
   position: absolute;
   inset: 0;
-
   pointer-events: none;
-
-  border-radius: 17px 17px 0 0;
-
   background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.05) 30%,
-    rgba(0, 0, 0, 0.48) 100%
+    180deg,
+    rgb(0 0 0 / 12%) 0%,
+    transparent 35%,
+    transparent 100%
   );
 }
 
-/* =========================================================
-   BADGES
-========================================================= */
-
-.badges {
-  position: absolute;
-
-  top: 13px;
-  left: 13px;
-
-  z-index: 3;
-
+.image-placeholder {
   display: flex;
+  flex-direction: column;
   align-items: center;
-
-  gap: 6px;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  height: 100%;
+  min-height: 130px;
+  color: #999;
+  background: linear-gradient(135deg, #f7f7f7, #ededed);
 }
 
-.pro-badge,
-.verified-badge {
-  display: inline-flex;
-  align-items: center;
+.image-placeholder i {
+  font-size: 36px;
+}
 
-  gap: 5px;
-
-  height: 27px;
-
-  padding: 0 9px;
-
-  border-radius: 999px;
-
-  font-size: 9px;
-  font-weight: 700;
-
-  letter-spacing: 0.02em;
-
-  backdrop-filter: blur(8px);
+.image-placeholder span {
+  font-size: 11px;
+  font-weight: 500;
 }
 
 .pro-badge {
-  border: 1px solid rgba(255, 255, 255, 0.15);
-
-  background: rgba(0, 0, 0, 0.78);
-
+  position: absolute;
+  z-index: 2;
+  top: 12px;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 9px;
+  border: 1px solid rgb(255 255 255 / 45%);
+  border-radius: 6px;
+  background: #171717;
   color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  line-height: 1;
 }
 
 .pro-badge i {
-  font-size: 12px;
-}
-
-.verified-badge {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-
-  background: rgba(255, 255, 255, 0.92);
-
-  color: #111;
-}
-
-.verified-badge i {
   font-size: 13px;
+  color: #fff;
 }
 
-/* =========================================================
-   PROFILE IMAGE
-========================================================= */
-
-.profile-image-wrapper {
+.image-verified {
   position: absolute;
-
-  left: 17px;
-  bottom: -34px;
-
-  z-index: 5;
-
-  width: 68px;
-  height: 68px;
-
-  padding: 3px;
-
-  border-radius: 17px;
-
-  background: var(--surface);
-
-  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.12);
-}
-
-.profile-image {
-  display: block;
-
-  width: 100%;
-  height: 100%;
-
-  object-fit: cover;
-
-  border-radius: 14px;
-}
-
-.profile-image-fallback {
+  z-index: 2;
+  top: 11px;
+  right: 11px;
   display: grid;
+  width: 27px;
+  height: 27px;
   place-items: center;
-
-  width: 100%;
-  height: 100%;
-
-  border-radius: 14px;
-
-  background: var(--text);
-  color: var(--background);
-
-  font-size: 20px;
-  font-weight: 800;
+  border: 1px solid rgb(255 255 255 / 70%);
+  border-radius: 50%;
+  background: #fff;
+  color: #18794e;
+  font-size: 17px;
 }
-
-/* =========================================================
-   CARD CONTENT
-========================================================= */
 
 .business-content {
-  padding: 48px 17px 16px;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  padding: 14px 15px 12px;
 }
-
-/* =========================================================
-   TOP META
-========================================================= */
 
 .business-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  gap: 10px;
-
-  margin-bottom: 7px;
+  gap: 8px;
+  min-width: 0;
+  margin-bottom: 9px;
 }
 
-.category {
-  min-width: 0;
-
+.business-category {
+  display: inline-block;
+  max-width: 70%;
   overflow: hidden;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
+  color: #737373;
   font-size: 10px;
   font-weight: 700;
-
+  letter-spacing: 0.075em;
+  line-height: 1.4;
+  text-overflow: ellipsis;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
-
-  color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .rating {
   display: inline-flex;
-  align-items: center;
-
   flex-shrink: 0;
-
+  align-items: center;
   gap: 4px;
-
-  font-size: 10px;
-  font-weight: 600;
-
-  color: var(--text-secondary);
-}
-
-.rating i {
+  min-height: 20px;
+  color: #222;
   font-size: 12px;
-}
-
-/* =========================================================
-   NAME
-========================================================= */
-
-.business-content h3 {
-  display: -webkit-box;
-
-  margin: 0;
-
-  overflow: hidden;
-
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-
-  font-size: 16px;
-  line-height: 1.3;
-
   font-weight: 700;
-
-  color: var(--text);
+  white-space: nowrap;
 }
 
-/* =========================================================
-   BUSINESS TYPE
-========================================================= */
+.rating > i {
+  color: #e5a323;
+  font-size: 15px;
+}
+
+.rating .empty-star {
+  color: #a3a3a3;
+}
+
+.no-rating-label {
+  color: #777;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.business-name {
+  display: -webkit-box;
+  width: fit-content;
+  max-width: 100%;
+  overflow: hidden;
+  color: #171717;
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.4;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  transition: color 160ms ease;
+}
+
+.business-name:hover,
+.business-list-title:hover {
+  color: #555;
+}
 
 .business-type {
-  display: flex;
-  align-items: center;
-
-  gap: 6px;
-
-  margin: 7px 0 0;
-
-  font-size: 10px;
-
-  color: var(--text-secondary);
-}
-
-.business-type i {
-  flex-shrink: 0;
-
-  font-size: 13px;
-
-  color: var(--text-muted);
-}
-
-.business-type span {
+  margin: 4px 0 0;
   overflow: hidden;
-
+  color: #626262;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.45;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* =========================================================
-   LOCATION
-========================================================= */
-
-.location {
+.business-location {
   display: flex;
   align-items: center;
-
-  gap: 6px;
-
-  margin: 6px 0 0;
-
-  font-size: 10px;
-
-  color: var(--text-muted);
+  gap: 5px;
+  min-width: 0;
+  margin-top: 9px;
+  color: #777;
+  font-size: 11px;
+  line-height: 1.4;
 }
 
-.location i {
+.business-location i {
   flex-shrink: 0;
-
-  font-size: 13px;
+  color: #888;
+  font-size: 14px;
 }
 
-.location span {
+.business-location span {
   overflow: hidden;
-
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* =========================================================
-   FOOTER
-========================================================= */
+.business-description {
+  display: -webkit-box;
+  margin: 9px 0 0;
+  overflow: hidden;
+  color: #777;
+  font-size: 11px;
+  line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
 
 .business-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   gap: 10px;
-
-  margin-top: 14px;
+  min-height: 35px;
+  margin-top: auto;
   padding-top: 12px;
-
-  border-top: 1px solid var(--border);
 }
 
 .reviews {
   display: inline-flex;
   align-items: center;
-
   gap: 5px;
-
-  font-size: 10px;
-
-  color: var(--text-muted);
+  min-width: 0;
+  color: #777;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.3;
 }
 
-.reviews i {
+.reviews > i {
+  flex-shrink: 0;
+  color: #888;
+  font-size: 14px;
+}
+
+.business-view {
+  display: grid;
+  flex-shrink: 0;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  border: 1px solid #e9e9e9;
+  border-radius: 8px;
+  background: #fff;
+  color: #333;
+  text-decoration: none;
+  transition:
+    color 160ms ease,
+    background 160ms ease,
+    border-color 160ms ease;
+}
+
+.business-view i {
+  font-size: 17px;
+}
+
+.business-view:hover {
+  border-color: #171717;
+  background: #171717;
+  color: #fff;
+}
+
+/* Rating states */
+
+.rating-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #929292;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.rating-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #b8b8b8;
+  animation: rating-pulse 1s ease-in-out infinite;
+}
+
+.rating-unavailable {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #888;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.rating-unavailable i {
   font-size: 13px;
 }
 
-.view-link {
+.no-rating {
   display: inline-flex;
   align-items: center;
-
-  gap: 3px;
-
-  font-size: 10px;
-  font-weight: 700;
-
-  color: var(--text);
+  gap: 5px;
+  color: #858585;
+  font-size: 11px;
+  font-weight: 500;
 }
 
-.view-link i {
+.no-rating i {
   font-size: 14px;
-
-  transition: transform 0.2s ease;
 }
 
-.business-card:hover .view-link i {
-  transform: translateX(3px);
-}
+/* List variant */
 
-/* =========================================================
-   =========================================================
-   LIST VARIANT
-   =========================================================
-   ========================================================= */
-
-.business-card-list {
+.business-list-card {
   display: flex;
   align-items: stretch;
-
   width: 100%;
-  max-width: none;
   min-width: 0;
-
-  min-height: 160px;
-
+  min-height: 190px;
   overflow: hidden;
-
-  border-radius: 16px;
-
-  transform: none !important;
-
-  box-shadow: none;
-
+  border: 1px solid #e9e9e9;
+  border-radius: 14px;
+  background: #fff;
   transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+    border-color 180ms ease,
+    transform 180ms ease;
 }
 
-.business-card-list:hover {
-  transform: none !important;
-
-  border-color: var(--text-muted);
-
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+.business-list-card:hover {
+  transform: translateY(-2px);
+  border-color: #cfcfcf;
 }
-
-/* =========================================================
-   LIST IMAGE
-========================================================= */
 
 .business-list-image {
   position: relative;
-
-  flex: 0 0 220px;
-
-  width: 220px;
-  min-height: 160px;
-
-  overflow: hidden;
-
-  background: var(--surface-muted);
-}
-
-.list-cover-image {
   display: block;
-
-  width: 100%;
-  height: 100%;
-
-  object-fit: cover;
-
-  transition: transform 0.35s ease;
+  flex: 0 0 230px;
+  width: 230px;
+  min-height: 190px;
+  overflow: hidden;
+  background: #f3f3f3;
+  color: inherit;
+  text-decoration: none;
 }
 
-.business-card-list:hover .list-cover-image {
-  transform: scale(1.035);
+.business-list-card:hover .business-list-image img {
+  transform: scale(1.04);
 }
-
-.list-image-overlay {
-  position: absolute;
-  inset: 0;
-
-  pointer-events: none;
-
-  background: linear-gradient(
-    to right,
-    rgba(0, 0, 0, 0.04),
-    rgba(0, 0, 0, 0.12)
-  );
-}
-
-/* =========================================================
-   LIST IMAGE PLACEHOLDER
-========================================================= */
-
-.business-list-image-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 100%;
-  height: 100%;
-
-  background: linear-gradient(135deg, var(--surface-muted), var(--background));
-
-  color: var(--text-muted);
-}
-
-.business-list-image-placeholder i {
-  font-size: 36px;
-}
-
-/* =========================================================
-   LIST PRO BADGE
-========================================================= */
-
-.list-pro-badge {
-  position: absolute;
-
-  top: 12px;
-  left: 12px;
-
-  z-index: 2;
-
-  display: inline-flex;
-  align-items: center;
-
-  gap: 4px;
-
-  height: 25px;
-
-  padding: 0 9px;
-
-  border: 1px solid rgba(255, 255, 255, 0.14);
-
-  border-radius: 999px;
-
-  background: rgba(0, 0, 0, 0.78);
-
-  color: #fff;
-
-  font-size: 8px;
-  font-weight: 700;
-
-  backdrop-filter: blur(8px);
-}
-
-.list-pro-badge i {
-  font-size: 11px;
-}
-
-/* =========================================================
-   LIST CONTENT
-========================================================= */
 
 .business-list-content {
   display: flex;
-  flex-direction: column;
-
-  min-width: 0;
   flex: 1;
-
-  padding: 19px 22px 17px;
+  flex-direction: column;
+  min-width: 0;
+  padding: 16px 18px;
 }
 
-/* =========================================================
-   LIST TOP
-========================================================= */
-
-.business-list-top {
+.list-top {
   display: flex;
   align-items: center;
-
+  justify-content: space-between;
+  gap: 10px;
   min-width: 0;
-
-  gap: 8px;
-
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
-.list-category {
-  min-width: 0;
-
-  overflow: hidden;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  font-size: 9px;
-  font-weight: 700;
-
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-
-  color: var(--text-muted);
-}
-
-.list-verified {
+.verified-badge {
   display: inline-flex;
-  align-items: center;
-
   flex-shrink: 0;
-
+  align-items: center;
   gap: 4px;
-
-  font-size: 9px;
-  font-weight: 600;
-
-  color: var(--text-secondary);
+  color: #18794e;
+  font-size: 10px;
+  font-weight: 650;
+  white-space: nowrap;
 }
 
-.list-verified i {
-  display: grid;
-  place-items: center;
-
-  width: 15px;
-  height: 15px;
-
-  border-radius: 50%;
-
-  background: var(--text);
-
-  color: var(--background);
-
-  font-size: 9px;
+.verified-badge i {
+  font-size: 14px;
 }
 
-/* =========================================================
-   LIST NAME
-========================================================= */
-
-.list-business-name {
+.business-list-title {
   display: -webkit-box;
-
-  margin: 0;
-
+  width: fit-content;
+  max-width: 100%;
   overflow: hidden;
-
+  color: #171717;
+  font-size: 17px;
+  font-weight: 750;
+  line-height: 1.4;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-
-  font-size: 19px;
-  line-height: 1.3;
-
-  font-weight: 750;
-
-  color: var(--text);
+  transition: color 160ms ease;
 }
 
-/* =========================================================
-   LIST TYPE
-========================================================= */
+.business-list-type {
+  margin: 4px 0 0;
+  color: #666;
+  font-size: 12px;
+  line-height: 1.45;
+}
 
-.list-business-type {
+.business-list-location {
   display: flex;
   align-items: center;
-
+  gap: 5px;
   min-width: 0;
-
-  gap: 6px;
-
-  margin: 8px 0 0;
-
+  margin-top: 8px;
+  color: #777;
   font-size: 11px;
-
-  color: var(--text-secondary);
 }
 
-.list-business-type i {
+.business-list-location i {
   flex-shrink: 0;
-
   font-size: 14px;
-
-  color: var(--text-muted);
 }
 
-.list-business-type span {
-  min-width: 0;
-
+.business-list-location span {
   overflow: hidden;
-
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* =========================================================
-   LIST LOCATION
-========================================================= */
-
-.list-location {
-  display: flex;
-  align-items: center;
-
-  min-width: 0;
-
-  gap: 6px;
-
-  margin: 6px 0 0;
-
-  font-size: 11px;
-
-  color: var(--text-muted);
-}
-
-.list-location i {
-  flex-shrink: 0;
-
-  font-size: 14px;
-}
-
-.list-location span {
-  min-width: 0;
-
+.business-list-description {
+  display: -webkit-box;
+  margin: 9px 0 0;
   overflow: hidden;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  color: #777;
+  font-size: 11px;
+  line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
-
-/* =========================================================
-   LIST BOTTOM
-========================================================= */
 
 .business-list-bottom {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  gap: 14px;
-
+  gap: 12px;
+  min-width: 0;
   margin-top: auto;
   padding-top: 13px;
 }
 
 .list-rating {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  color: #777;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.rating-value {
   display: inline-flex;
   align-items: center;
-
-  min-width: 0;
-
   gap: 4px;
-
-  font-size: 10px;
-
-  color: var(--text-muted);
+  color: #222;
 }
 
-.list-rating i {
-  flex-shrink: 0;
-
-  font-size: 13px;
+.rating-value i {
+  color: #e5a323;
+  font-size: 15px;
 }
 
-.list-rating strong {
-  color: var(--text);
+.rating-value strong {
+  font-size: 12px;
+  font-weight: 750;
+}
 
-  font-weight: 700;
+.rating-review-count {
+  color: #777;
 }
 
 .list-view {
   display: inline-flex;
-  align-items: center;
-
   flex-shrink: 0;
-
-  gap: 4px;
-
-  font-size: 10px;
+  align-items: center;
+  gap: 5px;
+  color: #333;
+  font-size: 11px;
   font-weight: 700;
-
-  color: var(--text);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 160ms ease;
 }
 
 .list-view i {
-  font-size: 15px;
-
-  transition: transform 0.2s ease;
+  font-size: 16px;
+  transition: transform 160ms ease;
 }
 
-.business-card-list:hover .list-view i {
+.list-view:hover {
+  color: #777;
+}
+
+.list-view:hover i {
   transform: translateX(3px);
 }
 
-/* =========================================================
-   LIST ARROW
-========================================================= */
-
-.business-list-arrow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  flex: 0 0 54px;
-
-  border-left: 1px solid var(--border);
-
-  background: transparent;
-
-  color: var(--text-muted);
-
-  transition:
-    color 0.2s ease,
-    background 0.2s ease;
-}
-
-.business-list-arrow i {
-  font-size: 20px;
-
-  transition: transform 0.2s ease;
-}
-
-.business-card-list:hover .business-list-arrow {
-  background: var(--surface-muted);
-
-  color: var(--text);
-}
-
-.business-card-list:hover .business-list-arrow i {
-  transform: translateX(3px);
-}
-
-/* =========================================================
-   TABLET
-========================================================= */
+/* Responsive */
 
 @media (max-width: 900px) {
   .business-list-image {
-    flex-basis: 190px;
-    width: 190px;
-  }
-
-  .business-list-content {
-    padding: 17px 18px;
-  }
-
-  .list-business-name {
-    font-size: 17px;
-  }
-}
-
-/* =========================================================
-   MOBILE
-========================================================= */
-
-@media (max-width: 700px) {
-  .business-image {
-    height: 190px;
-  }
-
-  .business-list-image {
-    flex-basis: 165px;
-    width: 165px;
-    min-height: 145px;
-  }
-
-  .business-card-list {
-    min-height: 145px;
+    flex-basis: 195px;
+    width: 195px;
   }
 
   .business-list-content {
     padding: 14px 15px;
   }
-
-  .list-business-name {
-    font-size: 16px;
-  }
-
-  .list-business-type,
-  .list-location {
-    font-size: 10px;
-  }
-
-  .business-list-arrow {
-    flex-basis: 44px;
-  }
 }
 
-/* =========================================================
-   SMALL MOBILE
-========================================================= */
-
-@media (max-width: 560px) {
-  .business-list-image {
-    flex-basis: 135px;
-    width: 135px;
-    min-height: 135px;
+@media (max-width: 600px) {
+  .business-card {
+    border-radius: 12px;
   }
 
-  .business-card-list {
-    min-height: 135px;
-    border-radius: 14px;
+  .business-image {
+    aspect-ratio: 4 / 3;
   }
 
-  .business-list-content {
+  .business-content {
     padding: 12px;
   }
 
-  .business-list-top {
-    margin-bottom: 4px;
+  .business-top {
+    margin-bottom: 7px;
   }
 
-  .list-category {
-    font-size: 8px;
+  .business-name {
+    font-size: 14px;
   }
 
-  .list-verified {
-    font-size: 8px;
+  .business-type {
+    font-size: 11px;
   }
 
-  .list-verified i {
-    width: 13px;
-    height: 13px;
-
-    font-size: 8px;
+  .business-location {
+    margin-top: 7px;
+    font-size: 10px;
   }
 
-  .list-business-name {
-    font-size: 15px;
-    line-height: 1.25;
+  .business-description {
+    margin-top: 7px;
+    font-size: 10px;
   }
 
-  .list-business-type {
+  .business-footer {
+    padding-top: 10px;
+  }
+
+  .reviews {
+    font-size: 10px;
+  }
+
+  .business-list-card {
+    min-height: 150px;
+    border-radius: 12px;
+  }
+
+  .business-list-image {
+    flex: 0 0 125px;
+    width: 125px;
+    min-height: 150px;
+  }
+
+  .business-list-content {
+    padding: 11px 12px;
+  }
+
+  .list-top {
+    gap: 5px;
+    margin-bottom: 6px;
+  }
+
+  .business-list-title {
+    font-size: 14px;
+  }
+
+  .business-list-type {
+    font-size: 10px;
+  }
+
+  .business-list-location {
     margin-top: 6px;
-
-    font-size: 9px;
+    font-size: 10px;
   }
 
-  .list-location {
-    margin-top: 4px;
-
-    font-size: 9px;
+  .business-list-description {
+    margin-top: 6px;
+    font-size: 10px;
+    -webkit-line-clamp: 2;
   }
 
   .business-list-bottom {
+    gap: 6px;
     padding-top: 9px;
   }
 
   .list-rating {
-    font-size: 9px;
-  }
-
-  .list-rating i {
-    font-size: 11px;
+    gap: 3px;
+    font-size: 10px;
   }
 
   .list-view {
-    display: none;
+    gap: 2px;
+    font-size: 10px;
   }
 
-  .business-list-arrow {
-    flex-basis: 36px;
+  .list-view i {
+    font-size: 14px;
   }
 
-  .business-list-arrow i {
-    font-size: 17px;
+  .verified-badge {
+    font-size: 9px;
+  }
+
+  .verified-badge i {
+    font-size: 12px;
+  }
+
+  .pro-badge {
+    top: 8px;
+    left: 8px;
+    padding: 5px 7px;
+    font-size: 9px;
+  }
+
+  .image-verified {
+    top: 8px;
+    right: 8px;
+    width: 23px;
+    height: 23px;
+    font-size: 15px;
   }
 }
 
-/* =========================================================
-   VERY SMALL MOBILE
-========================================================= */
-
-@media (max-width: 390px) {
-  .business-image {
-    height: 175px;
-  }
-
-  .profile-image-wrapper {
-    left: 14px;
-    bottom: -31px;
-
-    width: 62px;
-    height: 62px;
-  }
-
-  .business-content {
-    padding: 43px 14px 14px;
-  }
-
-  .business-content h3 {
-    font-size: 15px;
-  }
-
-  .badges {
-    top: 10px;
-    left: 10px;
-  }
-
-  .pro-badge,
-  .verified-badge {
-    height: 25px;
-
-    padding: 0 8px;
-
-    font-size: 8px;
-  }
-
-  /* LIST */
-
+@media (max-width: 380px) {
   .business-list-image {
     flex-basis: 105px;
     width: 105px;
-    min-height: 125px;
-  }
-
-  .business-card-list {
-    min-height: 125px;
   }
 
   .business-list-content {
     padding: 10px;
   }
 
-  .list-category {
-    font-size: 7px;
+  .business-list-title {
+    font-size: 13px;
   }
 
-  .list-verified {
-    font-size: 7px;
+  .list-view span {
+    display: none;
   }
 
-  .list-verified i {
-    width: 12px;
-    height: 12px;
-
-    font-size: 7px;
+  .list-view {
+    justify-content: center;
+    width: 25px;
+    height: 25px;
+    border: 1px solid #e9e9e9;
+    border-radius: 7px;
   }
 
-  .list-business-name {
-    font-size: 14px;
-  }
-
-  .list-business-type {
-    margin-top: 5px;
-
-    font-size: 8px;
-  }
-
-  .list-location {
-    margin-top: 3px;
-
-    font-size: 8px;
-  }
-
-  .list-rating {
-    font-size: 8px;
-  }
-
-  .list-rating i {
-    font-size: 10px;
-  }
-
-  .business-list-arrow {
-    flex-basis: 30px;
-  }
-
-  .business-list-arrow i {
-    font-size: 15px;
+  .list-view i {
+    font-size: 16px;
   }
 }
 
-/* =========================================================
-   REDUCED MOTION
-========================================================= */
+@keyframes rating-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.85);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .business-card,
-  .list-cover-image,
-  .list-view i,
-  .business-list-arrow,
-  .business-list-arrow i,
-  .view-link i {
-    transition: none;
-  }
-
-  .business-card:hover {
-    transform: none;
-  }
-
-  .business-card-list:hover .list-cover-image,
-  .business-card-list:hover .list-view i,
-  .business-card-list:hover .business-list-arrow i,
-  .business-card:hover .view-link i {
-    transform: none;
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
