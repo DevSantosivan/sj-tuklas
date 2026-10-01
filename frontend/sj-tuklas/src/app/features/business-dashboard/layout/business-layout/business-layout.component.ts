@@ -107,10 +107,13 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
     switch (this.businessStatus()) {
       case 'pending':
         return 'Pending Approval';
+
       case 'approved':
         return 'Approved';
+
       case 'rejected':
         return 'Rejected';
+
       default:
         return 'No Status';
     }
@@ -124,10 +127,13 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
     switch (this.businessStatus()) {
       case 'pending':
         return 'bx-time-five';
+
       case 'approved':
         return 'bx-check-circle';
+
       case 'rejected':
         return 'bx-x-circle';
+
       default:
         return 'bx-help-circle';
     }
@@ -154,7 +160,7 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
       orders: ['ordering', 'orders', 'orderRequest'],
       bookings: ['booking', 'bookings', 'appointments'],
       reservations: ['reservations'],
-      quote: ['requestQuote', 'request-quote'],
+      quotes: ['requestQuote', 'request-quote'],
       inquiries: ['inquiries'],
       promotions: ['promotions'],
       events: ['events'],
@@ -167,8 +173,7 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
 
   // =========================================================
   // CONFIGURED FEATURES
-  // All features available for the business category/type.
-  // This list is independent of the Pro subscription.
+  // Based on category, business type, and feature flags.
   // =========================================================
 
   readonly configuredBusinessFeatures = computed<BusinessFeature[]>(() => {
@@ -181,14 +186,18 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
     const category = business.category?.toLowerCase().trim() ?? '';
     const type = business.businessType?.toLowerCase().trim() ?? '';
 
+    // =======================================================
+    // BUSINESS TYPE DETECTION
+    // =======================================================
+
     const isFood =
       category.includes('food') ||
       category.includes('restaurant') ||
       category.includes('cafe') ||
-      category.includes('fast food') ||
       type.includes('restaurant') ||
       type.includes('cafe') ||
-      type.includes('food');
+      type.includes('food') ||
+      type.includes('fast food');
 
     const isHotel =
       category.includes('hotel') ||
@@ -205,16 +214,16 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
 
     const isShop =
       category.includes('shop') ||
-      type.includes('retail') ||
-      type.includes('store') ||
-      type.includes('market') ||
-      type.includes('grocery');
+      category.includes('retail') ||
+      category.includes('store') ||
+      category.includes('market') ||
+      category.includes('grocery');
 
     const isBeauty =
+      category.includes('beauty') ||
       type.includes('salon') ||
       type.includes('beauty') ||
-      type.includes('spa') ||
-      category.includes('beauty');
+      type.includes('spa');
 
     const isService =
       category.includes('service') ||
@@ -230,9 +239,23 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
 
     const features: BusinessFeature[] = [];
 
-    const add = (key: string, title: string, icon: string, route: string) => {
+    // =======================================================
+    // ADD FEATURE
+    // =======================================================
+
+    const add = (
+      key: string,
+      title: string,
+      icon: string,
+      route: string,
+    ): void => {
       if (this.isFeatureEnabled(key)) {
-        features.push({ key, title, icon, route });
+        features.push({
+          key,
+          title,
+          icon,
+          route,
+        });
       }
     };
 
@@ -242,31 +265,44 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
 
     if (isFood) {
       add('menu', 'Menu', 'bx-food-menu', '/business/dashboard/menu');
+
       add('products', 'Products', 'bx-package', '/business/dashboard/products');
+
       add('orders', 'Orders', 'bx-receipt', '/business/dashboard/orders');
+
       add(
         'bookings',
         'Bookings',
         'bx-calendar',
         '/business/dashboard/bookings',
       );
+
       add(
         'reservations',
         'Reservations',
         'bx-calendar-check',
-        '/business/dashboard/reservations',
+        '/business/dashboard/bookings',
       );
+
       add(
         'promotions',
         'Promotions',
         'bx-purchase-tag',
         '/business/dashboard/promotions',
       );
+
       add(
         'events',
         'Events',
         'bx-calendar-event',
-        '/business/dashboard/events',
+        '/business/dashboard/analytics',
+      );
+
+      add(
+        'inquiries',
+        'Inquiries',
+        'bx-message-rounded',
+        '/business/dashboard/inquiries',
       );
     }
 
@@ -276,30 +312,35 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
 
     if (isHotel) {
       add('rooms', 'Rooms & Units', 'bx-bed', '/business/dashboard/rooms');
+
       add(
         'bookings',
         'Bookings',
         'bx-calendar',
         '/business/dashboard/bookings',
       );
+
       add(
         'reservations',
         'Reservations',
         'bx-calendar-check',
-        '/business/dashboard/reservations',
+        '/business/dashboard/bookings',
       );
+
       add(
         'services',
         'Amenities',
-        'bx-concierge-bell',
+        'bx-building',
         '/business/dashboard/services',
       );
+
       add(
         'promotions',
         'Offers',
         'bx-purchase-tag',
         '/business/dashboard/promotions',
       );
+
       add(
         'inquiries',
         'Inquiries',
@@ -314,18 +355,21 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
 
     if (isBoardingHouse) {
       add('rooms', 'Rooms & Units', 'bx-bed', '/business/dashboard/rooms');
+
       add(
         'bookings',
         'Bookings',
         'bx-calendar',
         '/business/dashboard/bookings',
       );
+
       add(
         'inquiries',
         'Inquiries',
         'bx-message-rounded',
         '/business/dashboard/inquiries',
       );
+
       add(
         'promotions',
         'Promotions',
@@ -340,13 +384,16 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
 
     if (isShop) {
       add('products', 'Products', 'bx-package', '/business/dashboard/products');
+
       add('orders', 'Orders', 'bx-receipt', '/business/dashboard/orders');
+
       add(
         'promotions',
         'Promotions',
         'bx-purchase-tag',
         '/business/dashboard/promotions',
       );
+
       add(
         'inquiries',
         'Inquiries',
@@ -366,18 +413,21 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
         'bx-briefcase',
         '/business/dashboard/services',
       );
+
       add(
         'bookings',
         'Bookings',
         'bx-calendar',
         '/business/dashboard/bookings',
       );
+
       add(
         'promotions',
         'Promotions',
         'bx-purchase-tag',
         '/business/dashboard/promotions',
       );
+
       add(
         'inquiries',
         'Inquiries',
@@ -397,19 +447,28 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
         'bx-briefcase',
         '/business/dashboard/services',
       );
-      add('quote', 'Request Quotes', 'bx-file', '/business/dashboard/quotes');
+
+      add(
+        'quotes',
+        'Request Quotes',
+        'bx-file',
+        '/business/dashboard/bookings',
+      );
+
       add(
         'bookings',
         'Bookings',
         'bx-calendar',
         '/business/dashboard/bookings',
       );
+
       add(
         'promotions',
         'Promotions',
         'bx-purchase-tag',
         '/business/dashboard/promotions',
       );
+
       add(
         'inquiries',
         'Inquiries',
@@ -427,27 +486,37 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
         'events',
         'Events',
         'bx-calendar-event',
-        '/business/dashboard/events',
+        '/business/dashboard/analytics',
       );
+
       add(
         'menu',
         'Packages & Menu',
         'bx-food-menu',
         '/business/dashboard/menu',
       );
+
       add(
         'bookings',
         'Bookings',
         'bx-calendar',
         '/business/dashboard/bookings',
       );
-      add('quote', 'Request Quotes', 'bx-file', '/business/dashboard/quotes');
+
+      add(
+        'quotes',
+        'Request Quotes',
+        'bx-file',
+        '/business/dashboard/bookings',
+      );
+
       add(
         'promotions',
         'Promotions',
         'bx-purchase-tag',
         '/business/dashboard/promotions',
       );
+
       add(
         'inquiries',
         'Inquiries',
@@ -457,7 +526,7 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
     }
 
     // =======================================================
-    // FALLBACK
+    // FALLBACK FOR OTHER BUSINESS TYPES
     // =======================================================
 
     if (features.length === 0) {
@@ -467,18 +536,21 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
         'bx-briefcase',
         '/business/dashboard/services',
       );
+
       add(
         'bookings',
         'Bookings',
         'bx-calendar',
         '/business/dashboard/bookings',
       );
+
       add(
         'promotions',
         'Promotions',
         'bx-purchase-tag',
         '/business/dashboard/promotions',
       );
+
       add(
         'inquiries',
         'Inquiries',
@@ -487,8 +559,10 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
       );
     }
 
-    // Avoid duplicate navigation items when a business matches
-    // more than one category/type condition.
+    // =======================================================
+    // REMOVE DUPLICATES
+    // =======================================================
+
     return features.filter(
       (feature, index, array) =>
         array.findIndex((item) => item.key === feature.key) === index,
@@ -497,8 +571,8 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
 
   // =========================================================
   // BUSINESS FEATURES
-  // Pro businesses can access enabled tools.
-  // Free businesses see the same tools as locked items.
+  // Free: display as locked.
+  // Pro: display as accessible links.
   // =========================================================
 
   readonly businessFeatures = computed<BusinessFeature[]>(() => {
@@ -589,6 +663,8 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
     this.business.set(updatedBusiness);
 
     console.log('BUSINESS UPDATED:', updatedBusiness);
+    console.log('BUSINESS STATUS:', this.businessStatus());
+    console.log('BUSINESS IS PRO:', this.isPro());
   }
 
   // =========================================================
