@@ -23,6 +23,7 @@ builder.Services.AddScoped<BusinessService>();
 builder.Services.AddScoped<ProfileService>();
 
 builder.Services.AddScoped<FavoriteService>();
+builder.Services.AddScoped<ReviewService>();
 
 // ============================================================
 // AUTH SERVICE
@@ -361,6 +362,12 @@ app.MapBusinessEndpoints();
 // ============================================================
 
 app.MapFavoriteEndpoints();
+
+// ============================================================
+// REVIEW ENDPOINTS
+// ============================================================
+
+app.MapReviewEndpoints();
 
 // ============================================================
 // STATS ENDPOINTS

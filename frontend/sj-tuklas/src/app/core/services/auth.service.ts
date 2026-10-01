@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
 import { API_CONFIG } from '../config/api.config';
@@ -28,6 +28,12 @@ export class AuthService {
   private readonly _authLoading = signal(true);
 
   readonly authLoading = this._authLoading.asReadonly();
+
+  // Prevent multiple simultaneous auth initialization requests.
+  private initializationPromise: Promise<AuthUser | null> | null = null;
+
+  // Prevent multiple simultaneous refresh requests.
+  private refreshPromise: Promise<boolean> | null = null;
 
   // =========================================================
   // REGISTER
@@ -76,9 +82,6 @@ export class AuthService {
           password,
         },
         {
-          // IMPORTANT:
-          // Allows browser to receive/store HttpOnly cookies
-          // from the Render API.
           withCredentials: true,
         },
       ),
@@ -97,11 +100,7 @@ export class AuthService {
 
   async getUser(): Promise<AuthUser | null> {
     try {
-      // -------------------------------------------------------
-      // FIRST:
-      // TRY ACCESS TOKEN
-      // -------------------------------------------------------
-
+      // First, check the current access session.
       const user = await firstValueFrom(
         this.http.get<AuthUser>(`${this.apiUrl}/me`, {
           withCredentials: true,
@@ -111,47 +110,24 @@ export class AuthService {
       this._currentUser.set(user);
 
       return user;
-    } catch {
-      // -------------------------------------------------------
-      // ACCESS TOKEN FAILED
-      // TRY REFRESH TOKEN
-      // -------------------------------------------------------
+    } catch (error) {
+      // Do not clear the user for network or server errors.
+      // Only attempt refresh when the server returns 401.
+      if (!(error instanceof HttpErrorResponse) || error.status !== 401) {
+        console.error('Failed to verify current session:', error);
 
-      try {
-        await firstValueFrom(
-          this.http.post(
-            `${this.apiUrl}/refresh`,
-            {},
-            {
-              withCredentials: true,
-            },
-          ),
-        );
-
-        // -----------------------------------------------------
-        // REFRESH SUCCESSFUL
-        // GET USER AGAIN
-        // -----------------------------------------------------
-
-        const user = await firstValueFrom(
-          this.http.get<AuthUser>(`${this.apiUrl}/me`, {
-            withCredentials: true,
-          }),
-        );
-
-        this._currentUser.set(user);
-
-        return user;
-      } catch {
-        // -----------------------------------------------------
-        // SESSION INVALID / EXPIRED
-        // -----------------------------------------------------
-
-        this._currentUser.set(null);
-
-        return null;
+        return this._currentUser();
       }
     }
+
+    // Access session is unauthorized. Try refreshing it.
+    const refreshed = await this.refresh();
+
+    if (!refreshed) {
+      return null;
+    }
+
+    return this._currentUser();
   }
 
   // =========================================================
@@ -164,7 +140,7 @@ export class AuthService {
     }
 
     try {
-      const user = await firstValueFrom(
+      return await firstValueFrom(
         this.http.get<AuthUser>(
           `${this.apiUrl}/users/${encodeURIComponent(userId)}`,
           {
@@ -172,14 +148,8 @@ export class AuthService {
           },
         ),
       );
-
-      return user;
-    } catch (error: any) {
-      // -----------------------------------------------------
-      // USER NOT FOUND
-      // -----------------------------------------------------
-
-      if (error?.status === 404) {
+    } catch (error) {
+      if (error instanceof HttpErrorResponse && error.status === 404) {
         return null;
       }
 
@@ -194,12 +164,20 @@ export class AuthService {
   // =========================================================
 
   async initialize(): Promise<AuthUser | null> {
+    // Reuse an existing initialization request.
+    if (this.initializationPromise) {
+      return this.initializationPromise;
+    }
+
     this._authLoading.set(true);
 
+    this.initializationPromise = this.getUser();
+
     try {
-      return await this.getUser();
+      return await this.initializationPromise;
     } finally {
       this._authLoading.set(false);
+      this.initializationPromise = null;
     }
   }
 
@@ -230,11 +208,23 @@ export class AuthService {
   // =========================================================
 
   async refresh(): Promise<boolean> {
-    try {
-      // -----------------------------------------------------
-      // REQUEST NEW ACCESS TOKEN
-      // -----------------------------------------------------
+    // Reuse an active refresh request.
+    if (this.refreshPromise) {
+      return this.refreshPromise;
+    }
 
+    this.refreshPromise = this.performRefresh();
+
+    try {
+      return await this.refreshPromise;
+    } finally {
+      this.refreshPromise = null;
+    }
+  }
+
+  private async performRefresh(): Promise<boolean> {
+    try {
+      // Ask the backend to refresh the access session.
       await firstValueFrom(
         this.http.post(
           `${this.apiUrl}/refresh`,
@@ -245,10 +235,7 @@ export class AuthService {
         ),
       );
 
-      // -----------------------------------------------------
-      // GET UPDATED USER
-      // -----------------------------------------------------
-
+      // Verify the refreshed session.
       const user = await firstValueFrom(
         this.http.get<AuthUser>(`${this.apiUrl}/me`, {
           withCredentials: true,
@@ -258,7 +245,9 @@ export class AuthService {
       this._currentUser.set(user);
 
       return true;
-    } catch {
+    } catch (error) {
+      console.error('Failed to refresh authentication session:', error);
+
       this._currentUser.set(null);
 
       return false;
@@ -280,11 +269,10 @@ export class AuthService {
           },
         ),
       );
+    } catch (error) {
+      console.error('Failed to sign out from backend:', error);
     } finally {
-      // -----------------------------------------------------
-      // CLEAR ANGULAR USER STATE
-      // -----------------------------------------------------
-
+      // Always clear the local user state.
       this._currentUser.set(null);
     }
   }

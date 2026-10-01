@@ -20,6 +20,8 @@ import { EmptyStateComponent } from '../../../../shared/components/empty-state/e
 import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
 import { AuthService } from '../../../../core/services/auth.service';
 import { FavoriteService } from '../../../../core/services/favorite.service';
+import { ReviewService } from '../../../../core/services/review.service';
+import { Review, ReviewSummary } from '../../../../core/models/review';
 
 @Component({
   selector: 'app-business-details',
@@ -38,6 +40,8 @@ export class BusinessDetailsComponent {
   private readonly businessService = inject(BusinessService);
   private readonly authService = inject(AuthService);
   private readonly favoriteService = inject(FavoriteService);
+  private readonly reviewService = inject(ReviewService);
+  readonly showReviewLoginMessage = signal(false);
 
   // =========================================================
   // PAGE STATE
@@ -89,6 +93,23 @@ export class BusinessDetailsComponent {
 
   readonly reviewSubmitted = signal(false);
 
+  readonly reviews = signal<Review[]>([]);
+  readonly reviewSummary = signal<ReviewSummary>({
+    averageRating: 0,
+    totalReviews: 0,
+    breakdown: {
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0,
+      5: 0,
+    },
+  });
+
+  readonly reviewsLoading = signal(false);
+  readonly reviewSubmitting = signal(false);
+  readonly reviewError = signal<string | null>(null);
+
   @ViewChild('reviewDialog', { read: ElementRef })
   private readonly reviewDialogElement!: ElementRef<HTMLDialogElement>;
 
@@ -136,14 +157,9 @@ export class BusinessDetailsComponent {
 
   async loadBusiness(id: string): Promise<void> {
     this.loading.set(true);
-
     this.isLoading.set(true);
-
     this.error.set(null);
-
     this.business.set(null);
-
-    // Reset favorite state while changing business.
     this.isFavorite.set(false);
 
     try {
@@ -151,18 +167,21 @@ export class BusinessDetailsComponent {
 
       if (!business) {
         this.error.set('Business not found.');
-
         return;
       }
 
       this.business.set(business);
 
-      /*
-       * Load favorite status separately.
-       *
-       * This uses the currently authenticated user
-       * from the backend through the HttpOnly auth cookie.
-       */
+      // Wait for auth initialization before loading user-specific data.
+      if (this.authService.authLoading()) {
+        await this.authService.initialize();
+      }
+
+      if (this.businessId() !== id) {
+        return;
+      }
+
+      this.loadReviews(id);
       this.loadFavoriteStatus(id);
     } catch (error) {
       console.error('Failed to load business:', error);
@@ -174,9 +193,37 @@ export class BusinessDetailsComponent {
       this.business.set(null);
     } finally {
       this.loading.set(false);
-
       this.isLoading.set(false);
     }
+  }
+
+  loadReviews(businessId: string): void {
+    this.reviewsLoading.set(true);
+    this.reviewError.set(null);
+
+    this.reviewService.getReviews(businessId).subscribe({
+      next: (reviews) => {
+        if (this.businessId() !== businessId) return;
+
+        this.reviews.set(reviews);
+        this.reviewsLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Failed to load reviews:', error);
+        this.reviewError.set('Unable to load reviews.');
+        this.reviewsLoading.set(false);
+      },
+    });
+
+    this.reviewService.getSummary(businessId).subscribe({
+      next: (summary) => {
+        if (this.businessId() !== businessId) return;
+        this.reviewSummary.set(summary);
+      },
+      error: (error) => {
+        console.error('Failed to load review summary:', error);
+      },
+    });
   }
 
   // =========================================================
@@ -377,10 +424,9 @@ export class BusinessDetailsComponent {
     // =======================================================
 
     if (!user) {
+      this.showReviewLoginMessage.set(false);
       this.favoriteModalType.set('login');
-
       this.showFavoriteModal.set(true);
-
       return;
     }
 
@@ -481,6 +527,7 @@ export class BusinessDetailsComponent {
 
   closeFavoriteModal(): void {
     this.showFavoriteModal.set(false);
+    this.showReviewLoginMessage.set(false);
   }
 
   // =========================================================
@@ -998,40 +1045,86 @@ export class BusinessDetailsComponent {
     this.reviewText.set(textarea.value);
   }
 
-  // =========================================================
-  // REVIEW — SUBMIT
-  // =========================================================
-
-  submitReview(): void {
+  async submitReview(): Promise<void> {
+    const businessId = this.businessId();
     const rating = this.selectedRating();
-
     const comment = this.reviewText().trim();
 
-    if (rating === 0) {
+    if (
+      !businessId ||
+      rating < 1 ||
+      rating > 5 ||
+      !comment ||
+      this.reviewSubmitting()
+    ) {
       return;
     }
 
-    if (!comment) {
+    if (this.authService.authLoading()) {
+      try {
+        await this.authService.initialize();
+      } catch (error) {
+        console.error('Failed to initialize authentication:', error);
+      }
+    }
+
+    if (!this.authService.currentUser()) {
+      if (this.reviewDialog.open) {
+        this.reviewDialog.close();
+      }
+
+      this.showReviewLoginMessage.set(true);
+      this.favoriteModalType.set('login');
+      this.showFavoriteModal.set(true);
       return;
     }
 
-    /*
-     * UI ONLY FOR NOW
-     *
-     * Later:
-     *
-     * this.reviewService.create({
-     *   businessId: this.businessId(),
-     *   rating,
-     *   comment
-     * });
-     */
+    this.reviewSubmitting.set(true);
+    this.reviewError.set(null);
 
-    this.reviewSubmitted.set(true);
+    this.reviewService.createReview(businessId, { rating, comment }).subscribe({
+      next: () => {
+        this.reviewSubmitting.set(false);
+        this.reviewSubmitted.set(true);
+        this.selectedRating.set(0);
+        this.reviewText.set('');
 
-    this.selectedRating.set(0);
+        this.loadReviews(businessId);
+      },
+      error: (error) => {
+        console.error('Failed to submit review:', error);
 
-    this.reviewText.set('');
+        this.reviewSubmitting.set(false);
+
+        this.reviewError.set(
+          error.status === 409
+            ? 'You have already reviewed this business.'
+            : error.status === 401
+              ? 'Your session may have expired. Please log in again.'
+              : 'Unable to submit your review. Please try again.',
+        );
+      },
+    });
+  }
+
+  async openReviewDialog(): Promise<void> {
+    if (this.authService.authLoading()) {
+      try {
+        await this.authService.initialize();
+      } catch (error) {
+        console.error('Failed to initialize authentication:', error);
+      }
+    }
+
+    if (!this.authService.currentUser()) {
+      this.showReviewLoginMessage.set(true);
+      this.favoriteModalType.set('login');
+      this.showFavoriteModal.set(true);
+      return;
+    }
+
+    this.reviewError.set(null);
+    this.reviewDialog.showModal();
   }
 
   // =========================================================

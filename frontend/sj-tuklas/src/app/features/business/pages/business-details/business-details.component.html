@@ -32,8 +32,6 @@
         ====================================================== -->
 
         <section class="business-profile-hero">
-          <!-- COVER -->
-
           <div class="business-cover">
             @if (business.image) {
               <img
@@ -44,8 +42,6 @@
             }
 
             <div class="cover-overlay"></div>
-
-            <!-- COVER TOP -->
 
             <div class="cover-top">
               <span class="cover-location">
@@ -66,8 +62,6 @@
               }
             </div>
 
-            <!-- COVER BOTTOM -->
-
             <div class="cover-bottom">
               <div class="cover-category">
                 {{ business.category }}
@@ -79,14 +73,10 @@
             </div>
           </div>
 
-          <!-- ===================================================
-               BUSINESS PROFILE
-          ==================================================== -->
+          <!-- BUSINESS PROFILE -->
 
           <div class="business-profile-content">
             <div class="business-profile-main">
-              <!-- PROFILE IMAGE -->
-
               <div class="profile-image-wrapper">
                 @if (business.image) {
                   <img
@@ -108,11 +98,7 @@
                 }
               </div>
 
-              <!-- BUSINESS INFO -->
-
               <div class="business-profile-info">
-                <!-- BADGES -->
-
                 <div class="top-row">
                   <span class="category">
                     {{ business.category }}
@@ -133,13 +119,9 @@
                   }
                 </div>
 
-                <!-- NAME -->
-
                 <h1>
                   {{ business.name }}
                 </h1>
-
-                <!-- RATING -->
 
                 <div class="rating-row">
                   <span class="rating">
@@ -155,17 +137,10 @@
                   </span>
                 </div>
 
-                <!-- LOCATION -->
-
                 <div class="location">
                   <i class="bx bx-map"></i>
-
-                  <span>
-                    {{ business.location }}
-                  </span>
+                  <span>{{ business.location }}</span>
                 </div>
-
-                <!-- ACTIONS -->
 
                 <div class="actions">
                   @if (business.phone) {
@@ -272,7 +247,6 @@
                 <div class="card-heading">
                   <div>
                     <span>FEATURES</span>
-
                     <h3>Explore {{ business.name }}</h3>
                   </div>
                 </div>
@@ -285,13 +259,8 @@
                       </div>
 
                       <div class="feature-content">
-                        <strong>
-                          {{ feature.title }}
-                        </strong>
-
-                        <span>
-                          {{ feature.description }}
-                        </span>
+                        <strong>{{ feature.title }}</strong>
+                        <span>{{ feature.description }}</span>
                       </div>
 
                       <i class="bx bx-right-arrow-alt feature-arrow"></i>
@@ -302,12 +271,11 @@
             }
 
             <!-- PHOTOS -->
-
+            <br />
             <section class="overview-card photos-section">
               <div class="card-heading">
                 <div>
                   <span>PHOTOS</span>
-
                   <h3>Photos from {{ business.name }}</h3>
                 </div>
 
@@ -357,7 +325,6 @@
               <div class="card-heading">
                 <div>
                   <span>ABOUT</span>
-
                   <h3>About {{ business.name }}</h3>
                 </div>
 
@@ -387,35 +354,25 @@
                 <div class="about-details">
                   <div class="about-detail">
                     <i class="bx bx-category"></i>
-
                     <div>
                       <span>Category</span>
-
-                      <strong>
-                        {{ business.category }}
-                      </strong>
+                      <strong>{{ business.category }}</strong>
                     </div>
                   </div>
 
                   <div class="about-detail">
                     <i class="bx bx-map"></i>
-
                     <div>
                       <span>Location</span>
-
-                      <strong>
-                        {{ business.location }}
-                      </strong>
+                      <strong>{{ business.location }}</strong>
                     </div>
                   </div>
 
                   @if (business.phone) {
                     <div class="about-detail">
                       <i class="bx bx-phone"></i>
-
                       <div>
                         <span>Phone</span>
-
                         <a [href]="'tel:' + business.phone">
                           {{ business.phone }}
                         </a>
@@ -426,13 +383,9 @@
                   @if (business.hours) {
                     <div class="about-detail">
                       <i class="bx bx-time-five"></i>
-
                       <div>
                         <span>Hours</span>
-
-                        <strong>
-                          {{ business.hours }}
-                        </strong>
+                        <strong>{{ business.hours }}</strong>
                       </div>
                     </div>
                   }
@@ -448,7 +401,6 @@
               <div class="card-heading">
                 <div>
                   <span>LOCATION</span>
-
                   <h3>Find this business</h3>
                 </div>
               </div>
@@ -459,11 +411,8 @@
                 </div>
 
                 <div>
-                  <strong>
-                    {{ business.location }}
-                  </strong>
-
-                  <span> San Jose, Occidental Mindoro </span>
+                  <strong>{{ business.location }}</strong>
+                  <span>San Jose, Occidental Mindoro</span>
                 </div>
               </div>
 
@@ -482,13 +431,8 @@
                     </div>
 
                     <div>
-                      <strong>
-                        {{ business.name }}
-                      </strong>
-
-                      <span>
-                        {{ business.location }}
-                      </span>
+                      <strong>{{ business.name }}</strong>
+                      <span>{{ business.location }}</span>
                     </div>
                   </div>
                 </div>
@@ -501,23 +445,20 @@
                 rel="noopener noreferrer"
               >
                 <i class="bx bx-navigation"></i>
-
-                <span> Open in Google Maps </span>
-
+                <span>Open in Google Maps</span>
                 <i class="bx bx-right-arrow-alt"></i>
               </a>
             </section>
 
             <br />
 
-            <!-- REVIEWS -->
+            <!-- OVERVIEW REVIEWS -->
 
             <section class="overview-card reviews-section">
               <div class="reviews-summary">
                 <div class="reviews-summary-header">
                   <div>
-                    <span class="section-eyebrow"> REVIEWS </span>
-
+                    <span class="section-eyebrow">REVIEWS</span>
                     <h2>Customer reviews</h2>
                   </div>
 
@@ -534,23 +475,23 @@
                   <div class="rating-breakdown">
                     @for (rating of [5, 4, 3, 2, 1]; track rating) {
                       <div class="rating-breakdown-row">
-                        <span class="rating-number">
-                          {{ rating }}
-                        </span>
+                        <span class="rating-number">{{ rating }}</span>
 
                         <div class="rating-bar">
                           <div
                             class="rating-bar-fill"
                             [style.width.%]="
-                              rating === 5
-                                ? 78
-                                : rating === 4
-                                  ? 48
-                                  : rating === 3
-                                    ? 22
-                                    : rating === 2
-                                      ? 9
-                                      : 6
+                              business.reviews > 0
+                                ? rating === 5
+                                  ? 78
+                                  : rating === 4
+                                    ? 48
+                                    : rating === 3
+                                      ? 22
+                                      : rating === 2
+                                        ? 9
+                                        : 6
+                                : 0
                             "
                           ></div>
                         </div>
@@ -583,7 +524,7 @@
                 <button
                   type="button"
                   class="write-review-button"
-                  (click)="reviewDialog.showModal()"
+                  (click)="openReviewDialog()"
                 >
                   <i class="bx bx-edit"></i>
                   <span>Write a review</span>
@@ -604,78 +545,64 @@
                 </div>
 
                 <div class="reviews-list">
-                  <article class="review-card">
-                    <div class="review-card-top">
-                      <div class="review-avatar">G</div>
+                  @if (reviewsLoading()) {
+                    <app-skeleton type="line" />
+                  } @else {
+                    @for (review of reviews(); track review.id) {
+                      <article class="review-card">
+                        <div class="review-card-top">
+                          <div class="review-avatar">
+                            @if (review.userAvatar) {
+                              <img
+                                [src]="review.userAvatar"
+                                [alt]="review.userName"
+                              />
+                            } @else {
+                              {{ review.userName.charAt(0).toUpperCase() }}
+                            }
+                          </div>
 
-                      <div class="review-user">
-                        <strong> Guest User </strong>
+                          <div class="review-user">
+                            <strong>{{ review.userName }}</strong>
+                            <span>{{ review.createdAt }}</span>
+                          </div>
+                        </div>
 
-                        <span> Just now </span>
+                        <div class="review-card-rating">
+                          @for (star of [1, 2, 3, 4, 5]; track star) {
+                            <i
+                              class="bx"
+                              [class.bxs-star]="star <= review.rating"
+                              [class.bx-star]="star > review.rating"
+                            ></i>
+                          }
+                        </div>
+
+                        <p>{{ review.comment }}</p>
+                      </article>
+                    } @empty {
+                      <div class="empty-reviews">
+                        <div class="empty-reviews-icon">
+                          <i class="bx bx-message-square-detail"></i>
+                        </div>
+
+                        <strong>No reviews yet</strong>
+                        <p>
+                          Be the first to share your experience with
+                          {{ business.name }}.
+                        </p>
+
+                        <button
+                          type="button"
+                          class="empty-review-action"
+                          (click)="openReviewDialog()"
+                        >
+                          <i class="bx bx-edit"></i>
+                          <span>Write the first review</span>
+                        </button>
                       </div>
-                    </div>
-
-                    <div class="review-card-rating">
-                      @for (star of [1, 2, 3, 4, 5]; track star) {
-                        <i class="bx bxs-star"></i>
-                      }
-                    </div>
-
-                    <p>
-                      Sample customer review will appear here. Actual reviews
-                      will be loaded from the database later.
-                    </p>
-                  </article>
-
-                  <article class="review-card">
-                    <div class="review-card-top">
-                      <div class="review-avatar">M</div>
-
-                      <div class="review-user">
-                        <strong> Maria S. </strong>
-
-                        <span> 2 days ago </span>
-                      </div>
-                    </div>
-
-                    <div class="review-card-rating">
-                      @for (star of [1, 2, 3, 4, 5]; track star) {
-                        <i
-                          class="bx"
-                          [class.bxs-star]="star <= 4"
-                          [class.bx-star]="star > 4"
-                        ></i>
-                      }
-                    </div>
-
-                    <p>
-                      Nice place and very helpful staff. Would definitely
-                      recommend this business.
-                    </p>
-                  </article>
-
-                  <article class="review-card">
-                    <div class="review-card-top">
-                      <div class="review-avatar">J</div>
-
-                      <div class="review-user">
-                        <strong> Juan D. </strong>
-
-                        <span> 5 days ago </span>
-                      </div>
-                    </div>
-
-                    <div class="review-card-rating">
-                      @for (star of [1, 2, 3, 4, 5]; track star) {
-                        <i class="bx bxs-star"></i>
-                      }
-                    </div>
-
-                    <p>
-                      Good experience overall. The service was fast and the
-                      staff were accommodating.
-                    </p>
-                  </article>
+                    }
+                  }
                 </div>
 
                 @if (!reviewSubmitted()) {
@@ -691,13 +618,12 @@
 
                     <div class="review-form-card">
                       <div class="review-form-header">
-                        <span> SHARE YOUR EXPERIENCE </span>
-
+                        <span>SHARE YOUR EXPERIENCE</span>
                         <h3>Write a review</h3>
                       </div>
 
                       <div class="review-rating-field">
-                        <label> Your rating </label>
+                        <label>Your rating</label>
 
                         <div class="rating-selector">
                           @for (star of [1, 2, 3, 4, 5]; track star) {
@@ -718,7 +644,7 @@
                         </div>
 
                         @if (selectedRating() === 0) {
-                          <span class="rating-hint"> Select a rating </span>
+                          <span class="rating-hint">Select a rating</span>
                         } @else {
                           <span class="rating-hint">
                             {{
@@ -737,10 +663,10 @@
                       </div>
 
                       <div class="review-comment-field">
-                        <label for="reviewComment"> Your review </label>
+                        <label for="reviewCommentOverview">Your review</label>
 
                         <textarea
-                          id="reviewComment"
+                          id="reviewCommentOverview"
                           rows="5"
                           maxlength="1000"
                           placeholder="Tell others about your experience..."
@@ -763,7 +689,7 @@
                           (click)="submitReview()"
                         >
                           <i class="bx bx-send"></i>
-                          <span> Submit review </span>
+                          <span>Submit review</span>
                         </button>
                       </div>
                     </div>
@@ -777,8 +703,7 @@
                     </div>
 
                     <div class="review-success-content">
-                      <strong> Review submitted </strong>
-
+                      <strong>Review submitted</strong>
                       <p>Thanks for sharing your experience.</p>
                     </div>
 
@@ -807,8 +732,7 @@
             <div class="reviews-summary">
               <div class="reviews-summary-header">
                 <div>
-                  <span class="section-eyebrow"> REVIEWS </span>
-
+                  <span class="section-eyebrow">REVIEWS</span>
                   <h2>Customer reviews</h2>
                 </div>
 
@@ -825,23 +749,23 @@
                 <div class="rating-breakdown">
                   @for (rating of [5, 4, 3, 2, 1]; track rating) {
                     <div class="rating-breakdown-row">
-                      <span class="rating-number">
-                        {{ rating }}
-                      </span>
+                      <span class="rating-number">{{ rating }}</span>
 
                       <div class="rating-bar">
                         <div
                           class="rating-bar-fill"
                           [style.width.%]="
-                            rating === 5
-                              ? 78
-                              : rating === 4
-                                ? 48
-                                : rating === 3
-                                  ? 22
-                                  : rating === 2
-                                    ? 9
-                                    : 6
+                            business.reviews > 0
+                              ? rating === 5
+                                ? 78
+                                : rating === 4
+                                  ? 48
+                                  : rating === 3
+                                    ? 22
+                                    : rating === 2
+                                      ? 9
+                                      : 6
+                              : 0
                           "
                         ></div>
                       </div>
@@ -874,10 +798,10 @@
               <button
                 type="button"
                 class="write-review-button"
-                (click)="reviewDialog.showModal()"
+                (click)="openReviewDialog()"
               >
                 <i class="bx bx-edit"></i>
-                <span> Write a review </span>
+                <span>Write a review</span>
               </button>
             </div>
 
@@ -895,78 +819,64 @@
               </div>
 
               <div class="reviews-list">
-                <article class="review-card">
-                  <div class="review-card-top">
-                    <div class="review-avatar">G</div>
+                @if (reviewsLoading()) {
+                  <app-skeleton type="line" />
+                } @else {
+                  @for (review of reviews(); track review.id) {
+                    <article class="review-card">
+                      <div class="review-card-top">
+                        <div class="review-avatar">
+                          @if (review.userAvatar) {
+                            <img
+                              [src]="review.userAvatar"
+                              [alt]="review.userName"
+                            />
+                          } @else {
+                            {{ review.userName.charAt(0).toUpperCase() }}
+                          }
+                        </div>
 
-                    <div class="review-user">
-                      <strong> Guest User </strong>
+                        <div class="review-user">
+                          <strong>{{ review.userName }}</strong>
+                          <span>{{ review.createdAt }}</span>
+                        </div>
+                      </div>
 
-                      <span> Just now </span>
+                      <div class="review-card-rating">
+                        @for (star of [1, 2, 3, 4, 5]; track star) {
+                          <i
+                            class="bx"
+                            [class.bxs-star]="star <= review.rating"
+                            [class.bx-star]="star > review.rating"
+                          ></i>
+                        }
+                      </div>
+
+                      <p>{{ review.comment }}</p>
+                    </article>
+                  } @empty {
+                    <div class="empty-reviews">
+                      <div class="empty-reviews-icon">
+                        <i class="bx bx-message-square-detail"></i>
+                      </div>
+
+                      <strong>No reviews yet</strong>
+                      <p>
+                        Be the first to share your experience with
+                        {{ business.name }}.
+                      </p>
+
+                      <button
+                        type="button"
+                        class="empty-review-action"
+                        (click)="openReviewDialog()"
+                      >
+                        <i class="bx bx-edit"></i>
+                        <span>Write the first review</span>
+                      </button>
                     </div>
-                  </div>
-
-                  <div class="review-card-rating">
-                    @for (star of [1, 2, 3, 4, 5]; track star) {
-                      <i class="bx bxs-star"></i>
-                    }
-                  </div>
-
-                  <p>
-                    Sample customer review will appear here. Actual reviews will
-                    be loaded from the database later.
-                  </p>
-                </article>
-
-                <article class="review-card">
-                  <div class="review-card-top">
-                    <div class="review-avatar">M</div>
-
-                    <div class="review-user">
-                      <strong> Maria S. </strong>
-
-                      <span> 2 days ago </span>
-                    </div>
-                  </div>
-
-                  <div class="review-card-rating">
-                    @for (star of [1, 2, 3, 4, 5]; track star) {
-                      <i
-                        class="bx"
-                        [class.bxs-star]="star <= 4"
-                        [class.bx-star]="star > 4"
-                      ></i>
-                    }
-                  </div>
-
-                  <p>
-                    Nice place and very helpful staff. Would definitely
-                    recommend this business.
-                  </p>
-                </article>
-
-                <article class="review-card">
-                  <div class="review-card-top">
-                    <div class="review-avatar">J</div>
-
-                    <div class="review-user">
-                      <strong> Juan D. </strong>
-
-                      <span> 5 days ago </span>
-                    </div>
-                  </div>
-
-                  <div class="review-card-rating">
-                    @for (star of [1, 2, 3, 4, 5]; track star) {
-                      <i class="bx bxs-star"></i>
-                    }
-                  </div>
-
-                  <p>
-                    Good experience overall. The service was fast and the staff
-                    were accommodating.
-                  </p>
-                </article>
+                  }
+                }
               </div>
 
               @if (!reviewSubmitted()) {
@@ -982,13 +892,12 @@
 
                   <div class="review-form-card">
                     <div class="review-form-header">
-                      <span> SHARE YOUR EXPERIENCE </span>
-
+                      <span>SHARE YOUR EXPERIENCE</span>
                       <h3>Write a review</h3>
                     </div>
 
                     <div class="review-rating-field">
-                      <label> Your rating </label>
+                      <label>Your rating</label>
 
                       <div class="rating-selector">
                         @for (star of [1, 2, 3, 4, 5]; track star) {
@@ -1009,7 +918,7 @@
                       </div>
 
                       @if (selectedRating() === 0) {
-                        <span class="rating-hint"> Select a rating </span>
+                        <span class="rating-hint">Select a rating</span>
                       } @else {
                         <span class="rating-hint">
                           {{
@@ -1028,10 +937,10 @@
                     </div>
 
                     <div class="review-comment-field">
-                      <label for="reviewComment"> Your review </label>
+                      <label for="reviewCommentTab">Your review</label>
 
                       <textarea
-                        id="reviewComment"
+                        id="reviewCommentTab"
                         rows="5"
                         maxlength="1000"
                         placeholder="Tell others about your experience..."
@@ -1054,8 +963,7 @@
                         (click)="submitReview()"
                       >
                         <i class="bx bx-send"></i>
-
-                        <span> Submit review </span>
+                        <span>Submit review</span>
                       </button>
                     </div>
                   </div>
@@ -1069,8 +977,7 @@
                   </div>
 
                   <div class="review-success-content">
-                    <strong> Review submitted </strong>
-
+                    <strong>Review submitted</strong>
                     <p>Thanks for sharing your experience.</p>
                   </div>
 
@@ -1094,8 +1001,7 @@
         @if (activeTab() === "photos") {
           <section class="tab-section photos-section">
             <div class="section-heading">
-              <span> PHOTOS </span>
-
+              <span>PHOTOS</span>
               <h2>Photos from {{ business.name }}</h2>
 
               <p class="section-description">
@@ -1115,14 +1021,13 @@
                 } @else {
                   <div class="photo-placeholder">
                     <i class="bx bx-image"></i>
-                    <span> No business photo </span>
+                    <span>No business photo</span>
                   </div>
                 }
 
                 <div class="photo-overlay">
                   <i class="bx bx-image"></i>
-
-                  <span> Business photo </span>
+                  <span>Business photo</span>
                 </div>
               </div>
             </div>
@@ -1138,8 +1043,7 @@
         @if (activeTab() === "about") {
           <section class="tab-section about-section">
             <div class="section-heading">
-              <span> ABOUT </span>
-
+              <span>ABOUT</span>
               <h2>About {{ business.name }}</h2>
             </div>
 
@@ -1159,35 +1063,25 @@
               <div class="about-details">
                 <div class="about-detail">
                   <i class="bx bx-category"></i>
-
                   <div>
-                    <span> Category </span>
-
-                    <strong>
-                      {{ business.category }}
-                    </strong>
+                    <span>Category</span>
+                    <strong>{{ business.category }}</strong>
                   </div>
                 </div>
 
                 <div class="about-detail">
                   <i class="bx bx-map"></i>
-
                   <div>
-                    <span> Location </span>
-
-                    <strong>
-                      {{ business.location }}
-                    </strong>
+                    <span>Location</span>
+                    <strong>{{ business.location }}</strong>
                   </div>
                 </div>
 
                 @if (business.phone) {
                   <div class="about-detail">
                     <i class="bx bx-phone"></i>
-
                     <div>
-                      <span> Phone </span>
-
+                      <span>Phone</span>
                       <a [href]="'tel:' + business.phone">
                         {{ business.phone }}
                       </a>
@@ -1198,13 +1092,9 @@
                 @if (business.hours) {
                   <div class="about-detail">
                     <i class="bx bx-time-five"></i>
-
                     <div>
-                      <span> Hours </span>
-
-                      <strong>
-                        {{ business.hours }}
-                      </strong>
+                      <span>Hours</span>
+                      <strong>{{ business.hours }}</strong>
                     </div>
                   </div>
                 }
@@ -1216,7 +1106,7 @@
     </section>
 
     <!-- =====================================================
-         FAVORITE MODAL
+         FAVORITE / LOGIN MODAL
     ====================================================== -->
 
     @if (showFavoriteModal()) {
@@ -1245,20 +1135,40 @@
           @if (favoriteModalType() === "login") {
             <div class="favorite-modal-content">
               <div class="login-required-icon">
-                <i class="bx bx-heart"></i>
+                @if (showReviewLoginMessage()) {
+                  <i class="bx bx-star"></i>
+                } @else {
+                  <i class="bx bx-heart"></i>
+                }
               </div>
 
               <div class="login-required-content">
-                <span class="login-required-eyebrow"> SAVE FAVORITES </span>
+                <span class="login-required-eyebrow">
+                  @if (showReviewLoginMessage()) {
+                    SHARE YOUR EXPERIENCE
+                  } @else {
+                    SAVE FAVORITES
+                  }
+                </span>
 
-                <h3 id="favoriteModalTitle">Save this business</h3>
+                <h3 id="favoriteModalTitle">
+                  @if (showReviewLoginMessage()) {
+                    Login to write a review
+                  } @else {
+                    Save this business
+                  }
+                </h3>
 
                 <p id="favoriteModalDescription">
-                  Login to save
-                  <strong>
-                    {{ business.name }}
-                  </strong>
-                  to your favorites and easily find it again later.
+                  @if (showReviewLoginMessage()) {
+                    Login to share your experience and write a review for
+                    <strong>{{ business.name }}</strong
+                    >.
+                  } @else {
+                    Login to save
+                    <strong>{{ business.name }}</strong>
+                    to your favorites and easily find it again later.
+                  }
                 </p>
               </div>
 
@@ -1290,14 +1200,11 @@
               </div>
 
               <div class="login-required-content">
-                <span class="login-required-eyebrow"> FAVORITES </span>
-
+                <span class="login-required-eyebrow">FAVORITES</span>
                 <h3 id="favoriteModalTitle">Added to favorites</h3>
 
                 <p id="favoriteModalDescription">
-                  <strong>
-                    {{ business.name }}
-                  </strong>
+                  <strong>{{ business.name }}</strong>
                   has been added to your favorites.
                 </p>
               </div>
@@ -1322,14 +1229,11 @@
               </div>
 
               <div class="login-required-content">
-                <span class="login-required-eyebrow"> FAVORITES </span>
-
+                <span class="login-required-eyebrow">FAVORITES</span>
                 <h3 id="favoriteModalTitle">Removed from favorites</h3>
 
                 <p id="favoriteModalDescription">
-                  <strong>
-                    {{ business.name }}
-                  </strong>
+                  <strong>{{ business.name }}</strong>
                   has been removed from your favorites.
                 </p>
               </div>
@@ -1350,9 +1254,7 @@
       </div>
     }
   } @else {
-    <!-- =====================================================
-         BUSINESS NOT FOUND
-    ====================================================== -->
+    <!-- BUSINESS NOT FOUND -->
 
     <app-empty-state
       title="Business not found"
