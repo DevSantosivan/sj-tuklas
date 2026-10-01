@@ -122,6 +122,7 @@
                   <span>{{ business.location }}</span>
                 </div>
 
+                <!-- PROFILE ACTIONS -->
                 <div class="actions">
                   @if (business.phone) {
                     <a class="primary-action" [href]="'tel:' + business.phone">
@@ -139,10 +140,22 @@
                     <span>Directions</span>
                   </button>
 
+                  @if (hasInquiryFeature()) {
+                    <button
+                      type="button"
+                      class="inquiry-action"
+                      (click)="openInquiry()"
+                    >
+                      <i class="bx bx-message-rounded-dots"></i>
+                      <span>Inquiry</span>
+                    </button>
+                  }
+
                   <button
                     type="button"
                     class="favorite-action"
                     [class.is-favorite]="isFavorite()"
+                    [disabled]="favoriteLoading()"
                     [attr.aria-label]="
                       isFavorite()
                         ? 'Remove from favorites'
@@ -224,18 +237,20 @@
 
                 <div class="features-grid">
                   @for (feature of features(); track feature.key) {
-                    <a class="feature-card" [routerLink]="feature.route">
-                      <div class="feature-icon">
-                        <i [class]="'bx ' + feature.icon"></i>
-                      </div>
+                    @if (feature.key !== "inquiries") {
+                      <a class="feature-card" [routerLink]="feature.route">
+                        <div class="feature-icon">
+                          <i [class]="'bx ' + feature.icon"></i>
+                        </div>
 
-                      <div class="feature-content">
-                        <strong>{{ feature.title }}</strong>
-                        <span>{{ feature.description }}</span>
-                      </div>
+                        <div class="feature-content">
+                          <strong>{{ feature.title }}</strong>
+                          <span>{{ feature.description }}</span>
+                        </div>
 
-                      <i class="bx bx-right-arrow-alt feature-arrow"></i>
-                    </a>
+                        <i class="bx bx-right-arrow-alt feature-arrow"></i>
+                      </a>
+                    }
                   }
                 </div>
               </section>
@@ -489,8 +504,6 @@
           </section>
         }
 
-        <br />
-
         <!-- ABOUT TAB -->
         @if (activeTab() === "about") {
           <section class="tab-section about-section">
@@ -555,13 +568,9 @@
           </section>
         }
 
-        <!-- SHARED REVIEW DIALOG -->
+        <!-- REVIEW DIALOG -->
         @if (!reviewSubmitted()) {
-          <dialog
-            #reviewDialog
-            class="review-dialog"
-            [style.display]="reviewDialog.open ? 'block' : 'none'"
-          >
+          <dialog #reviewDialog class="review-dialog">
             <button
               type="button"
               class="login-required-close"
@@ -661,176 +670,8 @@
             </div>
           </dialog>
         }
-
-        <!-- REVIEW SUBMISSION SUCCESS -->
-        @if (reviewSubmitted()) {
-          <div class="review-success">
-            <div class="review-success-icon">
-              <i class="bx bx-check"></i>
-            </div>
-
-            <div class="review-success-content">
-              <strong>Review submitted</strong>
-              <p>Thanks for sharing your experience.</p>
-            </div>
-
-            <button
-              type="button"
-              class="another-review-button"
-              (click)="writeAnotherReview()"
-            >
-              Write another
-            </button>
-          </div>
-        }
       </div>
     </section>
-
-    <!-- FAVORITE / LOGIN MODAL -->
-    @if (showFavoriteModal()) {
-      <div
-        class="login-required-backdrop"
-        role="presentation"
-        (click)="closeFavoriteModal()"
-      >
-        <div
-          class="login-required-modal favorite-modal"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="favoriteModalTitle"
-          aria-describedby="favoriteModalDescription"
-          (click)="$event.stopPropagation()"
-        >
-          <button
-            type="button"
-            class="login-required-close"
-            aria-label="Close dialog"
-            (click)="closeFavoriteModal()"
-          >
-            <i class="bx bx-x"></i>
-          </button>
-
-          @if (favoriteModalType() === "login") {
-            <div class="favorite-modal-content">
-              <div class="login-required-icon">
-                @if (showReviewLoginMessage()) {
-                  <i class="bx bx-star"></i>
-                } @else {
-                  <i class="bx bx-heart"></i>
-                }
-              </div>
-
-              <div class="login-required-content">
-                <span class="login-required-eyebrow">
-                  @if (showReviewLoginMessage()) {
-                    SHARE YOUR EXPERIENCE
-                  } @else {
-                    SAVE FAVORITES
-                  }
-                </span>
-
-                <h3 id="favoriteModalTitle">
-                  @if (showReviewLoginMessage()) {
-                    Login to write a review
-                  } @else {
-                    Save this business
-                  }
-                </h3>
-
-                <p id="favoriteModalDescription">
-                  @if (showReviewLoginMessage()) {
-                    Login to share your experience and write a review for
-                    <strong>{{ business.name }}</strong
-                    >.
-                  } @else {
-                    Login to save
-                    <strong>{{ business.name }}</strong>
-                    to your favorites and easily find it again later.
-                  }
-                </p>
-              </div>
-
-              <div class="login-required-actions">
-                <button
-                  type="button"
-                  class="login-required-secondary"
-                  (click)="closeFavoriteModal()"
-                >
-                  Maybe later
-                </button>
-
-                <button
-                  type="button"
-                  class="login-required-primary"
-                  (click)="goToLogin()"
-                >
-                  <i class="bx bx-log-in"></i>
-                  <span>Login</span>
-                </button>
-              </div>
-            </div>
-          }
-
-          @if (favoriteModalType() === "success") {
-            <div class="favorite-modal-content">
-              <div class="favorite-success-icon">
-                <i class="bx bxs-heart"></i>
-              </div>
-
-              <div class="login-required-content">
-                <span class="login-required-eyebrow">FAVORITES</span>
-                <h3 id="favoriteModalTitle">Added to favorites</h3>
-
-                <p id="favoriteModalDescription">
-                  <strong>{{ business.name }}</strong>
-                  has been added to your favorites.
-                </p>
-              </div>
-
-              <div class="login-required-actions">
-                <button
-                  type="button"
-                  class="login-required-primary"
-                  (click)="closeFavoriteModal()"
-                >
-                  <i class="bx bx-check"></i>
-                  <span>Done</span>
-                </button>
-              </div>
-            </div>
-          }
-
-          @if (favoriteModalType() === "removed") {
-            <div class="favorite-modal-content">
-              <div class="favorite-removed-icon">
-                <i class="bx bx-heart"></i>
-              </div>
-
-              <div class="login-required-content">
-                <span class="login-required-eyebrow">FAVORITES</span>
-                <h3 id="favoriteModalTitle">Removed from favorites</h3>
-
-                <p id="favoriteModalDescription">
-                  <strong>{{ business.name }}</strong>
-                  has been removed from your favorites.
-                </p>
-              </div>
-
-              <div class="login-required-actions">
-                <button
-                  type="button"
-                  class="login-required-primary"
-                  (click)="closeFavoriteModal()"
-                >
-                  <i class="bx bx-check"></i>
-                  <span>Done</span>
-                </button>
-              </div>
-            </div>
-          }
-        </div>
-      </div>
-    }
   } @else {
     <!-- BUSINESS NOT FOUND -->
     <app-empty-state
@@ -842,3 +683,18 @@
     />
   }
 }
+
+<!-- SHARED LOGIN / FAVORITE / REVIEW / INQUIRY MODAL -->
+<app-login-required-modal
+  [visible]="showFavoriteModal()"
+  [icon]="loginModalIcon()"
+  [primaryIcon]="loginModalPrimaryIcon()"
+  [eyebrow]="loginModalEyebrow()"
+  [title]="loginModalTitle()"
+  [description]="loginModalDescription()"
+  [loginLabel]="loginModalButtonLabel()"
+  [showCancelButton]="loginModalShowCancel()"
+  cancelLabel="Maybe later"
+  (close)="closeFavoriteModal()"
+  (login)="handleLoginModalAction()"
+/>

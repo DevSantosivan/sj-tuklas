@@ -2214,3 +2214,779 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* =========================================================
+   REVIEW DIALOG
+========================================================= */
+
+.review-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  width: min(92vw, 540px);
+  max-width: 540px;
+  max-height: min(88dvh, 760px);
+
+  margin: auto;
+  padding: 0;
+  overflow: visible;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 22px;
+  background: #ffffff;
+  color: #171717;
+
+  box-shadow: 0 24px 80px rgb(0 0 0 / 18%);
+
+  animation: review-dialog-enter 220ms ease both;
+
+  &::backdrop {
+    background: rgb(15 15 15 / 55%);
+    backdrop-filter: blur(5px);
+    animation: review-backdrop-enter 180ms ease both;
+  }
+
+  &[open] {
+    display: block;
+  }
+
+  .login-required-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 2;
+
+    display: grid;
+    place-items: center;
+
+    width: 36px;
+    height: 36px;
+    padding: 0;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #525252;
+
+    cursor: pointer;
+    transition:
+      background 160ms ease,
+      color 160ms ease,
+      border-color 160ms ease,
+      transform 160ms ease;
+
+    i {
+      font-size: 21px;
+    }
+
+    &:hover {
+      background: #f4f4f5;
+      color: #111111;
+      border-color: #d4d4d8;
+      transform: rotate(90deg);
+    }
+
+    &:focus-visible {
+      outline: 3px solid rgb(23 23 23 / 25%);
+      outline-offset: 3px;
+    }
+  }
+}
+
+/* =========================================================
+   FORM CARD
+========================================================= */
+
+.review-form-card {
+  width: 100%;
+  max-height: min(88dvh, 760px);
+  padding: 34px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  scrollbar-width: thin;
+  scrollbar-color: #d4d4d8 transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background: #d4d4d8;
+  }
+}
+
+/* =========================================================
+   FORM HEADER
+========================================================= */
+
+.review-form-header {
+  padding-right: 28px;
+  margin-bottom: 30px;
+
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    margin-bottom: 12px;
+
+    color: #737373;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    line-height: 1.4;
+
+    &::before {
+      content: "";
+      width: 20px;
+      height: 2px;
+      border-radius: 5px;
+      background: #171717;
+    }
+  }
+
+  h3 {
+    margin: 0 0 8px;
+
+    color: #171717;
+    font-size: clamp(23px, 4vw, 29px);
+    font-weight: 750;
+    letter-spacing: -0.045em;
+    line-height: 1.2;
+  }
+
+  p {
+    margin: 0;
+
+    color: #737373;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.65;
+  }
+}
+
+/* =========================================================
+   RATING FIELD
+========================================================= */
+
+.review-rating-field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  padding: 20px;
+  margin-bottom: 24px;
+
+  border: 1px solid #e5e5e5;
+  border-radius: 15px;
+  background: #fafafa;
+
+  > label {
+    margin-bottom: 13px;
+
+    color: #262626;
+    font-size: 13px;
+    font-weight: 700;
+  }
+}
+
+.rating-selector {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.rating-star {
+  display: grid;
+  place-items: center;
+
+  width: 44px;
+  height: 44px;
+  padding: 0;
+
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #d4d4d8;
+
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+
+  i {
+    font-size: 23px;
+    transition: transform 160ms ease;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: #a3a3a3;
+    color: #737373;
+
+    i {
+      transform: scale(1.12);
+    }
+  }
+
+  &.active {
+    border-color: #171717;
+    background: #171717;
+    color: #ffffff;
+
+    i {
+      color: #ffffff;
+    }
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgb(23 23 23 / 25%);
+    outline-offset: 3px;
+  }
+}
+
+.rating-hint {
+  display: inline-block;
+  min-height: 18px;
+  margin-top: 12px;
+
+  color: #737373;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   REVIEW COMMENT
+========================================================= */
+
+.review-comment-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+
+  > label {
+    color: #262626;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  textarea {
+    display: block;
+    width: 100%;
+    min-height: 145px;
+    padding: 15px 16px;
+    resize: vertical;
+
+    border: 1px solid #e5e5e5;
+    border-radius: 13px;
+    outline: none;
+    background: #fafafa;
+    color: #171717;
+
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.7;
+
+    transition:
+      border-color 160ms ease,
+      background 160ms ease,
+      box-shadow 160ms ease;
+
+    &::placeholder {
+      color: #a3a3a3;
+    }
+
+    &:hover {
+      border-color: #a3a3a3;
+    }
+
+    &:focus {
+      border-color: #171717;
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgb(23 23 23 / 7%);
+    }
+  }
+}
+
+/* =========================================================
+   CHARACTER COUNT
+========================================================= */
+
+.character-count {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+
+  margin-top: -2px;
+
+  color: #a3a3a3;
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* =========================================================
+   FORM ERROR
+========================================================= */
+
+.review-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+
+  padding: 12px 14px;
+  margin: 0 0 18px;
+
+  border: 1px solid #fecaca;
+  border-radius: 11px;
+  background: #fef2f2;
+  color: #b91c1c;
+
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.6;
+
+  &::before {
+    content: "!";
+    display: grid;
+    place-items: center;
+    flex: 0 0 17px;
+
+    width: 17px;
+    height: 17px;
+    margin-top: 1px;
+
+    border-radius: 50%;
+    background: #fee2e2;
+    color: #b91c1c;
+
+    font-size: 11px;
+    font-weight: 800;
+  }
+}
+
+/* =========================================================
+   FORM ACTIONS
+========================================================= */
+
+.review-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+
+  padding-top: 5px;
+}
+
+.review-submit-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 9px;
+
+  min-width: 155px;
+  min-height: 46px;
+  padding: 0 20px;
+
+  border: 1px solid #171717;
+  border-radius: 11px;
+  background: #171717;
+  color: #ffffff;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease,
+    opacity 160ms ease;
+
+  i {
+    font-size: 16px;
+    transition: transform 160ms ease;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    border-color: #404040;
+    background: #404040;
+
+    i {
+      transform: translate(2px, -1px);
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgb(23 23 23 / 25%);
+    outline-offset: 3px;
+  }
+
+  &:disabled {
+    border-color: #e5e5e5;
+    background: #e5e5e5;
+    color: #a3a3a3;
+    cursor: not-allowed;
+  }
+}
+
+/* =========================================================
+   REVIEW SUCCESS
+========================================================= */
+
+.review-success {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+
+  width: 100%;
+  padding: 17px 19px;
+  margin-top: 20px;
+
+  border: 1px solid #bbf7d0;
+  border-radius: 15px;
+  background: #f0fdf4;
+
+  animation: review-success-enter 250ms ease both;
+}
+
+.review-success-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 42px;
+
+  width: 42px;
+  height: 42px;
+
+  border-radius: 13px;
+  background: #166534;
+  color: #ffffff;
+
+  i {
+    font-size: 23px;
+  }
+}
+
+.review-success-content {
+  flex: 1;
+  min-width: 0;
+
+  strong {
+    display: block;
+    margin-bottom: 4px;
+
+    color: #166534;
+    font-size: 13px;
+    font-weight: 750;
+  }
+
+  p {
+    margin: 0;
+
+    color: #4b7c5b;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+}
+
+.another-review-button {
+  flex-shrink: 0;
+  padding: 9px 12px;
+
+  border: 1px solid #bbf7d0;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #166534;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease;
+
+  &:hover {
+    border-color: #86efac;
+    background: #dcfce7;
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgb(22 101 52 / 20%);
+    outline-offset: 3px;
+  }
+}
+
+/* =========================================================
+   ANIMATIONS
+========================================================= */
+
+@keyframes review-dialog-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes review-backdrop-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes review-success-enter {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 600px) {
+  .review-dialog {
+    width: calc(100vw - 28px);
+    max-width: none;
+    max-height: 88dvh;
+    border-radius: 19px;
+  }
+
+  .review-form-card {
+    max-height: 88dvh;
+    padding: 27px 22px 23px;
+  }
+
+  .review-form-header {
+    margin-bottom: 25px;
+
+    h3 {
+      font-size: 25px;
+    }
+
+    p {
+      font-size: 12px;
+    }
+  }
+
+  .review-rating-field {
+    padding: 17px;
+    margin-bottom: 21px;
+  }
+
+  .rating-selector {
+    gap: 6px;
+  }
+
+  .rating-star {
+    width: 41px;
+    height: 41px;
+    border-radius: 11px;
+
+    i {
+      font-size: 21px;
+    }
+  }
+
+  .review-comment-field textarea {
+    min-height: 130px;
+  }
+
+  .review-submit-button {
+    width: 100%;
+    min-height: 45px;
+  }
+
+  .review-form-actions {
+    justify-content: stretch;
+  }
+
+  .review-success {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 15px;
+  }
+
+  .another-review-button {
+    width: 100%;
+    min-height: 38px;
+  }
+}
+
+@media (max-width: 380px) {
+  .review-dialog {
+    width: calc(100vw - 20px);
+    border-radius: 16px;
+  }
+
+  .review-form-card {
+    padding: 24px 17px 19px;
+  }
+
+  .review-form-header {
+    padding-right: 25px;
+
+    h3 {
+      font-size: 23px;
+    }
+  }
+
+  .rating-star {
+    width: 38px;
+    height: 38px;
+
+    i {
+      font-size: 19px;
+    }
+  }
+}
+
+/* =========================================
+   INQUIRY BUTTON
+========================================= */
+
+.inquiry-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+
+  min-height: 44px;
+  padding: 0 18px;
+
+  border: 1px solid #171717;
+  border-radius: 10px;
+
+  background: #171717;
+  color: #ffffff;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+
+  cursor: pointer;
+  white-space: nowrap;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+
+  i {
+    font-size: 18px;
+    line-height: 1;
+    transition: transform 0.2s ease;
+  }
+
+  span {
+    line-height: 1;
+  }
+
+  &:hover {
+    background: #333333;
+    border-color: #333333;
+    transform: translateY(-1px);
+
+    i {
+      transform: translateX(2px);
+    }
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba(23, 23, 23, 0.2);
+    outline-offset: 3px;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 576px) {
+  .inquiry-action {
+    min-height: 42px;
+    padding: 0 14px;
+    gap: 7px;
+    font-size: 12px;
+    border-radius: 9px;
+
+    i {
+      font-size: 17px;
+    }
+  }
+}
+
+/* =========================================
+   REDUCED MOTION
+========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .inquiry-action,
+  .inquiry-action i {
+    transition: none;
+  }
+}
+/* =========================================================
+   ACCESSIBILITY
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .review-dialog,
+  .review-dialog::backdrop,
+  .review-success {
+    animation: none;
+  }
+
+  .review-dialog *,
+  .review-success * {
+    scroll-behavior: auto;
+    transition-duration: 0.01ms !important;
+  }
+}

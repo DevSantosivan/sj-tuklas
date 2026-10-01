@@ -1,0 +1,71 @@
+@if (visible()) {
+  <div
+    class="login-required-backdrop"
+    role="presentation"
+    (click)="onBackdropClick()"
+  >
+    <div
+      class="login-required-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="loginRequiredTitle"
+      aria-describedby="loginRequiredDescription"
+      (click)="$event.stopPropagation()"
+    >
+      <button
+        type="button"
+        class="login-required-close"
+        aria-label="Close dialog"
+        (click)="onCloseClick()"
+      >
+        <i class="bx bx-x"></i>
+      </button>
+
+      <div class="login-required-content-wrapper">
+        <div class="login-required-icon">
+          <i [class]="'bx ' + icon()"></i>
+        </div>
+
+        <div class="login-required-content">
+          <span class="login-required-eyebrow">
+            {{ eyebrow() }}
+          </span>
+
+          <h3 id="loginRequiredTitle">
+            {{ title() }}
+          </h3>
+
+          <p id="loginRequiredDescription">
+            {{ description() }}
+          </p>
+        </div>
+
+        <div class="login-required-actions">
+          @if (showCancelButton()) {
+            <button
+              type="button"
+              class="login-required-secondary"
+              (click)="close.emit()"
+            >
+              {{ cancelLabel() }}
+            </button>
+          }
+
+          <button
+            type="button"
+            class="login-required-primary"
+            (click)="onLoginClick()"
+          >
+            @if (loginLabel() === "Login") {
+              <i class="bx bx-log-in"></i>
+            } @else {
+              <i class="bx bx-check"></i>
+            }
+
+            <span>{{ loginLabel() }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

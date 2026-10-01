@@ -23,14 +23,24 @@ import { FavoriteService } from '../../../../core/services/favorite.service';
 import { ReviewService } from '../../../../core/services/review.service';
 import { Review, ReviewSummary } from '../../../../core/models/review';
 import { BusinessReviewsComponent } from '../../components/business-reviews/business-reviews.component';
+import { LoginRequiredModalComponent } from '../../components/login-required-modal/login-required-modal.component';
+
+type FavoriteModalType =
+  | 'login'
+  | 'inquiry'
+  | 'success'
+  | 'removed'
+  | 'review-success';
 
 @Component({
   selector: 'app-business-details',
+  standalone: true,
   imports: [
     RouterLink,
     EmptyStateComponent,
     SkeletonComponent,
     BusinessReviewsComponent,
+    LoginRequiredModalComponent,
   ],
   templateUrl: './business-details.component.html',
   styleUrl: './business-details.component.scss',
@@ -47,6 +57,7 @@ export class BusinessDetailsComponent {
   private readonly authService = inject(AuthService);
   private readonly favoriteService = inject(FavoriteService);
   private readonly reviewService = inject(ReviewService);
+
   readonly showReviewLoginMessage = signal(false);
 
   // =========================================================
@@ -57,10 +68,12 @@ export class BusinessDetailsComponent {
     'overview',
   );
 
+  readonly hasInquiryFeature = computed(() =>
+    this.features().some((feature) => feature.key === 'inquiries'),
+  );
+
   readonly isLoading = signal(true);
-
   readonly loading = signal(true);
-
   readonly error = signal<string | null>(null);
 
   // =========================================================
@@ -68,7 +81,6 @@ export class BusinessDetailsComponent {
   // =========================================================
 
   readonly businessId = signal<string | null>(null);
-
   readonly business = signal<Business | null>(null);
 
   // =========================================================
@@ -78,29 +90,114 @@ export class BusinessDetailsComponent {
   readonly isOpenToday = signal(true);
 
   // =========================================================
-  // FAVORITES
+  // FAVORITES + SHARED MODAL
   // =========================================================
 
   readonly isFavorite = signal(false);
-
   readonly favoriteLoading = signal(false);
-
   readonly showFavoriteModal = signal(false);
 
-  readonly favoriteModalType = signal<'login' | 'success' | 'removed'>('login');
+  readonly favoriteModalType = signal<FavoriteModalType>('login');
+
+  readonly loginModalIcon = computed(() => {
+    switch (this.favoriteModalType()) {
+      case 'success':
+        return 'bx-heart';
+      case 'removed':
+        return 'bx-heart';
+      case 'review-success':
+        return 'bx-check-circle';
+      case 'inquiry':
+        return 'bx-message-square-dots';
+      default:
+        return 'bx-lock-alt';
+    }
+  });
+
+  readonly loginModalPrimaryIcon = computed(() => {
+    switch (this.favoriteModalType()) {
+      case 'success':
+      case 'removed':
+      case 'review-success':
+        return 'bx-check';
+      default:
+        return 'bx-log-in';
+    }
+  });
+
+  readonly loginModalEyebrow = computed(() => {
+    switch (this.favoriteModalType()) {
+      case 'success':
+        return 'SAVED TO FAVORITES';
+      case 'removed':
+        return 'FAVORITES UPDATED';
+      case 'review-success':
+        return 'REVIEW SUBMITTED';
+      case 'inquiry':
+        return 'BUSINESS INQUIRY';
+      default:
+        return 'MEMBER ACCESS';
+    }
+  });
+
+  readonly loginModalTitle = computed(() => {
+    switch (this.favoriteModalType()) {
+      case 'success':
+        return 'Added to favorites';
+      case 'removed':
+        return 'Removed from favorites';
+      case 'review-success':
+        return 'Thank you for your review!';
+      case 'inquiry':
+        return 'Login to send an inquiry';
+      default:
+        return this.showReviewLoginMessage()
+          ? 'Login to write a review'
+          : 'Login to save your favorites';
+    }
+  });
+
+  readonly loginModalDescription = computed(() => {
+    switch (this.favoriteModalType()) {
+      case 'success':
+        return 'This business has been added to your favorites. You can find it anytime in your saved businesses.';
+      case 'removed':
+        return 'This business has been removed from your favorites.';
+      case 'review-success':
+        return 'Your review has been submitted successfully. Thank you for sharing your experience with the community.';
+      case 'inquiry':
+        return 'Sign in to your SJ Tuklas account to send an inquiry and keep track of your conversations with this business.';
+      default:
+        return this.showReviewLoginMessage()
+          ? 'Sign in to your SJ Tuklas account to share your experience and write a review for this business.'
+          : 'Sign in to your SJ Tuklas account to save this business and easily find it again later.';
+    }
+  });
+
+  readonly loginModalButtonLabel = computed(() =>
+    ['success', 'removed', 'review-success'].includes(this.favoriteModalType())
+      ? 'Done'
+      : 'Login',
+  );
+
+  readonly loginModalShowCancel = computed(
+    () =>
+      !['success', 'removed', 'review-success'].includes(
+        this.favoriteModalType(),
+      ),
+  );
 
   // =========================================================
   // REVIEW FORM
   // =========================================================
 
   readonly selectedRating = signal(0);
-
   readonly reviewText = signal('');
-
   readonly reviewSubmitted = signal(false);
 
   readonly reviews = signal<Review[]>([]);
   readonly myReview = signal<Review | null>(null);
+
   readonly reviewSummary = signal<ReviewSummary>({
     averageRating: 0,
     totalReviews: 0,
@@ -136,13 +233,9 @@ export class BusinessDetailsComponent {
 
       if (!id) {
         this.business.set(null);
-
         this.error.set('Business not found.');
-
         this.loading.set(false);
-
         this.isLoading.set(false);
-
         return;
       }
 
@@ -164,14 +257,10 @@ export class BusinessDetailsComponent {
 
   async loadBusiness(id: string): Promise<void> {
     this.loading.set(true);
-
     this.isLoading.set(true);
-
     this.error.set(null);
-
     this.business.set(null);
 
-    // Reset favorite and review state while changing business.
     this.isFavorite.set(false);
     this.reviews.set([]);
     this.myReview.set(null);
@@ -188,19 +277,11 @@ export class BusinessDetailsComponent {
 
       if (!business) {
         this.error.set('Business not found.');
-
         return;
       }
 
       this.business.set(business);
       this.loadReviews(id);
-
-      /*
-       * Load favorite status separately.
-       *
-       * This uses the currently authenticated user
-       * from the backend through the HttpOnly auth cookie.
-       */
       this.loadFavoriteStatus(id);
     } catch (error) {
       console.error('Failed to load business:', error);
@@ -212,10 +293,13 @@ export class BusinessDetailsComponent {
       this.business.set(null);
     } finally {
       this.loading.set(false);
-
       this.isLoading.set(false);
     }
   }
+
+  // =========================================================
+  // REVIEWS LOAD
+  // =========================================================
 
   loadReviews(businessId: string): void {
     this.reviewsLoading.set(true);
@@ -264,8 +348,7 @@ export class BusinessDetailsComponent {
       },
       error: (error) => {
         if (this.businessId() !== businessId) return;
-        // Public reviews remain available even if this request fails
-        // (for example, when the visitor is not authenticated).
+
         if (
           error.status !== 401 &&
           error.status !== 403 &&
@@ -273,6 +356,7 @@ export class BusinessDetailsComponent {
         ) {
           console.error('Failed to load current user review:', error);
         }
+
         this.myReview.set(null);
       },
     });
@@ -283,98 +367,55 @@ export class BusinessDetailsComponent {
   // =========================================================
 
   private loadFavoriteStatus(businessId: string): void {
-    /*
-     * If authentication is still being initialized,
-     * do not immediately assume the business is not favorite.
-     */
     if (this.authService.authLoading()) {
       void this.loadFavoriteStatusAfterAuth(businessId);
-
       return;
     }
 
     const user = this.authService.currentUser();
 
-    /*
-     * Visitor / logged out user.
-     *
-     * No backend favorite request is necessary because
-     * favorites belong to authenticated users.
-     */
     if (!user) {
       this.isFavorite.set(false);
-
       return;
     }
 
     this.favoriteService.isFavorite(businessId).subscribe({
       next: (response) => {
-        /*
-         * Make sure the response still belongs to
-         * the currently displayed business.
-         */
-        if (this.businessId() !== businessId) {
-          return;
-        }
-
+        if (this.businessId() !== businessId) return;
         this.isFavorite.set(response.isFavorite);
       },
-
       error: (error) => {
         console.error('Failed to load favorite status:', error);
-
-        /*
-         * Do not block the business details page
-         * when favorite status fails to load.
-         */
         this.isFavorite.set(false);
       },
     });
   }
-
-  // =========================================================
-  // FAVORITE STATUS — WAIT FOR AUTH
-  // =========================================================
 
   private async loadFavoriteStatusAfterAuth(businessId: string): Promise<void> {
     try {
       await this.authService.initialize();
     } catch (error) {
       console.error('Failed to initialize authentication:', error);
-
       this.isFavorite.set(false);
-
       return;
     }
 
-    /*
-     * Business may have changed while authentication
-     * was initializing.
-     */
-    if (this.businessId() !== businessId) {
-      return;
-    }
+    if (this.businessId() !== businessId) return;
 
     const user = this.authService.currentUser();
 
     if (!user) {
       this.isFavorite.set(false);
-
       return;
     }
 
     this.favoriteService.isFavorite(businessId).subscribe({
       next: (response) => {
-        if (this.businessId() !== businessId) {
-          return;
-        }
-
+        if (this.businessId() !== businessId) return;
         this.isFavorite.set(response.isFavorite);
       },
-
       error: (error) => {
         console.error('Failed to load favorite status:', error);
-
         this.isFavorite.set(false);
       },
     });
@@ -387,18 +428,14 @@ export class BusinessDetailsComponent {
   readonly formattedHours = computed(() => {
     const hours = this.business()?.hours;
 
-    if (!hours) {
-      return [];
-    }
+    if (!hours) return [];
 
     return hours
       .split('\n')
       .map((line) => {
         const match = line.match(/^([^:]+):\s*(.+)$/);
 
-        if (!match) {
-          return null;
-        }
+        if (!match) return null;
 
         return {
           day: match[1].trim(),
@@ -415,52 +452,41 @@ export class BusinessDetailsComponent {
       );
   });
 
-  readonly todayName = computed(() => {
-    return new Intl.DateTimeFormat('en-US', {
+  readonly todayName = computed(() =>
+    new Intl.DateTimeFormat('en-US', {
       weekday: 'long',
-    }).format(new Date());
-  });
+    }).format(new Date()),
+  );
 
   // =========================================================
   // BUSINESS CATEGORY
   // =========================================================
 
-  readonly isHotel = computed(() => {
-    return this.business()?.category === 'Hotels';
-  });
+  readonly isHotel = computed(() => this.business()?.category === 'Hotels');
 
   readonly isBoardingHouse = computed(() => {
-    return this.business()?.category === 'Boarding Houses';
+    const category = this.business()?.category;
+    return category === 'boarding house' || category === 'Boarding Houses';
   });
 
-  readonly isFoodBusiness = computed(() => {
-    return this.business()?.category === 'Foods & Drinks';
-  });
+  readonly isFoodBusiness = computed(
+    () => this.business()?.category === 'Foods & Drinks',
+  );
 
-  readonly isShop = computed(() => {
-    return this.business()?.category === 'Shops';
-  });
+  readonly isShop = computed(() => this.business()?.category === 'Shops');
 
   readonly isServiceBusiness = computed(() => {
-    return this.business()?.category === 'Services';
+    const category = this.business()?.category;
+    return category === 'Service' || category === 'Services';
   });
 
   // =========================================================
-  // FAVORITE
+  // FAVORITE ACTION
   // =========================================================
 
   async toggleFavorite(): Promise<void> {
-    /*
-     * Prevent duplicate clicks while a favorite request
-     * is already being processed.
-     */
-    if (this.favoriteLoading()) {
-      return;
-    }
+    if (this.favoriteLoading()) return;
 
-    /*
-     * Make sure authentication state has been initialized.
-     */
     if (this.authService.authLoading()) {
       try {
         await this.authService.initialize();
@@ -471,10 +497,6 @@ export class BusinessDetailsComponent {
 
     const user = this.authService.currentUser();
 
-    // =======================================================
-    // NOT LOGGED IN
-    // =======================================================
-
     if (!user) {
       this.showReviewLoginMessage.set(false);
       this.favoriteModalType.set('login');
@@ -482,55 +504,25 @@ export class BusinessDetailsComponent {
       return;
     }
 
-    // =======================================================
-    // GET CURRENT BUSINESS
-    // =======================================================
-
     const currentBusiness = this.business();
 
-    if (!currentBusiness) {
-      return;
-    }
+    if (!currentBusiness) return;
 
     const businessId = currentBusiness.id;
-
-    // =======================================================
-    // START REQUEST
-    // =======================================================
-
     this.favoriteLoading.set(true);
-
-    // =======================================================
-    // REMOVE FAVORITE
-    // =======================================================
 
     if (this.isFavorite()) {
       this.favoriteService.removeFavorite(businessId).subscribe({
         next: (response) => {
-          /*
-           * Make sure the response is still for
-           * the currently displayed business.
-           */
-          if (this.businessId() !== businessId) {
-            return;
-          }
+          if (this.businessId() !== businessId) return;
 
           this.isFavorite.set(response.isFavorite);
-
           this.favoriteModalType.set('removed');
-
           this.showFavoriteModal.set(true);
-
           this.favoriteLoading.set(false);
         },
-
         error: (error) => {
           console.error('Failed to remove favorite:', error);
-
-          /*
-           * Keep the current favorite state if
-           * the backend request failed.
-           */
           this.favoriteLoading.set(false);
         },
       });
@@ -538,43 +530,24 @@ export class BusinessDetailsComponent {
       return;
     }
 
-    // =======================================================
-    // ADD FAVORITE
-    // =======================================================
-
     this.favoriteService.addFavorite(businessId).subscribe({
       next: (response) => {
-        /*
-         * Make sure the response is still for
-         * the currently displayed business.
-         */
-        if (this.businessId() !== businessId) {
-          return;
-        }
+        if (this.businessId() !== businessId) return;
 
         this.isFavorite.set(response.isFavorite);
-
         this.favoriteModalType.set('success');
-
         this.showFavoriteModal.set(true);
-
         this.favoriteLoading.set(false);
       },
-
       error: (error) => {
         console.error('Failed to add favorite:', error);
-
-        /*
-         * Keep the current state when the request
-         * fails.
-         */
         this.favoriteLoading.set(false);
       },
     });
   }
 
   // =========================================================
-  // CLOSE FAVORITE MODAL
+  // SHARED MODAL ACTIONS
   // =========================================================
 
   closeFavoriteModal(): void {
@@ -582,9 +555,16 @@ export class BusinessDetailsComponent {
     this.showReviewLoginMessage.set(false);
   }
 
-  // =========================================================
-  // LOGIN
-  // =========================================================
+  handleLoginModalAction(): void {
+    const modalType = this.favoriteModalType();
+
+    if (modalType === 'login' || modalType === 'inquiry') {
+      this.goToLogin();
+      return;
+    }
+
+    this.closeFavoriteModal();
+  }
 
   goToLogin(): void {
     this.showFavoriteModal.set(false);
@@ -605,9 +585,7 @@ export class BusinessDetailsComponent {
       (category) => category.name === business.category,
     );
 
-    if (!category) {
-      return [];
-    }
+    if (!category) return [];
 
     const businessType = category.types.find(
       (type) => type.name === business.businessType,
@@ -623,19 +601,11 @@ export class BusinessDetailsComponent {
   readonly features = computed(() => {
     const business = this.business();
 
-    if (!business) {
-      return [];
-    }
-
-    if (!business.isPro) {
-      return [];
-    }
+    if (!business || !business.isPro) return [];
 
     const configuredFeatures = this.getBusinessTypeFeatures(business);
 
-    if (!configuredFeatures.length) {
-      return [];
-    }
+    if (!configuredFeatures.length) return [];
 
     const availableFeatures: {
       key: string;
@@ -648,17 +618,7 @@ export class BusinessDetailsComponent {
     for (const feature of configuredFeatures) {
       const featureId = feature.id;
 
-      // =====================================================
-      // ANALYTICS
-      // =====================================================
-
-      if (featureId === 'analytics') {
-        continue;
-      }
-
-      // =====================================================
-      // MENU
-      // =====================================================
+      if (featureId === 'analytics') continue;
 
       if (featureId === 'menu' && business.features.menu) {
         availableFeatures.push({
@@ -668,13 +628,8 @@ export class BusinessDetailsComponent {
           icon: feature.icon,
           route: `/business/${business.id}/menu`,
         });
-
         continue;
       }
-
-      // =====================================================
-      // PRODUCTS
-      // =====================================================
 
       if (featureId === 'products' && business.features.products) {
         availableFeatures.push({
@@ -684,13 +639,8 @@ export class BusinessDetailsComponent {
           icon: feature.icon,
           route: `/business/${business.id}/products`,
         });
-
         continue;
       }
-
-      // =====================================================
-      // SERVICES
-      // =====================================================
 
       if (featureId === 'services' && business.features.services) {
         let description = feature.description;
@@ -707,13 +657,8 @@ export class BusinessDetailsComponent {
           icon: feature.icon,
           route: `/business/${business.id}/services`,
         });
-
         continue;
       }
-
-      // =====================================================
-      // SERVICES / PROGRAMS
-      // =====================================================
 
       if (featureId === 'services-programs' && business.features.services) {
         availableFeatures.push({
@@ -723,13 +668,8 @@ export class BusinessDetailsComponent {
           icon: feature.icon,
           route: `/business/${business.id}/services`,
         });
-
         continue;
       }
-
-      // =====================================================
-      // AMENITIES
-      // =====================================================
 
       if (featureId === 'amenities' && business.features.services) {
         availableFeatures.push({
@@ -739,13 +679,8 @@ export class BusinessDetailsComponent {
           icon: feature.icon,
           route: `/business/${business.id}/services`,
         });
-
         continue;
       }
-
-      // =====================================================
-      // ROOMS
-      // =====================================================
 
       if (featureId === 'rooms' && business.features.rooms) {
         let description = feature.description;
@@ -754,7 +689,7 @@ export class BusinessDetailsComponent {
           description = 'Explore rooms, rates, and accommodation options.';
         }
 
-        if (business.category === 'Boarding Houses') {
+        if (this.isBoardingHouse()) {
           description = 'View rooms, monthly rates, and accommodation details.';
         }
 
@@ -765,13 +700,8 @@ export class BusinessDetailsComponent {
           icon: feature.icon,
           route: `/business/${business.id}/rooms`,
         });
-
         continue;
       }
-
-      // =====================================================
-      // ROOMS / UNITS
-      // =====================================================
 
       if (featureId === 'rooms-units' && business.features.rooms) {
         availableFeatures.push({
@@ -781,13 +711,8 @@ export class BusinessDetailsComponent {
           icon: feature.icon,
           route: `/business/${business.id}/rooms`,
         });
-
         continue;
       }
-
-      // =====================================================
-      // UNITS
-      // =====================================================
 
       if (featureId === 'units' && business.features.rooms) {
         availableFeatures.push({
@@ -797,13 +722,8 @@ export class BusinessDetailsComponent {
           icon: feature.icon,
           route: `/business/${business.id}/rooms`,
         });
-
         continue;
       }
-
-      // =====================================================
-      // ORDERING
-      // =====================================================
 
       if (featureId === 'ordering' && business.features.ordering) {
         availableFeatures.push({
@@ -813,13 +733,8 @@ export class BusinessDetailsComponent {
           icon: feature.icon,
           route: `/business/${business.id}/order`,
         });
-
         continue;
       }
-
-      // =====================================================
-      // ORDER REQUEST
-      // =====================================================
 
       if (featureId === 'order-request' && business.features.ordering) {
         availableFeatures.push({
@@ -829,26 +744,19 @@ export class BusinessDetailsComponent {
           icon: feature.icon,
           route: `/business/${business.id}/order`,
         });
-
         continue;
       }
-
-      // =====================================================
-      // BOOKING
-      // =====================================================
 
       if (featureId === 'booking' && business.features.booking) {
         let title = feature.name;
         let description = feature.description;
 
-        if (business.category === 'Hotels') {
+        if (business.category === 'Hotels' || this.isBoardingHouse()) {
           title = 'Book a Room';
-          description = 'Book a room directly with this property.';
-        }
-
-        if (business.category === 'Boarding Houses') {
-          title = 'Book a Room';
-          description = 'Send a room booking request to this boarding house.';
+          description =
+            business.category === 'Hotels'
+              ? 'Book a room directly with this property.'
+              : 'Send a room booking request to this boarding house.';
         }
 
         if (business.businessType === 'Catering') {
@@ -869,13 +777,8 @@ export class BusinessDetailsComponent {
           icon: feature.icon,
           route: `/business/${business.id}/book`,
         });
-
         continue;
       }
-
-      // =====================================================
-      // BOOKING REQUEST
-      // =====================================================
 
       if (featureId === 'booking-request' && business.features.booking) {
         availableFeatures.push({
@@ -885,13 +788,8 @@ export class BusinessDetailsComponent {
           icon: feature.icon,
           route: `/business/${business.id}/book`,
         });
-
         continue;
       }
-
-      // =====================================================
-      // BOOKING INQUIRY
-      // =====================================================
 
       if (featureId === 'booking-inquiry' && business.features.booking) {
         availableFeatures.push({
@@ -901,13 +799,8 @@ export class BusinessDetailsComponent {
           icon: feature.icon,
           route: `/business/${business.id}/book`,
         });
-
         continue;
       }
-
-      // =====================================================
-      // BOOKING ENROLLMENT
-      // =====================================================
 
       if (featureId === 'booking-enrollment' && business.features.booking) {
         availableFeatures.push({
@@ -917,13 +810,8 @@ export class BusinessDetailsComponent {
           icon: feature.icon,
           route: `/business/${business.id}/book`,
         });
-
         continue;
       }
-
-      // =====================================================
-      // RESERVATIONS
-      // =====================================================
 
       if (featureId === 'reservations' && business.features.reservations) {
         let title = feature.name;
@@ -941,13 +829,8 @@ export class BusinessDetailsComponent {
           icon: feature.icon,
           route: `/business/${business.id}/reserve`,
         });
-
         continue;
       }
-
-      // =====================================================
-      // REQUEST QUOTE
-      // =====================================================
 
       if (featureId === 'request-quote' && business.features.requestQuote) {
         availableFeatures.push({
@@ -957,13 +840,8 @@ export class BusinessDetailsComponent {
           icon: feature.icon,
           route: `/business/${business.id}/quote`,
         });
-
         continue;
       }
-
-      // =====================================================
-      // INQUIRIES
-      // =====================================================
 
       if (featureId === 'inquiries' && business.features.inquiries) {
         let description = feature.description;
@@ -973,7 +851,7 @@ export class BusinessDetailsComponent {
             'Ask about rooms, rates, amenities, and booking details.';
         }
 
-        if (business.category === 'Boarding Houses') {
+        if (this.isBoardingHouse()) {
           description =
             'Ask about rooms, requirements, rates, house rules, and move-in details.';
         }
@@ -987,7 +865,7 @@ export class BusinessDetailsComponent {
             'Ask about menu items, orders, and other business details.';
         }
 
-        if (business.category === 'Services') {
+        if (this.isServiceBusiness()) {
           description =
             'Ask about services, pricing, schedules, and business details.';
         }
@@ -999,13 +877,8 @@ export class BusinessDetailsComponent {
           icon: feature.icon,
           route: `/business/${business.id}/inquire`,
         });
-
         continue;
       }
-
-      // =====================================================
-      // PROMOTIONS
-      // =====================================================
 
       if (featureId === 'promotions' && business.features.promotions) {
         availableFeatures.push({
@@ -1015,13 +888,8 @@ export class BusinessDetailsComponent {
           icon: feature.icon,
           route: `/business/${business.id}/promotions`,
         });
-
         continue;
       }
-
-      // =====================================================
-      // EVENTS
-      // =====================================================
 
       if (featureId === 'events' && business.features.events) {
         availableFeatures.push({
@@ -1038,15 +906,46 @@ export class BusinessDetailsComponent {
   });
 
   // =========================================================
+  // INQUIRY
+  // =========================================================
+
+  async openInquiry(): Promise<void> {
+    const business = this.business();
+
+    if (!business || !this.hasInquiryFeature()) return;
+
+    if (this.authService.authLoading()) {
+      try {
+        await this.authService.initialize();
+      } catch (error) {
+        console.error('Failed to initialize authentication:', error);
+      }
+    }
+
+    const visitorId = this.authService.currentUser()?.id;
+
+    if (!visitorId) {
+      this.showReviewLoginMessage.set(false);
+      this.favoriteModalType.set('inquiry');
+      this.showFavoriteModal.set(true);
+      return;
+    }
+
+    await this.router.navigate(['/dashboard', visitorId, 'inquiries'], {
+      queryParams: {
+        businessId: business.id,
+      },
+    });
+  }
+
+  // =========================================================
   // MAP
   // =========================================================
 
   readonly mapUrl = computed<SafeResourceUrl | null>(() => {
     const business = this.business();
 
-    if (!business?.location) {
-      return null;
-    }
+    if (!business?.location) return null;
 
     const location = encodeURIComponent(
       `${business.name}, ${business.location}, San Jose, Occidental Mindoro, Philippines`,
@@ -1064,9 +963,7 @@ export class BusinessDetailsComponent {
   readonly directionsUrl = computed(() => {
     const business = this.business();
 
-    if (!business?.location) {
-      return '#';
-    }
+    if (!business?.location) return '#';
 
     const location = encodeURIComponent(
       `${business.name}, ${business.location}, San Jose, Occidental Mindoro, Philippines`,
@@ -1080,10 +977,7 @@ export class BusinessDetailsComponent {
   // =========================================================
 
   setRating(rating: number): void {
-    if (rating < 1 || rating > 5) {
-      return;
-    }
-
+    if (rating < 1 || rating > 5) return;
     this.selectedRating.set(rating);
   }
 
@@ -1093,25 +987,21 @@ export class BusinessDetailsComponent {
 
   onReviewTextChange(event: Event): void {
     const textarea = event.target as HTMLTextAreaElement;
-
     this.reviewText.set(textarea.value);
   }
 
   getAverageRating(): number {
-    const summary = this.reviewSummary();
-
-    return summary?.averageRating ?? 0;
+    return this.reviewSummary()?.averageRating ?? 0;
   }
 
   getReviewTotal(): number {
-    const summary = this.reviewSummary();
-
-    return summary?.totalReviews ?? this.reviews().length;
+    return this.reviewSummary()?.totalReviews ?? this.reviews().length;
   }
 
   // =========================================================
   // REVIEW — SUBMIT
   // =========================================================
+
   submitReview(): void {
     const businessId = this.businessId();
     const rating = this.selectedRating();
@@ -1154,6 +1044,10 @@ export class BusinessDetailsComponent {
           this.reviewText.set('');
 
           this.loadReviews(businessId);
+
+          this.showReviewLoginMessage.set(false);
+          this.favoriteModalType.set('review-success');
+          this.showFavoriteModal.set(true);
         },
         error: (error) => {
           console.error('Failed to submit review:', error);
@@ -1204,9 +1098,7 @@ export class BusinessDetailsComponent {
   openDirections(): void {
     const business = this.business();
 
-    if (!business) {
-      return;
-    }
+    if (!business) return;
 
     if (
       !Number.isFinite(business.latitude) ||
@@ -1215,9 +1107,7 @@ export class BusinessDetailsComponent {
       return;
     }
 
-    if (!navigator.geolocation) {
-      return;
-    }
+    if (!navigator.geolocation) return;
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -1229,7 +1119,7 @@ export class BusinessDetailsComponent {
         });
       },
       () => {
-        // Location permission denied.
+        // Location permission denied or unavailable.
       },
       {
         enableHighAccuracy: true,
