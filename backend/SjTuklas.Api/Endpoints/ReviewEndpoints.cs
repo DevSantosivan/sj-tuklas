@@ -20,7 +20,9 @@ public static class ReviewEndpoints
                 Guid businessId,
                 ReviewService reviewService) =>
             {
-                var reviews = await reviewService.GetReviewsAsync(businessId);
+                var reviews = await reviewService.GetReviewsAsync(
+                    businessId
+                );
 
                 return Results.Ok(reviews);
             })
@@ -33,7 +35,9 @@ public static class ReviewEndpoints
                 Guid businessId,
                 ReviewService reviewService) =>
             {
-                var summary = await reviewService.GetSummaryAsync(businessId);
+                var summary = await reviewService.GetSummaryAsync(
+                    businessId
+                );
 
                 return Results.Ok(summary);
             })
@@ -50,11 +54,14 @@ public static class ReviewEndpoints
                 var userId = GetUserId(user);
 
                 if (string.IsNullOrWhiteSpace(userId))
+                {
                     return Results.Unauthorized();
+                }
 
                 var review = await reviewService.GetMyReviewAsync(
                     businessId,
-                    userId);
+                    userId
+                );
 
                 return Results.Ok(review);
             })
@@ -72,9 +79,19 @@ public static class ReviewEndpoints
                 var userId = GetUserId(user);
 
                 if (string.IsNullOrWhiteSpace(userId))
+                {
                     return Results.Unauthorized();
+                }
 
-                if (request.Rating is < 1 or > 5)
+                if (request is null)
+                {
+                    return Results.BadRequest(new
+                    {
+                        message = "Review request is required."
+                    });
+                }
+
+                if (request.Rating < 1 || request.Rating > 5)
                 {
                     return Results.BadRequest(new
                     {
@@ -103,6 +120,7 @@ public static class ReviewEndpoints
                 var userName =
                     user.FindFirst(ClaimTypes.Name)?.Value
                     ?? user.FindFirst("name")?.Value
+                    ?? user.FindFirst("preferred_username")?.Value
                     ?? "SJ Tuklas User";
 
                 try
@@ -111,11 +129,17 @@ public static class ReviewEndpoints
                         businessId,
                         userId,
                         userName,
-                        request);
+                        new CreateReviewRequest
+                        {
+                            Rating = request.Rating,
+                            Comment = comment
+                        }
+                    );
 
                     return Results.Created(
                         $"/api/businesses/{businessId}/reviews",
-                        review);
+                        review
+                    );
                 }
                 catch (ReviewAlreadyExistsException)
                 {
@@ -123,6 +147,10 @@ public static class ReviewEndpoints
                     {
                         message = "You have already reviewed this business."
                     });
+                }
+                catch (ArgumentException)
+                {
+                    return Results.Unauthorized();
                 }
             })
             .RequireAuthorization();
@@ -138,18 +166,24 @@ public static class ReviewEndpoints
                 var userId = GetUserId(user);
 
                 if (string.IsNullOrWhiteSpace(userId))
+                {
                     return Results.Unauthorized();
+                }
 
                 var deleted = await reviewService.DeleteReviewAsync(
                     reviewId,
-                    userId);
+                    userId
+                );
 
-                return deleted
-                    ? Results.NoContent()
-                    : Results.NotFound(new
+                if (!deleted)
+                {
+                    return Results.NotFound(new
                     {
                         message = "Review not found."
                     });
+                }
+
+                return Results.NoContent();
             })
             .RequireAuthorization();
 

@@ -1,5 +1,5 @@
-
 using Npgsql;
+using NpgsqlTypes;
 using SjTuklas.Api.Dtos.Reviews;
 using SjTuklas.Api.Models;
 
@@ -51,10 +51,10 @@ public class ReviewService
         await using var command =
             new NpgsqlCommand(sql, connection);
 
-        command.Parameters.AddWithValue(
+        command.Parameters.Add(
             "business_id",
-            businessId
-        );
+            NpgsqlDbType.Uuid
+        ).Value = businessId;
 
         await using var reader =
             await command.ExecuteReaderAsync();
@@ -90,26 +90,29 @@ public class ReviewService
         await using var command =
             new NpgsqlCommand(sql, connection);
 
-        command.Parameters.AddWithValue(
+        command.Parameters.Add(
             "business_id",
-            businessId
-        );
+            NpgsqlDbType.Uuid
+        ).Value = businessId;
 
         await using var reader =
             await command.ExecuteReaderAsync();
 
+        var ratingOrdinal = reader.GetOrdinal("rating");
+
         while (await reader.ReadAsync())
         {
-            ratings.Add(reader.GetInt32(
-                reader.GetOrdinal("rating")
-            ));
+            // PostgreSQL SMALLINT is read as Int16.
+            ratings.Add(reader.GetInt16(ratingOrdinal));
         }
+
+        var totalReviews = ratings.Count;
 
         return new ReviewSummaryResponse
         {
-            TotalReviews = ratings.Count,
+            TotalReviews = totalReviews,
 
-            AverageRating = ratings.Count == 0
+            AverageRating = totalReviews == 0
                 ? 0
                 : Math.Round(ratings.Average(), 1),
 
@@ -132,6 +135,8 @@ public class ReviewService
         Guid businessId,
         string userId)
     {
+        var parsedUserId = ParseUserId(userId);
+
         const string sql = """
             SELECT
                 id,
@@ -149,8 +154,6 @@ public class ReviewService
             LIMIT 1;
             """;
 
-        var parsedUserId = ParseUserId(userId);
-
         await using var connection =
             new NpgsqlConnection(_connectionString);
 
@@ -159,15 +162,15 @@ public class ReviewService
         await using var command =
             new NpgsqlCommand(sql, connection);
 
-        command.Parameters.AddWithValue(
+        command.Parameters.Add(
             "business_id",
-            businessId
-        );
+            NpgsqlDbType.Uuid
+        ).Value = businessId;
 
-        command.Parameters.AddWithValue(
+        command.Parameters.Add(
             "user_id",
-            parsedUserId
-        );
+            NpgsqlDbType.Uuid
+        ).Value = parsedUserId;
 
         await using var reader =
             await command.ExecuteReaderAsync();
@@ -192,6 +195,25 @@ public class ReviewService
     {
         var parsedUserId = ParseUserId(userId);
 
+        var comment = request.Comment?.Trim();
+
+        if (string.IsNullOrWhiteSpace(comment))
+        {
+            throw new ArgumentException(
+                "Review comment is required.",
+                nameof(request)
+            );
+        }
+
+        if (request.Rating < 1 || request.Rating > 5)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(request),
+                "Rating must be from 1 to 5."
+            );
+        }
+
+        // Check whether the user has already reviewed this business.
         var existing = await GetMyReviewAsync(
             businessId,
             userId
@@ -239,7 +261,6 @@ public class ReviewService
 
         var reviewId = Guid.NewGuid();
         var createdAt = DateTime.UtcNow;
-        var comment = request.Comment.Trim();
 
         await using var connection =
             new NpgsqlConnection(_connectionString);
@@ -249,21 +270,54 @@ public class ReviewService
         await using var command =
             new NpgsqlCommand(sql, connection);
 
-        command.Parameters.AddWithValue("id", reviewId);
-        command.Parameters.AddWithValue("business_id", businessId);
-        command.Parameters.AddWithValue("user_id", parsedUserId);
-        command.Parameters.AddWithValue("user_name", userName);
-        command.Parameters.AddWithValue(
+        command.Parameters.Add(
+            "id",
+            NpgsqlDbType.Uuid
+        ).Value = reviewId;
+
+        command.Parameters.Add(
+            "business_id",
+            NpgsqlDbType.Uuid
+        ).Value = businessId;
+
+        command.Parameters.Add(
+            "user_id",
+            NpgsqlDbType.Uuid
+        ).Value = parsedUserId;
+
+        command.Parameters.Add(
+            "user_name",
+            NpgsqlDbType.Varchar
+        ).Value = string.IsNullOrWhiteSpace(userName)
+            ? "SJ Tuklas User"
+            : userName.Trim();
+
+        command.Parameters.Add(
             "user_avatar",
-            DBNull.Value
-        );
-        command.Parameters.AddWithValue("rating", request.Rating);
-        command.Parameters.AddWithValue("comment", comment);
-        command.Parameters.AddWithValue("created_at", createdAt);
-        command.Parameters.AddWithValue(
+            NpgsqlDbType.Text
+        ).Value = DBNull.Value;
+
+        // PostgreSQL SMALLINT.
+        command.Parameters.Add(
+            "rating",
+            NpgsqlDbType.Smallint
+        ).Value = (short)request.Rating;
+
+        command.Parameters.Add(
+            "comment",
+            NpgsqlDbType.Varchar
+        ).Value = comment;
+
+        command.Parameters.Add(
+            "created_at",
+            NpgsqlDbType.TimestampTz
+        ).Value = createdAt;
+
+        // updated_at is NOT NULL in the current database schema.
+        command.Parameters.Add(
             "updated_at",
-            DBNull.Value
-        );
+            NpgsqlDbType.TimestampTz
+        ).Value = createdAt;
 
         try
         {
@@ -288,12 +342,15 @@ public class ReviewService
         }
         catch (PostgresException ex)
         {
+            // Keep database details in server logs only.
             Console.WriteLine("======================================");
             Console.WriteLine("REVIEW DATABASE ERROR");
-            Console.WriteLine($"Code: {ex.SqlState}");
+            Console.WriteLine($"SQL State: {ex.SqlState}");
             Console.WriteLine($"Message: {ex.MessageText}");
             Console.WriteLine($"Detail: {ex.Detail}");
             Console.WriteLine($"Hint: {ex.Hint}");
+            Console.WriteLine($"Table: {ex.TableName}");
+            Console.WriteLine($"Column: {ex.ColumnName}");
             Console.WriteLine("======================================");
 
             throw;
@@ -308,13 +365,13 @@ public class ReviewService
         Guid reviewId,
         string userId)
     {
+        var parsedUserId = ParseUserId(userId);
+
         const string sql = """
             DELETE FROM public.reviews
             WHERE id = @review_id
               AND user_id = @user_id;
             """;
-
-        var parsedUserId = ParseUserId(userId);
 
         await using var connection =
             new NpgsqlConnection(_connectionString);
@@ -324,15 +381,15 @@ public class ReviewService
         await using var command =
             new NpgsqlCommand(sql, connection);
 
-        command.Parameters.AddWithValue(
+        command.Parameters.Add(
             "review_id",
-            reviewId
-        );
+            NpgsqlDbType.Uuid
+        ).Value = reviewId;
 
-        command.Parameters.AddWithValue(
+        command.Parameters.Add(
             "user_id",
-            parsedUserId
-        );
+            NpgsqlDbType.Uuid
+        ).Value = parsedUserId;
 
         var affectedRows =
             await command.ExecuteNonQueryAsync();
@@ -341,51 +398,46 @@ public class ReviewService
     }
 
     // =========================================================
-    // MAP REVIEW
+    // MAP DATABASE RECORD TO DTO
     // =========================================================
 
     private static ReviewResponse MapReview(
         NpgsqlDataReader reader)
     {
-        var userAvatarOrdinal =
-            reader.GetOrdinal("user_avatar");
-
-        var updatedAtOrdinal =
-            reader.GetOrdinal("updated_at");
+        var idOrdinal = reader.GetOrdinal("id");
+        var businessIdOrdinal = reader.GetOrdinal("business_id");
+        var userIdOrdinal = reader.GetOrdinal("user_id");
+        var userNameOrdinal = reader.GetOrdinal("user_name");
+        var userAvatarOrdinal = reader.GetOrdinal("user_avatar");
+        var ratingOrdinal = reader.GetOrdinal("rating");
+        var commentOrdinal = reader.GetOrdinal("comment");
+        var createdAtOrdinal = reader.GetOrdinal("created_at");
+        var updatedAtOrdinal = reader.GetOrdinal("updated_at");
 
         return new ReviewResponse
         {
-            Id = reader.GetGuid(
-                reader.GetOrdinal("id")
-            ),
+            Id = reader.GetGuid(idOrdinal),
 
-            BusinessId = reader.GetGuid(
-                reader.GetOrdinal("business_id")
-            ),
+            BusinessId = reader.GetGuid(businessIdOrdinal),
 
-            UserId = reader.GetGuid(
-                reader.GetOrdinal("user_id")
-            ).ToString(),
+            UserId = reader.GetGuid(userIdOrdinal).ToString(),
 
-            UserName = reader.GetString(
-                reader.GetOrdinal("user_name")
-            ),
+            UserName = reader.IsDBNull(userNameOrdinal)
+                ? "SJ Tuklas User"
+                : reader.GetString(userNameOrdinal),
 
             UserAvatar = reader.IsDBNull(userAvatarOrdinal)
                 ? null
                 : reader.GetString(userAvatarOrdinal),
 
-            Rating = reader.GetInt32(
-                reader.GetOrdinal("rating")
-            ),
+            // PostgreSQL SMALLINT -> C# short -> int.
+            Rating = reader.GetInt16(ratingOrdinal),
 
-            Comment = reader.GetString(
-                reader.GetOrdinal("comment")
-            ),
+            Comment = reader.IsDBNull(commentOrdinal)
+                ? string.Empty
+                : reader.GetString(commentOrdinal),
 
-            CreatedAt = reader.GetDateTime(
-                reader.GetOrdinal("created_at")
-            ),
+            CreatedAt = reader.GetDateTime(createdAtOrdinal),
 
             UpdatedAt = reader.IsDBNull(updatedAtOrdinal)
                 ? null
@@ -408,26 +460,6 @@ public class ReviewService
         }
 
         return parsedUserId;
-    }
-}
-
-// =============================================================
-// REVIEW SERVICE EXCEPTION
-// =============================================================
-
-public class ReviewServiceException : Exception
-{
-    public System.Net.HttpStatusCode StatusCode { get; }
-
-    public string ResponseBody { get; }
-
-    public ReviewServiceException(
-        System.Net.HttpStatusCode statusCode,
-        string responseBody)
-        : base($"Supabase request failed: {(int)statusCode}")
-    {
-        StatusCode = statusCode;
-        ResponseBody = responseBody;
     }
 }
 
