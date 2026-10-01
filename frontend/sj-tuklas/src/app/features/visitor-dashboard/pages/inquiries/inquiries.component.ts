@@ -29,8 +29,10 @@ export class InquiriesComponent implements OnInit, OnDestroy {
   isOpeningInquiry = false;
   isSending = false;
   isLoadingMessages = false;
+
   errorMessage: string | null = null;
   sendError: string | null = null;
+
   mobileChatOpen = false;
 
   ngOnInit(): void {
@@ -55,17 +57,38 @@ export class InquiriesComponent implements OnInit, OnDestroy {
   get filteredInquiries(): Inquiry[] {
     const search = this.searchTerm.trim().toLowerCase();
 
-    if (!search) return this.inquiries;
+    if (!search) {
+      return this.inquiries;
+    }
 
     return this.inquiries.filter((inquiry) =>
       [inquiry.businessName, inquiry.subject, inquiry.lastMessage].some(
-        (value) => value.toLowerCase().includes(search),
+        (value) => (value ?? '').toLowerCase().includes(search),
       ),
     );
   }
 
   get unreadTotal(): number {
-    return this.inquiries.reduce((total, inquiry) => total + inquiry.unread, 0);
+    return this.inquiries.reduce(
+      (total, inquiry) => total + (inquiry.unread ?? 0),
+      0,
+    );
+  }
+
+  getInitials(name: string | null | undefined): string {
+    const cleanName = (name ?? '').trim();
+
+    if (!cleanName) {
+      return 'B';
+    }
+
+    const parts = cleanName.split(/\s+/).filter(Boolean);
+
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+
+    return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
   }
 
   loadInquiries(): void {
@@ -77,35 +100,39 @@ export class InquiriesComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (inquiries) => {
-          this.inquiries = inquiries;
+          this.inquiries = inquiries ?? [];
           this.isLoading = false;
 
           if (this.selectedInquiry) {
-            const refreshed = inquiries.find(
+            const refreshed = this.inquiries.find(
               (item) => item.id === this.selectedInquiry?.id,
             );
 
             if (refreshed) {
               this.selectedInquiry = {
                 ...refreshed,
-                messages: this.selectedInquiry.messages,
+                messages: this.selectedInquiry.messages ?? [],
               };
             }
           }
         },
         error: (error) => {
           console.error('Failed to load inquiries:', error);
+
           this.errorMessage =
             error?.status === 401
               ? 'Please sign in again to view your inquiries.'
               : 'Unable to load your conversations. Please try again.';
+
           this.isLoading = false;
         },
       });
   }
 
   openBusinessInquiry(businessId: string): void {
-    if (this.isOpeningInquiry) return;
+    if (this.isOpeningInquiry) {
+      return;
+    }
 
     this.isOpeningInquiry = true;
     this.errorMessage = null;
@@ -122,7 +149,9 @@ export class InquiriesComponent implements OnInit, OnDestroy {
           );
 
           if (existingIndex >= 0) {
-            this.inquiries[existingIndex] = inquiry;
+            this.inquiries = this.inquiries.map((item) =>
+              item.id === inquiry.id ? inquiry : item,
+            );
           } else {
             this.inquiries = [inquiry, ...this.inquiries];
           }
@@ -131,6 +160,7 @@ export class InquiriesComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Failed to open business inquiry:', error);
+
           this.isOpeningInquiry = false;
           this.errorMessage =
             error?.status === 401
@@ -141,29 +171,38 @@ export class InquiriesComponent implements OnInit, OnDestroy {
   }
 
   selectInquiry(inquiry: Inquiry): void {
-    this.selectedInquiry = inquiry;
+    this.selectedInquiry = {
+      ...inquiry,
+      messages: [],
+    };
+
     this.mobileChatOpen = true;
     this.sendError = null;
     this.isLoadingMessages = true;
 
+    const selectedId = inquiry.id;
+
     this.inquiryService
-      .getMessages(inquiry.id)
+      .getMessages(selectedId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (messages) => {
-          if (this.selectedInquiry?.id !== inquiry.id) return;
+          if (this.selectedInquiry?.id !== selectedId) {
+            return;
+          }
 
-          this.selectedInquiry = {
+          const updated: Inquiry = {
             ...inquiry,
-            messages,
+            messages: messages ?? [],
             unread: 0,
           };
 
-          this.updateInquiry(this.selectedInquiry);
+          this.selectedInquiry = updated;
+          this.updateInquiry(updated);
           this.isLoadingMessages = false;
 
           this.inquiryService
-            .markAsRead(inquiry.id)
+            .markAsRead(selectedId)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
               error: (error) =>
@@ -172,6 +211,11 @@ export class InquiriesComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Failed to load inquiry messages:', error);
+
+          if (this.selectedInquiry?.id !== selectedId) {
+            return;
+          }
+
           this.isLoadingMessages = false;
           this.sendError = 'Unable to load messages. Please try again.';
         },
@@ -182,7 +226,9 @@ export class InquiriesComponent implements OnInit, OnDestroy {
     const message = this.messageText.trim();
     const inquiry = this.selectedInquiry;
 
-    if (!message || !inquiry || this.isSending) return;
+    if (!message || !inquiry || this.isSending) {
+      return;
+    }
 
     if (inquiry.status === 'closed') {
       this.sendError = 'This conversation is closed.';
@@ -203,8 +249,8 @@ export class InquiriesComponent implements OnInit, OnDestroy {
           }
 
           const updated: Inquiry = {
-            ...inquiry,
-            messages: [...inquiry.messages, savedMessage],
+            ...this.selectedInquiry,
+            messages: [...(this.selectedInquiry.messages ?? []), savedMessage],
             lastMessage: savedMessage.message,
             lastMessageTime: this.formatTime(savedMessage.createdAt),
             status: 'new',
@@ -217,10 +263,12 @@ export class InquiriesComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Failed to send inquiry message:', error);
+
           this.sendError =
             error?.status === 401
               ? 'Your session has expired. Please sign in again.'
               : 'Message was not sent. Please try again.';
+
           this.isSending = false;
         },
       });
@@ -260,7 +308,9 @@ export class InquiriesComponent implements OnInit, OnDestroy {
   private formatTime(value: string): string {
     const date = new Date(value);
 
-    if (Number.isNaN(date.getTime())) return value;
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
 
     return new Intl.DateTimeFormat('en-PH', {
       hour: 'numeric',
