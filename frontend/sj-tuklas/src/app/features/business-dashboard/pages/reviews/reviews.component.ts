@@ -9,7 +9,9 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
 import { Review, ReviewSummary } from '../../../../core/models/review';
+
 import { ReviewService } from '../../../../core/services/review.service';
 
 @Component({
@@ -28,6 +30,7 @@ export class ReviewsComponent implements OnChanges {
   readonly summary = signal<ReviewSummary | null>(null);
 
   readonly isLoading = signal(true);
+  readonly isSummaryLoading = signal(false);
   readonly errorMessage = signal('');
   readonly searchQuery = signal('');
   readonly selectedRating = signal('all');
@@ -36,7 +39,13 @@ export class ReviewsComponent implements OnChanges {
   readonly ratingRows = computed(() => {
     const summary = this.summary();
 
-    if (!summary) return [];
+    if (!summary) {
+      return [5, 4, 3, 2, 1].map((rating) => ({
+        rating,
+        count: 0,
+        percentage: 0,
+      }));
+    }
 
     return [5, 4, 3, 2, 1].map((rating) => {
       const count =
@@ -45,9 +54,8 @@ export class ReviewsComponent implements OnChanges {
       return {
         rating,
         count,
-        percentage: summary.totalReviews
-          ? (count / summary.totalReviews) * 100
-          : 0,
+        percentage:
+          summary.totalReviews > 0 ? (count / summary.totalReviews) * 100 : 0,
       };
     });
   });
@@ -60,8 +68,8 @@ export class ReviewsComponent implements OnChanges {
     const filtered = this.reviews().filter((review) => {
       const matchesSearch =
         !query ||
-        review.userName.toLowerCase().includes(query) ||
-        review.comment.toLowerCase().includes(query);
+        (review.userName ?? '').toLowerCase().includes(query) ||
+        (review.comment ?? '').toLowerCase().includes(query);
 
       const matchesRating =
         rating === 'all' || review.rating === Number(rating);
@@ -76,10 +84,13 @@ export class ReviewsComponent implements OnChanges {
       switch (sort) {
         case 'oldest':
           return dateA - dateB;
+
         case 'highest':
           return b.rating - a.rating || dateB - dateA;
+
         case 'lowest':
           return a.rating - b.rating || dateB - dateA;
+
         case 'newest':
         default:
           return dateB - dateA;
@@ -88,8 +99,14 @@ export class ReviewsComponent implements OnChanges {
   });
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['businessId'] && this.businessId) {
-      this.loadReviews();
+    if (changes['businessId']) {
+      if (this.businessId) {
+        this.loadReviews();
+      } else {
+        this.reviews.set([]);
+        this.summary.set(null);
+        this.isLoading.set(false);
+      }
     }
   }
 
@@ -97,7 +114,10 @@ export class ReviewsComponent implements OnChanges {
     if (!this.businessId) return;
 
     this.isLoading.set(true);
+    this.isSummaryLoading.set(true);
     this.errorMessage.set('');
+    this.reviews.set([]);
+    this.summary.set(null);
 
     this.reviewService.getReviews(this.businessId).subscribe({
       next: (reviews) => {
@@ -114,9 +134,11 @@ export class ReviewsComponent implements OnChanges {
     this.reviewService.getSummary(this.businessId).subscribe({
       next: (summary) => {
         this.summary.set(summary);
+        this.isSummaryLoading.set(false);
       },
       error: (error) => {
         console.error('Failed to load review summary:', error);
+        this.isSummaryLoading.set(false);
       },
     });
   }
@@ -133,7 +155,13 @@ export class ReviewsComponent implements OnChanges {
     this.sortBy.set(value);
   }
 
-  getInitials(name: string): string {
+  clearFilters(): void {
+    this.searchQuery.set('');
+    this.selectedRating.set('all');
+    this.sortBy.set('newest');
+  }
+
+  getInitials(name: string | null | undefined): string {
     return (name || 'Guest')
       .trim()
       .split(/\s+/)
@@ -169,15 +197,15 @@ export class ReviewsComponent implements OnChanges {
     if (!rows.length) return;
 
     const escapeCsv = (value: string | number): string =>
-      `"${String(value).replace(/"/g, '""')}"`;
+      `"${String(value ?? '').replace(/"/g, '""')}"`;
 
     const header = ['Customer', 'Rating', 'Comment', 'Date'];
 
     const data = rows.map((review) => [
-      review.userName,
+      review.userName || 'Guest',
       review.rating,
-      review.comment,
-      new Date(review.createdAt).toISOString(),
+      review.comment || '',
+      review.createdAt ? new Date(review.createdAt).toISOString() : '',
     ]);
 
     const csv = [
@@ -194,7 +222,9 @@ export class ReviewsComponent implements OnChanges {
 
     link.href = url;
     link.download = 'business-reviews.csv';
+    document.body.appendChild(link);
     link.click();
+    link.remove();
 
     URL.revokeObjectURL(url);
   }
