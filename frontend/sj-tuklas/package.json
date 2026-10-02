@@ -18,6 +18,8 @@
     "@angular/platform-browser": "^19.2.0",
     "@angular/platform-browser-dynamic": "^19.2.0",
     "@angular/router": "^19.2.0",
+    "@babylonjs/core": "^9.29.0",
+    "@babylonjs/loaders": "^9.29.0",
     "@microsoft/signalr": "^10.0.11",
     "@supabase/supabase-js": "^2.116.0",
     "boxicons": "^2.1.4",

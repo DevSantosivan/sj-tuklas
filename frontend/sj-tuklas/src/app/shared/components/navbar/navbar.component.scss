@@ -737,3 +737,76 @@
     transform: rotate(360deg);
   }
 }
+/* =========================================
+   3D EXPLORE FLOATING BUTTON
+========================================= */
+
+.explore-3d-float {
+  position: fixed;
+
+  right: 24px;
+  bottom: 24px;
+
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  padding: 12px 18px;
+
+  border-radius: 999px;
+
+  text-decoration: none;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.18);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.explore-3d-float i {
+  font-size: 20px;
+}
+
+.explore-3d-float:hover {
+  transform: translateY(-3px);
+
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
+}
+
+.explore-3d-float.active {
+  transform: translateY(-2px);
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 768px) {
+  .explore-3d-float {
+    right: 16px;
+
+    /* para hindi tumama sa mobile bottom nav */
+    bottom: 88px;
+
+    width: 52px;
+    height: 52px;
+
+    padding: 0;
+
+    justify-content: center;
+  }
+
+  .explore-3d-float span {
+    display: none;
+  }
+
+  .explore-3d-float i {
+    font-size: 22px;
+  }
+}

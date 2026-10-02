@@ -144,6 +144,21 @@
   </div>
 
   <!-- =========================================
+       3D EXPLORE FLOATING BUTTON
+       ========================================= -->
+
+  <a
+    routerLink="/explore"
+    routerLinkActive="active"
+    class="explore-3d-float"
+    aria-label="Explore San Jose in 3D"
+  >
+    <i class="bx bx-cube"></i>
+
+    <span> Explore in 3D </span>
+  </a>
+
+  <!-- =========================================
        MOBILE BOTTOM NAVIGATION
        HIDDEN INSIDE /dashboard/:id/*
   ========================================== -->
@@ -157,32 +172,37 @@
         [routerLinkActiveOptions]="{ exact: true }"
       >
         <i class="bx bx-home-alt-2"></i>
-        <span>Home</span>
+
+        <span> Home </span>
       </a>
 
       <!-- DISCOVER -->
       <a routerLink="/search" routerLinkActive="active">
         <i class="bx bx-compass"></i>
-        <span>Discover</span>
+
+        <span> Discover </span>
       </a>
 
       <!-- CATEGORIES -->
       <a routerLink="/categories" routerLinkActive="active">
         <i class="bx bx-grid-alt"></i>
-        <span>Categories</span>
+
+        <span> Categories </span>
       </a>
 
       <!-- LOCATIONS -->
       <a routerLink="/locations" routerLinkActive="active">
         <i class="bx bx-map"></i>
-        <span>Locations</span>
+
+        <span> Locations </span>
       </a>
 
       <!-- PROFILE / ACCOUNT -->
       @if (authLoading()) {
         <div class="mobile-auth-loading">
           <span class="mobile-loading-dot"></span>
-          <span>Loading</span>
+
+          <span> Loading </span>
         </div>
       } @else if (currentUser()) {
         <a

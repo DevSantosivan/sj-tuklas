@@ -798,6 +798,18 @@ export const routes: Routes = [
     ],
   },
 
+  // -------------------------------------------------------
+  // 3D EXPLORE
+  // -------------------------------------------------------
+
+  {
+    path: 'explore',
+    loadComponent: () =>
+      import('./features/explore-3d/pages/explore3d/explore3d.component').then(
+        (m) => m.Explore3dComponent,
+      ),
+  },
+
   // =========================================================
   // FALLBACK
   // =========================================================
