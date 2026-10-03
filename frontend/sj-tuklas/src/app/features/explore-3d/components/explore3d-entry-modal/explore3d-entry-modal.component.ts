@@ -3,6 +3,7 @@ import {
   Component,
   EventEmitter,
   Input,
+  OnInit,
   Output,
   inject,
   signal,
@@ -11,8 +12,10 @@ import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 
 import { Explore3dCharacterService } from '../../../../core/services/explore3d-character.service';
+import { Character3dPreviewComponent } from '../character-3d-preview/character-3d-preview.component';
 
 type ModalMode = 'auth' | 'character';
+
 export type CharacterModelId = 'aj' | 'suit' | 'brian';
 
 interface CharacterModelOption {
@@ -25,11 +28,11 @@ interface CharacterModelOption {
 @Component({
   selector: 'app-explore3d-entry-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, Character3dPreviewComponent],
   templateUrl: './explore3d-entry-modal.component.html',
   styleUrl: './explore3d-entry-modal.component.scss',
 })
-export class Explore3dEntryModalComponent {
+export class Explore3dEntryModalComponent implements OnInit {
   private readonly characterService = inject(Explore3dCharacterService);
 
   @Input() isOpen = false;
@@ -73,6 +76,7 @@ export class Explore3dEntryModalComponent {
 
   close(): void {
     if (this.isSaving()) return;
+
     this.closed.emit();
   }
 

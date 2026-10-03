@@ -3,6 +3,8 @@
   --modal-muted: #737373;
   --modal-border: #e5e5e5;
   --modal-accent: #171717;
+
+  display: block;
 }
 
 .modal-backdrop {
@@ -32,7 +34,7 @@
   position: absolute;
   top: 14px;
   right: 14px;
-  z-index: 1;
+  z-index: 5;
   display: grid;
   place-items: center;
   width: 36px;
@@ -184,6 +186,8 @@ h2 {
   text-align: center;
 }
 
+/* CHARACTER SETUP */
+
 .character-content {
   .modal-icon {
     margin-left: 0;
@@ -211,6 +215,9 @@ h2 {
     color: var(--modal-text);
     font: inherit;
     font-size: 13px;
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease;
 
     &:focus {
       border-color: #737373;
@@ -222,6 +229,8 @@ h2 {
     margin-top: 20px;
   }
 }
+
+/* CHARACTER CARDS */
 
 .character-grid {
   display: grid;
@@ -242,11 +251,21 @@ h2 {
   text-align: center;
   transition:
     border-color 160ms ease,
-    background 160ms ease;
+    background 160ms ease,
+    transform 160ms ease;
+
+  &:hover {
+    border-color: #a3a3a3;
+    background: #fafafa;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
 
   &.selected {
-    border: 2px solid #171717;
     padding: 6px;
+    border: 2px solid #171717;
     background: #fafafa;
   }
 
@@ -261,6 +280,7 @@ h2 {
   strong {
     margin-top: 7px;
     font-size: 11px;
+    font-weight: 700;
   }
 
   small {
@@ -270,19 +290,30 @@ h2 {
   }
 }
 
+/* 3D CHARACTER PREVIEW */
+
 .character-preview {
   position: relative;
-  display: grid;
-  place-items: center;
-  aspect-ratio: 1 / 1;
+  display: block;
+  width: 100%;
+  height: 180px;
   overflow: hidden;
   border-radius: 8px;
-  background: #f2f2f2;
+  isolation: isolate;
+  background: radial-gradient(
+    ellipse at 50% 38%,
+    rgb(255 255 255 / 95%) 0%,
+    rgb(245 245 245 / 85%) 38%,
+    rgb(232 232 232 / 100%) 100%
+  );
 
-  img {
+  appcharacter3dpreview {
+    position: absolute;
+    inset: 0;
+    display: block;
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    z-index: 1;
   }
 }
 
@@ -290,15 +321,20 @@ h2 {
   position: absolute;
   top: 5px;
   right: 5px;
+  z-index: 3;
   display: grid;
   place-items: center;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgb(255 255 255 / 75%);
   border-radius: 50%;
   background: #171717;
   color: #fff;
   font-size: 14px;
+  pointer-events: none;
 }
+
+/* CREATE BUTTON */
 
 .create-action {
   justify-content: center;
@@ -306,12 +342,21 @@ h2 {
   margin-top: 18px;
   font-size: 12px;
   text-align: center;
+
+  > i:first-child {
+    font-size: 19px;
+  }
+
+  .action-arrow {
+    margin-left: 0;
+  }
 }
 
 .error-message {
   margin: 12px 0 0;
   color: #dc2626;
   font-size: 11px;
+  line-height: 1.5;
 }
 
 .button-spinner {
@@ -322,6 +367,8 @@ h2 {
   border-radius: 50%;
   animation: spin 700ms linear infinite;
 }
+
+/* ANIMATIONS */
 
 @keyframes spin {
   to {
@@ -341,12 +388,16 @@ h2 {
   }
 }
 
+/* RESPONSIVE */
+
 @media (max-width: 480px) {
   .modal-backdrop {
     padding: 12px;
   }
 
   .explore-modal {
+    width: 100%;
+    max-height: 92dvh;
     border-radius: 18px;
   }
 
@@ -365,6 +416,40 @@ h2 {
       padding: 4px;
     }
   }
+
+  .character-preview {
+    height: 145px;
+  }
+
+  .character-option strong {
+    font-size: 10px;
+  }
+
+  .character-option small {
+    font-size: 8px;
+  }
+}
+
+@media (max-width: 360px) {
+  .modal-content {
+    padding: 28px 14px 20px;
+  }
+
+  .character-grid {
+    gap: 5px;
+  }
+
+  .character-preview {
+    height: 125px;
+  }
+
+  .character-option {
+    padding: 4px;
+
+    &.selected {
+      padding: 3px;
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -376,5 +461,7 @@ h2 {
   *::before,
   *::after {
     transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

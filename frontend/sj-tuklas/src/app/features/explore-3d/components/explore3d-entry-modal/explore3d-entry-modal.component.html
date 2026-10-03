@@ -33,19 +33,23 @@
           <div class="auth-actions">
             <button type="button" class="primary-action" (click)="onRegister()">
               <i class="bx bx-user-plus"></i>
+
               <span>
                 <strong>Create an account</strong>
                 <small>Register to start your journey</small>
               </span>
+
               <i class="bx bx-chevron-right action-arrow"></i>
             </button>
 
             <button type="button" class="secondary-action" (click)="onLogin()">
               <i class="bx bx-log-in"></i>
+
               <span>
                 <strong>I already have an account</strong>
                 <small>Log in and continue exploring</small>
               </span>
+
               <i class="bx bx-chevron-right action-arrow"></i>
             </button>
           </div>
@@ -90,7 +94,9 @@
                 (click)="chooseModel(model.id)"
               >
                 <div class="character-preview">
-                  <i class="bx" [ngClass]="model.icon"></i>
+                  <appcharacter3dpreview
+                    [modelId]="model.id"
+                  ></appcharacter3dpreview>
 
                   @if (selectedModel() === model.id) {
                     <span class="selected-check">
@@ -122,7 +128,7 @@
               Creating character...
             } @else {
               <i class="bx bx-joystick"></i>
-              Create character & explore
+              Create character &amp; explore
               <i class="bx bx-right-arrow-alt action-arrow"></i>
             }
           </button>
