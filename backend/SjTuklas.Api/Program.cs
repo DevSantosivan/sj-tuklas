@@ -328,6 +328,8 @@ if (app.Environment.IsDevelopment())
 // MIDDLEWARE
 // ============================================================
 
+app.UseRouting();
+
 app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
@@ -379,13 +381,12 @@ app.MapReviewEndpoints();
 app.MapInquiryEndpoints();
 
 // ============================================================
-// SIGNALR
+// SIGNALR HUBS
 // ============================================================
 
 app.MapHub<Explore3dHub>(
     "/hubs/explore3d"
 );
-
 
 app.MapHub<BusinessHub>(
     "/hubs/business"
