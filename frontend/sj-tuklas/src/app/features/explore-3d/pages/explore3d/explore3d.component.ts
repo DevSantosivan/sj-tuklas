@@ -14,6 +14,7 @@ import {
   PointerInfo,
   Vector3,
 } from '@babylonjs/core';
+import { firstValueFrom } from 'rxjs';
 
 import { Business } from '../../../../core/models/business';
 import { BusinessService } from '../../../../core/services/business.service';
@@ -31,6 +32,14 @@ import {
 
 import { Explore3dCategory } from '../../services/explore3d-category.service';
 
+import {
+  Explore3dMultiplayerService,
+  Explore3dPlayerPosition,
+  Explore3dRemotePlayer,
+} from '../../../../core/services/explore3d-multiplayer.service';
+
+import { Explore3dCharacterService } from '../../../../core/services/explore3d-character.service';
+
 /* =========================================================
    INTERFACES
 ========================================================= */
@@ -39,6 +48,11 @@ interface ExploreCategoryOption {
   id: Explore3dCategory;
   label: string;
   description: string;
+}
+
+interface CharacterModelResponse {
+  characterModel?: string;
+  model?: string;
 }
 
 /* =========================================================
@@ -104,11 +118,6 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
   visibleBusinesses: Business[] = [];
   selectedBusiness: Business | null = null;
 
-  /**
-   * Cached businesses grouped by normalized category.
-   * Avoids filtering the full business array every time
-   * the player enters a category.
-   */
   private readonly businessesByCategory = new Map<string, Business[]>();
 
   currentCategory: Explore3dCategory | null = null;
@@ -129,6 +138,51 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
   showCategoryModal = false;
 
   /* =========================================================
+     MULTIPLAYER STATE
+  ========================================================= */
+
+  readonly multiplayerWorldId = 'sj-tuklas-main';
+  private characterModel = 'aj';
+
+  private multiplayerJoining = false;
+  private multiplayerJoined = false;
+  private multiplayerDestroyed = false;
+
+  private multiplayerSyncTimer: ReturnType<typeof setInterval> | null = null;
+
+  private lastSentPosition: Explore3dPlayerPosition | null = null;
+  private lastSentAt = 0;
+
+  private readonly positionSendInterval = 120;
+  private readonly remoteSyncInterval = 150;
+  private readonly minimumMovementDistance = 0.035;
+  private readonly minimumRotationDifference = 0.04;
+
+  /**
+   * Track remote users separately from pending work.
+   * This avoids repeatedly processing the same user.
+   */
+  private readonly remotePlayerIds = new Set<string>();
+  private readonly pendingRemotePlayerIds = new Set<string>();
+
+  /**
+   * Cached remote player data for UI or future model rendering.
+   */
+  remotePlayerList: Explore3dRemotePlayer[] = [];
+
+  get remotePlayers(): Explore3dRemotePlayer[] {
+    return this.multiplayer.players();
+  }
+
+  get multiplayerConnected(): boolean {
+    return this.multiplayer.connected();
+  }
+
+  get multiplayerJoiningState(): boolean {
+    return this.multiplayer.joining();
+  }
+
+  /* =========================================================
      LIFECYCLE STATE
   ========================================================= */
 
@@ -137,11 +191,6 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
   private initializing = false;
 
   private pointerObserver: Observer<PointerInfo> | null = null;
-
-  /**
-   * Invalidates an old asynchronous category transition
-   * when another transition starts or the component is destroyed.
-   */
   private transitionVersion = 0;
 
   constructor(
@@ -153,6 +202,8 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
     private readonly business3d: Explore3dBusiness3dService,
     private readonly input: Explore3dInputService,
     private readonly chat: Explore3dChatService,
+    private readonly multiplayer: Explore3dMultiplayerService,
+    private readonly characterService: Explore3dCharacterService,
   ) {}
 
   /* =========================================================
@@ -244,6 +295,9 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
       }
 
       this.chat.initialize();
+
+      // Multiplayer errors should not disable local 3D Explore.
+      void this.initializeMultiplayer();
     } catch (error) {
       console.error('Unable to initialize 3D Explore:', error);
 
@@ -282,7 +336,6 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    // Input service must initialize after the view/DOM exists.
     this.input.initialize();
 
     this.business3d.setupInteraction(
@@ -292,12 +345,7 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
 
     this.engine3d.camera.target = this.player.getCameraTarget();
 
-    /**
-     * Mark initialized before registering interactions.
-     * The pointer observer checks this flag.
-     */
     this.initialized = true;
-
     this.setupCategoryEntranceInteraction();
 
     this.engine3d.startRenderLoop(() => {
@@ -306,11 +354,8 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
       }
 
       const movement = this.input.getMovement(this.engine3d.camera);
-
       const manualMovement = this.input.hasManualMovement();
-
       const running = this.input.isRunning();
-
       const jumpRequested = this.input.consumeJumpRequest();
 
       this.player.update(
@@ -323,6 +368,270 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
 
       this.engine3d.scene.render();
     });
+  }
+
+  /* =========================================================
+     MULTIPLAYER INITIALIZATION
+  ========================================================= */
+
+  private async initializeMultiplayer(): Promise<void> {
+    if (
+      this.destroyed ||
+      this.multiplayerDestroyed ||
+      this.multiplayerJoining ||
+      this.multiplayerJoined
+    ) {
+      return;
+    }
+
+    this.multiplayerJoining = true;
+
+    try {
+      await this.loadCharacterModel();
+
+      if (this.destroyed || this.multiplayerDestroyed) {
+        return;
+      }
+
+      await this.multiplayer.connect();
+
+      if (this.destroyed || this.multiplayerDestroyed) {
+        return;
+      }
+
+      const position = this.getLocalPlayerPosition();
+
+      await this.multiplayer.joinWorld(
+        this.multiplayerWorldId,
+        this.getPlayerDisplayName(),
+        this.characterModel,
+        position,
+      );
+
+      if (this.destroyed || this.multiplayerDestroyed) {
+        await this.multiplayer.leaveWorld();
+        return;
+      }
+
+      this.multiplayerJoined = true;
+      this.lastSentPosition = position;
+      this.lastSentAt = Date.now();
+
+      this.startMultiplayerSync();
+      this.syncRemotePlayers();
+    } catch (error) {
+      console.error('[Explore3D] Multiplayer initialization failed:', error);
+      this.multiplayerJoined = false;
+    } finally {
+      this.multiplayerJoining = false;
+    }
+  }
+
+  private async loadCharacterModel(): Promise<void> {
+    try {
+      const character = await firstValueFrom(
+        this.characterService.getMyCharacter(),
+      );
+
+      if (this.destroyed || !character) {
+        return;
+      }
+
+      /**
+       * The supplied character interface was not included here,
+       * so read the supported model fields through a narrow shape.
+       */
+      const data = character as CharacterModelResponse;
+      const model = data.characterModel ?? data.model;
+
+      if (typeof model === 'string' && model.trim()) {
+        this.characterModel = model.trim();
+      }
+    } catch (error) {
+      /**
+       * A missing character record should not block joining.
+       */
+      console.warn(
+        '[Explore3D] Character profile unavailable; using default model.',
+        error,
+      );
+
+      this.characterModel = 'aj';
+    }
+  }
+
+  private getPlayerDisplayName(): string {
+    return this.chatName?.trim() || 'Explorer';
+  }
+
+  /* =========================================================
+     LOCAL POSITION
+  ========================================================= */
+
+  private getLocalPlayerPosition(): Explore3dPlayerPosition {
+    const target = this.player.getCameraTarget();
+
+    return {
+      x: target.x,
+      y: target.y,
+      z: target.z,
+      rotationY: 0,
+    };
+  }
+
+  private normalizeAngle(angle: number): number {
+    let value = angle;
+
+    while (value > Math.PI) {
+      value -= Math.PI * 2;
+    }
+
+    while (value < -Math.PI) {
+      value += Math.PI * 2;
+    }
+
+    return value;
+  }
+
+  private hasPositionChanged(
+    previous: Explore3dPlayerPosition | null,
+    current: Explore3dPlayerPosition,
+  ): boolean {
+    if (!previous) {
+      return true;
+    }
+
+    const dx = current.x - previous.x;
+    const dy = current.y - previous.y;
+    const dz = current.z - previous.z;
+
+    const distanceSquared = dx * dx + dy * dy + dz * dz;
+
+    const rotationDifference = Math.abs(
+      this.normalizeAngle(current.rotationY - previous.rotationY),
+    );
+
+    return (
+      distanceSquared >=
+        this.minimumMovementDistance * this.minimumMovementDistance ||
+      rotationDifference >= this.minimumRotationDifference
+    );
+  }
+
+  /* =========================================================
+     MULTIPLAYER POSITION SYNC
+  ========================================================= */
+
+  private startMultiplayerSync(): void {
+    if (this.multiplayerSyncTimer || this.destroyed) {
+      return;
+    }
+
+    this.multiplayerSyncTimer = setInterval(() => {
+      if (
+        this.destroyed ||
+        this.multiplayerDestroyed ||
+        !this.multiplayerJoined ||
+        !this.multiplayer.connected()
+      ) {
+        return;
+      }
+
+      this.sendLocalPlayerPosition();
+      this.syncRemotePlayers();
+    }, this.remoteSyncInterval);
+  }
+
+  private stopMultiplayerSync(): void {
+    if (this.multiplayerSyncTimer) {
+      clearInterval(this.multiplayerSyncTimer);
+      this.multiplayerSyncTimer = null;
+    }
+  }
+
+  private sendLocalPlayerPosition(): void {
+    if (
+      this.destroyed ||
+      !this.multiplayerJoined ||
+      !this.multiplayer.connected()
+    ) {
+      return;
+    }
+
+    const now = Date.now();
+
+    if (now - this.lastSentAt < this.positionSendInterval) {
+      return;
+    }
+
+    const position = this.getLocalPlayerPosition();
+
+    if (!this.hasPositionChanged(this.lastSentPosition, position)) {
+      return;
+    }
+
+    this.lastSentPosition = position;
+    this.lastSentAt = now;
+
+    void this.multiplayer.movePlayer(position).catch((error: unknown) => {
+      console.warn('[Explore3D] Position sync failed:', error);
+    });
+  }
+
+  /* =========================================================
+     REMOTE PLAYER STATE SYNC
+  ========================================================= */
+
+  private syncRemotePlayers(): void {
+    if (
+      this.destroyed ||
+      this.multiplayerDestroyed ||
+      !this.multiplayerJoined
+    ) {
+      return;
+    }
+
+    const players = this.multiplayer.players();
+    const currentIds = new Set<string>();
+
+    for (const remotePlayer of players) {
+      if (
+        !remotePlayer?.userId ||
+        remotePlayer.worldId !== this.multiplayerWorldId
+      ) {
+        continue;
+      }
+
+      const playerId = remotePlayer.userId;
+      currentIds.add(playerId);
+
+      /**
+       * Keep a local copy for the UI or for later 3D model sync.
+       * Actual mesh creation belongs in Explore3dWorldService.
+       */
+      if (
+        !this.remotePlayerIds.has(playerId) &&
+        !this.pendingRemotePlayerIds.has(playerId)
+      ) {
+        this.pendingRemotePlayerIds.add(playerId);
+
+        // No remote-model method is assumed here.
+        this.remotePlayerIds.add(playerId);
+        this.pendingRemotePlayerIds.delete(playerId);
+      }
+    }
+
+    this.remotePlayerList = players.filter(
+      (remotePlayer) =>
+        !!remotePlayer?.userId &&
+        remotePlayer.worldId === this.multiplayerWorldId,
+    );
+
+    for (const playerId of this.remotePlayerIds) {
+      if (!currentIds.has(playerId)) {
+        this.remotePlayerIds.delete(playerId);
+      }
+    }
   }
 
   /* =========================================================
@@ -359,10 +668,6 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
           return;
         }
 
-        /**
-         * Resolve category from the clicked mesh
-         * or its parent in the world service.
-         */
         const category = this.world.getHubBuildingCategory(pickInfo.pickedMesh);
 
         if (!category || !this.isValidCategory(category)) {
@@ -461,7 +766,6 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
       );
 
       this.businesses = approvedBusinesses;
-
       this.buildBusinessCategoryCache();
     } catch (error) {
       console.error('Unable to load businesses:', error);
@@ -544,10 +848,6 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
 
       this.business3d.setWorldOffset(worldOffset);
 
-      /**
-       * Retrieve the pre-grouped business array
-       * instead of filtering every business on every entry.
-       */
       this.visibleBusinesses = this.getBusinessesByCategory(category);
 
       if (this.visibleBusinesses.length > 0) {
@@ -562,10 +862,12 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
       }
 
       this.player.resetPosition(this.world.getCategorySpawnPoint(category));
-
       this.engine3d.camera.target = this.player.getCameraTarget();
 
       this.isInCategoryWorld = true;
+
+      this.lastSentPosition = null;
+      this.sendLocalPlayerPosition();
     } catch (error) {
       console.error('Unable to enter category world:', error);
 
@@ -619,13 +921,15 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
       this.business3d.setWorldOffset(Vector3.Zero());
 
       this.player.resetPosition(this.world.getHubSpawnPoint());
-
       this.engine3d.camera.target = this.player.getCameraTarget();
 
       this.currentCategory = null;
       this.visibleBusinesses = [];
       this.isInCategoryWorld = false;
       this.categoryError = '';
+
+      this.lastSentPosition = null;
+      this.sendLocalPlayerPosition();
     } catch (error) {
       console.error('Unable to return to Hub:', error);
 
@@ -778,7 +1082,6 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
     );
 
     this.player.goToBusiness(business, position);
-
     this.closeBusiness();
   }
 
@@ -803,6 +1106,31 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
   }
 
   /* =========================================================
+     MULTIPLAYER CLEANUP
+  ========================================================= */
+
+  private async disposeMultiplayer(): Promise<void> {
+    if (this.multiplayerDestroyed) {
+      return;
+    }
+
+    this.multiplayerDestroyed = true;
+    this.multiplayerJoined = false;
+
+    this.stopMultiplayerSync();
+
+    this.remotePlayerIds.clear();
+    this.pendingRemotePlayerIds.clear();
+    this.remotePlayerList = [];
+
+    try {
+      await this.multiplayer.leaveWorld();
+    } catch (error) {
+      console.warn('[Explore3D] Error leaving multiplayer world:', error);
+    }
+  }
+
+  /* =========================================================
      DESTROY
   ========================================================= */
 
@@ -814,7 +1142,6 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
     this.destroyed = true;
     this.initialized = false;
 
-    // Invalidate all pending asynchronous transitions.
     this.transitionVersion++;
 
     this.showCategoryModal = false;
@@ -824,12 +1151,13 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
     this.businesses = [];
     this.businessesByCategory.clear();
 
-    // Remove pointer observer before disposing the scene/engine.
     if (this.pointerObserver) {
       this.engine3d.scene?.onPointerObservable.remove(this.pointerObserver);
 
       this.pointerObserver = null;
     }
+
+    const multiplayerCleanup = this.disposeMultiplayer();
 
     this.input.dispose();
     this.player.dispose();
@@ -838,5 +1166,7 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
     await this.chat.dispose();
 
     this.engine3d.dispose();
+
+    await multiplayerCleanup;
   }
 }

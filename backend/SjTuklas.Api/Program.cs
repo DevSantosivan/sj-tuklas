@@ -382,6 +382,11 @@ app.MapInquiryEndpoints();
 // SIGNALR
 // ============================================================
 
+app.MapHub<Explore3dHub>(
+    "/hubs/explore3d"
+);
+
+
 app.MapHub<BusinessHub>(
     "/hubs/business"
 );

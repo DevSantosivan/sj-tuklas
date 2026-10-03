@@ -1,11 +1,13 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, finalize, tap } from 'rxjs';
+
 import {
   Explore3dCharacter,
   CreateExplore3dCharacterRequest,
   UpdateExplore3dCharacterRequest,
 } from '../../features/explore-3d/models/explore3d-character.model';
+
 import { API_CONFIG } from '../config/api.config';
 
 @Injectable({
@@ -14,9 +16,9 @@ import { API_CONFIG } from '../config/api.config';
 export class Explore3dCharacterService {
   private readonly http = inject(HttpClient);
 
-  // Assumes API_CONFIG.baseUrl already includes /api.
+  // API_CONFIG.baseUrl is expected to include /api.
   // Example: http://localhost:5273/api
-  private readonly endpoint = `${API_CONFIG.baseUrl}/explore3d/character`;
+  private readonly endpoint = `${API_CONFIG.baseUrl.replace(/\/$/, '')}/explore3d/character`;
 
   private readonly _myCharacter = signal<Explore3dCharacter | null>(null);
   private readonly _loading = signal(false);
@@ -26,7 +28,7 @@ export class Explore3dCharacterService {
 
   /**
    * Get the character belonging to the currently authenticated user.
-   * The backend must identify the user from their auth token/cookie.
+   * The backend should identify the user from the auth token or cookie.
    */
   getMyCharacter(): Observable<Explore3dCharacter> {
     this._loading.set(true);
@@ -36,14 +38,11 @@ export class Explore3dCharacterService {
         withCredentials: true,
       })
       .pipe(
-        tap({
-          next: (character) => {
-            this._myCharacter.set(character);
-            this._loading.set(false);
-          },
-          error: () => {
-            this._loading.set(false);
-          },
+        tap((character) => {
+          this._myCharacter.set(character);
+        }),
+        finalize(() => {
+          this._loading.set(false);
         }),
       );
   }
@@ -61,14 +60,11 @@ export class Explore3dCharacterService {
         withCredentials: true,
       })
       .pipe(
-        tap({
-          next: (character) => {
-            this._myCharacter.set(character);
-            this._loading.set(false);
-          },
-          error: () => {
-            this._loading.set(false);
-          },
+        tap((character) => {
+          this._myCharacter.set(character);
+        }),
+        finalize(() => {
+          this._loading.set(false);
         }),
       );
   }
@@ -86,20 +82,18 @@ export class Explore3dCharacterService {
         withCredentials: true,
       })
       .pipe(
-        tap({
-          next: (character) => {
-            this._myCharacter.set(character);
-            this._loading.set(false);
-          },
-          error: () => {
-            this._loading.set(false);
-          },
+        tap((character) => {
+          this._myCharacter.set(character);
+        }),
+        finalize(() => {
+          this._loading.set(false);
         }),
       );
   }
 
   /**
-   * Clear local character state, such as after logout.
+   * Clear the current user's character state,
+   * for example after logout.
    */
   clear(): void {
     this._myCharacter.set(null);
