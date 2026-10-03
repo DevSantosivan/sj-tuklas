@@ -1,16 +1,12 @@
 <nav class="navbar">
   <div class="container navbar-inner">
-    <!-- =========================================
-         BRAND
-    ========================================== -->
+    <!-- BRAND -->
     <a routerLink="/" class="brand">
       <span class="brand-mark">SJ</span>
       <span class="brand-name">Tuklas</span>
     </a>
 
-    <!-- =========================================
-         DESKTOP NAVIGATION
-    ========================================== -->
+    <!-- DESKTOP NAVIGATION -->
     <div class="nav-links">
       <a routerLink="/search" routerLinkActive="active">
         <i class="bx bx-compass"></i>
@@ -28,9 +24,7 @@
       </a>
     </div>
 
-    <!-- =========================================
-         RIGHT SIDE
-    ========================================== -->
+    <!-- RIGHT SIDE -->
     <div class="nav-actions">
       <!-- AUTH CHECKING -->
       @if (authLoading()) {
@@ -47,17 +41,14 @@
             [attr.aria-expanded]="profileMenuOpen()"
             aria-label="Open profile menu"
           >
-            <!-- AVATAR -->
             <span class="profile-avatar">
               {{ userInitial }}
             </span>
 
-            <!-- NAME -->
             <span class="profile-name">
               {{ currentUser()?.fullName || "Account" }}
             </span>
 
-            <!-- ARROW -->
             <i
               class="bx"
               [class.bx-chevron-down]="!profileMenuOpen()"
@@ -65,20 +56,15 @@
             ></i>
           </button>
 
-          <!-- =====================================
-               PROFILE DROPDOWN
-          ====================================== -->
-
+          <!-- PROFILE DROPDOWN -->
           @if (profileMenuOpen()) {
             <div class="profile-dropdown">
               <!-- USER INFO -->
               <div class="profile-dropdown-header">
-                <!-- AVATAR -->
                 <span class="dropdown-avatar">
                   {{ userInitial }}
                 </span>
 
-                <!-- USER DETAILS -->
                 <div class="dropdown-user-info">
                   <strong>
                     {{ currentUser()?.fullName || "User" }}
@@ -90,7 +76,6 @@
                 </div>
               </div>
 
-              <!-- DIVIDER -->
               <div class="profile-dropdown-divider"></div>
 
               <!-- VIEW PROFILE -->
@@ -100,8 +85,7 @@
                 (click)="closeProfileMenu()"
               >
                 <i class="bx bx-user"></i>
-
-                <span> View Profile </span>
+                <span>View Profile</span>
               </a>
 
               <!-- MY DASHBOARD -->
@@ -111,11 +95,9 @@
                 (click)="closeProfileMenu()"
               >
                 <i class="bx bx-layout"></i>
-
-                <span> My Dashboard </span>
+                <span>My Dashboard</span>
               </a>
 
-              <!-- DIVIDER -->
               <div class="profile-dropdown-divider"></div>
 
               <!-- LOGOUT -->
@@ -125,8 +107,7 @@
                 (click)="logout()"
               >
                 <i class="bx bx-log-out"></i>
-
-                <span> Log out </span>
+                <span>Log out</span>
               </button>
             </div>
           }
@@ -143,26 +124,24 @@
     </div>
   </div>
 
-  <!-- =========================================
-       3D EXPLORE FLOATING BUTTON
-       ========================================= -->
-
-  <a
-    routerLink="/explore"
-    routerLinkActive="active"
+  <!-- 3D EXPLORE FLOATING BUTTON -->
+  <button
+    type="button"
     class="explore-3d-float"
     aria-label="Explore San Jose in 3D"
+    [disabled]="authLoading() || checkingCharacter()"
+    (click)="openExplore3d($event)"
   >
-    <i class="bx bx-cube"></i>
+    @if (checkingCharacter()) {
+      <i class="bx bx-loader-alt bx-spin"></i>
+      <span>Checking...</span>
+    } @else {
+      <i class="bx bx-cube"></i>
+      <span>Explore in 3D</span>
+    }
+  </button>
 
-    <span> Explore in 3D </span>
-  </a>
-
-  <!-- =========================================
-       MOBILE BOTTOM NAVIGATION
-       HIDDEN INSIDE /dashboard/:id/*
-  ========================================== -->
-
+  <!-- MOBILE BOTTOM NAVIGATION -->
   @if (!hideMobileBottomNav) {
     <div class="mobile-bottom-nav">
       <!-- HOME -->
@@ -172,37 +151,32 @@
         [routerLinkActiveOptions]="{ exact: true }"
       >
         <i class="bx bx-home-alt-2"></i>
-
-        <span> Home </span>
+        <span>Home</span>
       </a>
 
       <!-- DISCOVER -->
       <a routerLink="/search" routerLinkActive="active">
         <i class="bx bx-compass"></i>
-
-        <span> Discover </span>
+        <span>Discover</span>
       </a>
 
       <!-- CATEGORIES -->
       <a routerLink="/categories" routerLinkActive="active">
         <i class="bx bx-grid-alt"></i>
-
-        <span> Categories </span>
+        <span>Categories</span>
       </a>
 
       <!-- LOCATIONS -->
       <a routerLink="/locations" routerLinkActive="active">
         <i class="bx bx-map"></i>
-
-        <span> Locations </span>
+        <span>Locations</span>
       </a>
 
       <!-- PROFILE / ACCOUNT -->
       @if (authLoading()) {
         <div class="mobile-auth-loading">
           <span class="mobile-loading-dot"></span>
-
-          <span> Loading </span>
+          <span>Loading</span>
         </div>
       } @else if (currentUser()) {
         <a
@@ -213,16 +187,25 @@
           <span class="mobile-profile-avatar">
             {{ userInitial }}
           </span>
-
-          <span> Profile </span>
+          <span>Profile</span>
         </a>
       } @else {
         <a routerLink="/login" routerLinkActive="active">
           <i class="bx bx-user"></i>
-
-          <span> Account </span>
+          <span>Account</span>
         </a>
       }
     </div>
   }
 </nav>
+
+<!-- EXPLORE 3D ENTRY MODAL -->
+<app-explore3d-entry-modal
+  [isOpen]="exploreModalOpen()"
+  [mode]="exploreModalMode()"
+  [userName]="exploreUserName()"
+  (closed)="closeExploreModal()"
+  (register)="goToExploreRegister()"
+  (login)="goToExploreLogin()"
+  (characterCreated)="onExploreCharacterCreated()"
+/>

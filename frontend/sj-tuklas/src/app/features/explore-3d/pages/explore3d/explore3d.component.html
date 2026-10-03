@@ -1,59 +1,116 @@
 <div class="explore-3d-page">
+  <!-- ===================================================== -->
   <!-- BABYLON CANVAS -->
+  <!-- ===================================================== -->
+
   <canvas #renderCanvas class="render-canvas"></canvas>
 
+  <!-- ===================================================== -->
   <!-- TOP BAR -->
+  <!-- ===================================================== -->
+
   <header class="explore-topbar">
     <a class="explore-brand" aria-label="SJ Tuklas 3D Explore">
       <div class="brand-mark">
         <span>SJ</span>
         <i class="bx bx-plus"></i>
       </div>
+
       <div class="brand-text">
-        <strong>SJ <span>TUKLAS</span></strong>
-        <small>Explore San Jose in 3D</small>
+        <strong> SJ <span>TUKLAS</span> </strong>
+
+        <small> Explore San Jose in 3D </small>
       </div>
     </a>
 
     <div class="explore-info">
+      <!-- MOVE -->
+
       <div class="info-pill">
         <i class="bx bx-walk"></i>
-        <span>WASD <small>Move</small></span>
+
+        <span>
+          WASD
+          <small>Move</small>
+        </span>
       </div>
+
+      <!-- RUN -->
+
+      <div class="info-pill">
+        <i class="bx bx-run"></i>
+
+        <span>
+          SHIFT
+          <small>Run</small>
+        </span>
+      </div>
+
+      <!-- JUMP -->
+
+      <div class="info-pill">
+        <i class="bx bx-up-arrow-alt"></i>
+
+        <span>
+          SPACE
+          <small>Jump</small>
+        </span>
+      </div>
+
+      <!-- CAMERA -->
+
       <div class="info-pill">
         <i class="bx bx-mouse"></i>
-        <span>Drag <small>Look around</small></span>
+
+        <span>
+          Drag
+          <small>Look around</small>
+        </span>
       </div>
     </div>
 
     <div class="topbar-live">
       <span class="live-dot"></span>
-      <span>3D WORLD</span>
+
+      <span> 3D WORLD </span>
     </div>
   </header>
 
+  <!-- ===================================================== -->
   <!-- STATUS -->
+  <!-- ===================================================== -->
+
   <div class="explore-status">
-    <span class="status-icon"><i class="bx bx-compass"></i></span>
+    <span class="status-icon">
+      <i class="bx bx-compass"></i>
+    </span>
+
     <div class="status-copy">
-      <small>YOU ARE EXPLORING</small>
+      <small> YOU ARE EXPLORING </small>
+
       @if (isAutoNavigating && destinationBusiness) {
-        <strong>Going to {{ destinationBusiness.name }}</strong>
+        <strong> Going to {{ destinationBusiness.name }} </strong>
       } @else {
-        <strong>San Jose, Occidental Mindoro</strong>
+        <strong> San Jose, Occidental Mindoro </strong>
       }
     </div>
   </div>
 
+  <!-- ===================================================== -->
   <!-- SUGGESTED BUSINESSES -->
+  <!-- ===================================================== -->
+
   @if (businesses.length > 0) {
     <aside class="business-suggestions">
       <div class="suggestions-header">
         <div class="suggestions-heading-copy">
-          <span class="panel-eyebrow">LOCAL DISCOVERY</span>
+          <span class="panel-eyebrow"> LOCAL DISCOVERY </span>
+
           <h3>Discover Businesses</h3>
+
           <p>Explore places around you</p>
         </div>
+
         <div class="suggestions-header-icon">
           <i class="bx bx-store-alt"></i>
         </div>
@@ -79,14 +136,22 @@
             </div>
 
             <div class="business-suggestion-info">
-              <strong>{{ business.name }}</strong>
-              <span>{{ business.category }}</span>
+              <strong>
+                {{ business.name }}
+              </strong>
+
+              <span>
+                {{ business.category }}
+              </span>
 
               @if (business.rating > 0) {
                 <small>
                   <i class="bx bxs-star"></i>
+
                   {{ business.rating }}
-                  <span class="suggestion-divider">·</span>
+
+                  <span class="suggestion-divider"> · </span>
+
                   {{ business.reviews }} reviews
                 </small>
               }
@@ -101,12 +166,16 @@
 
       <div class="suggestions-footer">
         <i class="bx bx-map-alt"></i>
-        <span>Discover local spots in 3D</span>
+
+        <span> Discover local spots in 3D </span>
       </div>
     </aside>
   }
 
+  <!-- ===================================================== -->
   <!-- BUSINESS DETAILS -->
+  <!-- ===================================================== -->
+
   @if (selectedBusiness) {
     <div class="business-overlay" (click)="closeBusiness()">
       <section
@@ -133,6 +202,7 @@
 
           <span class="cover-label">
             <i class="bx bx-map-pin"></i>
+
             SJ TUKLAS BUSINESS
           </span>
 
@@ -163,12 +233,16 @@
               <span class="business-category">
                 {{ selectedBusiness.category }}
               </span>
-              <h2>{{ selectedBusiness.name }}</h2>
+
+              <h2>
+                {{ selectedBusiness.name }}
+              </h2>
             </div>
 
             @if (selectedBusiness.verified) {
               <span class="verified-badge">
                 <i class="bx bxs-badge-check"></i>
+
                 Verified
               </span>
             }
@@ -178,14 +252,19 @@
             @if (selectedBusiness.rating > 0) {
               <span class="meta-rating">
                 <i class="bx bxs-star"></i>
-                <strong>{{ selectedBusiness.rating }}</strong>
-                <span>({{ selectedBusiness.reviews }} reviews)</span>
+
+                <strong>
+                  {{ selectedBusiness.rating }}
+                </strong>
+
+                <span> ({{ selectedBusiness.reviews }} reviews) </span>
               </span>
             }
 
             @if (selectedBusiness.barangay) {
               <span>
                 <i class="bx bx-map"></i>
+
                 {{ selectedBusiness.barangay }}
               </span>
             }
@@ -203,9 +282,11 @@
                 <span class="section-heading-icon">
                   <i class="bx bx-grid-alt"></i>
                 </span>
+
                 <div>
-                  <strong>Available Services</strong>
-                  <small>What this business offers</small>
+                  <strong> Available Services </strong>
+
+                  <small> What this business offers </small>
                 </div>
               </div>
 
@@ -214,7 +295,9 @@
                   feature of getBusinessFeatures(selectedBusiness);
                   track feature
                 ) {
-                  <span class="service-chip">{{ feature }}</span>
+                  <span class="service-chip">
+                    {{ feature }}
+                  </span>
                 }
               </div>
             </section>
@@ -225,9 +308,13 @@
               <span class="location-icon">
                 <i class="bx bx-map-pin"></i>
               </span>
+
               <div>
-                <small>BUSINESS LOCATION</small>
-                <strong>{{ selectedBusiness.location }}</strong>
+                <small> BUSINESS LOCATION </small>
+
+                <strong>
+                  {{ selectedBusiness.location }}
+                </strong>
               </div>
             </div>
           }
@@ -239,7 +326,8 @@
               (click)="chatWithBusiness(selectedBusiness)"
             >
               <i class="bx bx-message-rounded-dots"></i>
-              <span>Chat</span>
+
+              <span> Chat </span>
             </button>
 
             @if (selectedBusiness.phone) {
@@ -249,7 +337,8 @@
                 (click)="callBusiness(selectedBusiness)"
               >
                 <i class="bx bx-phone"></i>
-                <span>Call</span>
+
+                <span> Call </span>
               </button>
             }
 
@@ -259,7 +348,8 @@
               (click)="goToBusiness(selectedBusiness)"
             >
               <i class="bx bx-navigation"></i>
-              <span>Go Here</span>
+
+              <span> Go Here </span>
             </button>
           </div>
         </div>
@@ -267,7 +357,10 @@
     </div>
   }
 
+  <!-- ===================================================== -->
   <!-- CATEGORY ENTRY CONFIRMATION -->
+  <!-- ===================================================== -->
+
   @if (showCategoryModal && selectedCategory) {
     <div class="category-modal-backdrop" (click)="cancelCategoryEntry()">
       <section
@@ -288,22 +381,31 @@
 
         <div class="category-modal-visual">
           <div class="category-visual-orbit orbit-one"></div>
+
           <div class="category-visual-orbit orbit-two"></div>
+
           <div class="category-modal-icon">
             <i class="bx bx-buildings"></i>
           </div>
+
           <span class="category-visual-spark spark-one"></span>
+
           <span class="category-visual-spark spark-two"></span>
         </div>
 
         <span class="category-modal-eyebrow">
           <span class="eyebrow-line"></span>
+
           SJ TUKLAS · 3D EXPLORE
+
           <span class="eyebrow-line"></span>
         </span>
 
         <h2 id="category-modal-title">
-          Explore <span>{{ selectedCategory }}</span>
+          Explore
+          <span>
+            {{ selectedCategory }}
+          </span>
         </h2>
 
         <p>
@@ -313,7 +415,8 @@
 
         <div class="category-modal-note">
           <i class="bx bx-info-circle"></i>
-          <span>You can always return to the main hub.</span>
+
+          <span> You can always return to the main hub. </span>
         </div>
 
         <div class="category-modal-actions">
@@ -330,7 +433,8 @@
             class="category-enter-button"
             (click)="confirmCategoryEntry()"
           >
-            <span>Enter Area</span>
+            <span> Enter Area </span>
+
             <i class="bx bx-right-arrow-alt"></i>
           </button>
         </div>
@@ -338,20 +442,28 @@
     </div>
   }
 
+  <!-- ===================================================== -->
   <!-- BACK TO HUB -->
+  <!-- ===================================================== -->
+
   @if (isInCategoryWorld) {
     <button type="button" class="back-to-hub-button" (click)="backToHub()">
       <span class="back-button-icon">
         <i class="bx bx-arrow-back"></i>
       </span>
+
       <span class="back-button-copy">
-        <strong>Back to Hub</strong>
-        <small>Main 3D world</small>
+        <strong> Back to Hub </strong>
+
+        <small> Main 3D world </small>
       </span>
     </button>
   }
 
+  <!-- ===================================================== -->
   <!-- GLOBAL CHAT BUTTON -->
+  <!-- ===================================================== -->
+
   <button
     type="button"
     class="global-chat-button"
@@ -360,13 +472,18 @@
     aria-label="Open global chat"
   >
     <span class="chat-online-dot"></span>
+
     <span class="global-chat-button-icon">
       <i class="bx bx-message-rounded-dots"></i>
     </span>
-    <span class="chat-button-label">Global Chat</span>
+
+    <span class="chat-button-label"> Global Chat </span>
   </button>
 
+  <!-- ===================================================== -->
   <!-- GLOBAL CHAT PANEL -->
+  <!-- ===================================================== -->
+
   @if (chatOpen) {
     <section class="global-chat-panel">
       <header class="global-chat-header">
@@ -376,9 +493,11 @@
           </div>
 
           <div class="global-chat-heading-copy">
-            <strong>SJ TUKLAS Community</strong>
+            <strong> SJ TUKLAS Community </strong>
+
             <span [class.online]="chatConnected">
               <span class="connection-dot"></span>
+
               @if (chatConnected) {
                 Online
               } @else if (chatConnecting) {
@@ -406,8 +525,10 @@
             <div class="chat-empty-icon">
               <i class="bx bx-message-rounded-dots"></i>
             </div>
-            <strong>Welcome to the community!</strong>
-            <span>Say hello and connect with other explorers.</span>
+
+            <strong> Welcome to the community! </strong>
+
+            <span> Say hello and connect with other explorers. </span>
           </div>
         }
 
@@ -419,10 +540,18 @@
 
             <div class="chat-message-body">
               <div class="chat-message-meta">
-                <strong>{{ message.userName }}</strong>
-                <span>{{ message.createdAt }}</span>
+                <strong>
+                  {{ message.userName }}
+                </strong>
+
+                <span>
+                  {{ message.createdAt }}
+                </span>
               </div>
-              <p>{{ message.message }}</p>
+
+              <p>
+                {{ message.message }}
+              </p>
             </div>
           </article>
         }
@@ -463,22 +592,61 @@
     </section>
   }
 
-  <!-- JOYSTICK -->
+  <!-- ===================================================== -->
+  <!-- MOVEMENT JOYSTICK -->
+  <!-- ===================================================== -->
+
   <div id="joystick" class="joystick" aria-label="Movement joystick">
     <div class="joystick-ring">
       <div id="joystickStick" class="joystick-stick"></div>
     </div>
   </div>
 
+  <!-- ===================================================== -->
+  <!-- MOBILE ACTION CONTROLS -->
+  <!-- ===================================================== -->
+
+  <div class="mobile-action-controls">
+    <!-- RUN -->
+
+    <button
+      type="button"
+      id="runButton"
+      class="mobile-action-button run-button"
+      aria-label="Run"
+    >
+      <i class="bx bx-run"></i>
+
+      <span> RUN </span>
+    </button>
+
+    <!-- JUMP -->
+
+    <button
+      type="button"
+      id="jumpButton"
+      class="mobile-action-button jump-button"
+      aria-label="Jump"
+    >
+      <i class="bx bx-up-arrow-alt"></i>
+
+      <span> JUMP </span>
+    </button>
+  </div>
+
+  <!-- ===================================================== -->
   <!-- HELP -->
+  <!-- ===================================================== -->
+
   <div class="explore-help">
     <div class="help-icon">
       <i class="bx bx-bulb"></i>
     </div>
 
     <div class="help-content">
-      <strong>Explore SJ TUKLAS</strong>
-      <span>Walk around and discover local businesses.</span>
+      <strong> Explore SJ TUKLAS </strong>
+
+      <span> Walk around and discover local businesses. </span>
     </div>
   </div>
 </div>

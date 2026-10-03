@@ -1,0 +1,137 @@
+@if (isOpen) {
+  <div class="modal-backdrop" (click)="close()">
+    <section
+      class="explore-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="explore-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <button
+        type="button"
+        class="modal-close"
+        aria-label="Close modal"
+        (click)="close()"
+      >
+        <i class="bx bx-x"></i>
+      </button>
+
+      @if (mode === "auth") {
+        <div class="modal-content auth-content">
+          <div class="modal-icon">
+            <i class="bx bx-cube-alt"></i>
+          </div>
+
+          <span class="eyebrow">SJ TUKLAS 3D</span>
+          <h2 id="explore-modal-title">Your adventure starts here.</h2>
+
+          <p class="modal-description">
+            Create an account or log in to explore San Jose in 3D and meet other
+            explorers.
+          </p>
+
+          <div class="auth-actions">
+            <button type="button" class="primary-action" (click)="onRegister()">
+              <i class="bx bx-user-plus"></i>
+              <span>
+                <strong>Create an account</strong>
+                <small>Register to start your journey</small>
+              </span>
+              <i class="bx bx-chevron-right action-arrow"></i>
+            </button>
+
+            <button type="button" class="secondary-action" (click)="onLogin()">
+              <i class="bx bx-log-in"></i>
+              <span>
+                <strong>I already have an account</strong>
+                <small>Log in and continue exploring</small>
+              </span>
+              <i class="bx bx-chevron-right action-arrow"></i>
+            </button>
+          </div>
+
+          <p class="modal-footnote">
+            Your account lets you keep your character and explore with the same
+            profile.
+          </p>
+        </div>
+      } @else {
+        <div class="modal-content character-content">
+          <div class="modal-icon">
+            <i class="bx bx-user-pin"></i>
+          </div>
+
+          <span class="eyebrow">CHARACTER SETUP</span>
+          <h2 id="explore-modal-title">Create your character</h2>
+
+          <p class="modal-description">
+            Choose a name and character to represent you in the 3D world.
+          </p>
+
+          <label for="character-name">Character name</label>
+          <input
+            id="character-name"
+            type="text"
+            maxlength="50"
+            [ngModel]="characterName()"
+            (ngModelChange)="characterName.set($event)"
+            placeholder="Enter character name"
+          />
+
+          <label class="model-label">Choose your character</label>
+
+          <div class="character-grid">
+            @for (model of characterModels; track model.id) {
+              <button
+                type="button"
+                class="character-option"
+                [class.selected]="selectedModel() === model.id"
+                [attr.aria-pressed]="selectedModel() === model.id"
+                (click)="chooseModel(model.id)"
+              >
+                <div class="character-preview">
+                  <i class="bx" [ngClass]="model.icon"></i>
+
+                  @if (selectedModel() === model.id) {
+                    <span class="selected-check">
+                      <i class="bx bx-check"></i>
+                    </span>
+                  }
+                </div>
+
+                <strong>{{ model.name }}</strong>
+                <small>{{ model.description }}</small>
+              </button>
+            }
+          </div>
+
+          @if (errorMessage()) {
+            <p class="error-message" role="alert">
+              {{ errorMessage() }}
+            </p>
+          }
+
+          <button
+            type="button"
+            class="primary-action create-action"
+            [disabled]="isSaving()"
+            (click)="createCharacter()"
+          >
+            @if (isSaving()) {
+              <span class="button-spinner"></span>
+              Creating character...
+            } @else {
+              <i class="bx bx-joystick"></i>
+              Create character & explore
+              <i class="bx bx-right-arrow-alt action-arrow"></i>
+            }
+          </button>
+
+          <p class="modal-footnote">
+            You can use this character whenever you return to 3D Explore.
+          </p>
+        </div>
+      }
+    </section>
+  </div>
+}

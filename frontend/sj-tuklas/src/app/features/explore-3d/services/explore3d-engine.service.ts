@@ -17,15 +17,49 @@ export class Explore3dEngineService {
 
   private resizeHandler?: () => void;
 
+  /* =========================================================
+     INITIALIZE BABYLON ENGINE
+  ========================================================= */
+
   initialize(canvas: HTMLCanvasElement): void {
-    this.engine = new Engine(canvas, true, {
-      preserveDrawingBuffer: true,
-      stencil: true,
-    });
+    this.engine = new Engine(
+      canvas,
+      true, // antialiasing
+      {
+        preserveDrawingBuffer: true,
+        stencil: true,
+      },
+      true, // adapt to device pixel ratio
+    );
+
+    // Increase internal rendering resolution
+    this.engine.setHardwareScalingLevel(0.75);
+    this.engine.resize();
+
+    // CHECK RENDER RESOLUTION
+    console.log('Device Pixel Ratio:', window.devicePixelRatio);
+    console.log('Hardware Scaling:', this.engine.getHardwareScalingLevel());
+
+    console.log(
+      'Render Size:',
+      this.engine.getRenderWidth(),
+      this.engine.getRenderHeight(),
+    );
+
+    console.log('Canvas CSS Size:', canvas.clientWidth, canvas.clientHeight);
+
+    console.log('Canvas Drawing Buffer:', canvas.width, canvas.height);
+
+    /* =========================================================
+     SCENE
+  ========================================================= */
 
     this.scene = new Scene(this.engine);
-
     this.scene.clearColor = new Color4(0.78, 0.88, 0.95, 1);
+
+    /* =========================================================
+     CAMERA
+  ========================================================= */
 
     this.camera = new ArcRotateCamera(
       'thirdPersonCamera',
@@ -43,8 +77,11 @@ export class Explore3dEngineService {
     this.camera.upperBetaLimit = 1.35;
 
     this.camera.wheelDeltaPercentage = 0.01;
-
     this.camera.attachControl(canvas, true);
+
+    /* =========================================================
+     LIGHTING
+  ========================================================= */
 
     const light = new HemisphericLight(
       'mainLight',
@@ -54,6 +91,10 @@ export class Explore3dEngineService {
 
     light.intensity = 1.1;
 
+    /* =========================================================
+     RESIZE HANDLER
+  ========================================================= */
+
     this.resizeHandler = () => {
       this.engine.resize();
     };
@@ -61,23 +102,42 @@ export class Explore3dEngineService {
     window.addEventListener('resize', this.resizeHandler);
   }
 
+  /* =========================================================
+     RENDER LOOP
+  ========================================================= */
+
   startRenderLoop(callback: () => void): void {
     this.engine.runRenderLoop(callback);
   }
+
+  /* =========================================================
+     STOP RENDER LOOP
+  ========================================================= */
 
   stopRenderLoop(): void {
     this.engine.stopRenderLoop();
   }
 
+  /* =========================================================
+     DISPOSE
+  ========================================================= */
+
   dispose(): void {
     if (this.resizeHandler) {
       window.removeEventListener('resize', this.resizeHandler);
+      this.resizeHandler = undefined;
     }
 
-    this.engine.stopRenderLoop();
+    if (this.engine) {
+      this.engine.stopRenderLoop();
+    }
 
-    this.scene.dispose();
+    if (this.scene) {
+      this.scene.dispose();
+    }
 
-    this.engine.dispose();
+    if (this.engine) {
+      this.engine.dispose();
+    }
   }
 }

@@ -4,7 +4,15 @@ import { ArcRotateCamera, Vector3 } from '@babylonjs/core';
 
 @Injectable()
 export class Explore3dInputService {
+  // =========================================================
+  // KEYBOARD
+  // =========================================================
+
   private keys: Record<string, boolean> = {};
+
+  // =========================================================
+  // MOBILE JOYSTICK
+  // =========================================================
 
   private joystick = {
     active: false,
@@ -12,9 +20,26 @@ export class Explore3dInputService {
     y: 0,
   };
 
-  private joystickElement?: HTMLElement;
+  // =========================================================
+  // MOBILE ACTION BUTTONS
+  // =========================================================
 
+  private mobileRun = false;
+  private mobileJumpRequested = false;
+
+  // =========================================================
+  // DOM ELEMENTS
+  // =========================================================
+
+  private joystickElement?: HTMLElement;
   private joystickStickElement?: HTMLElement;
+
+  private runButtonElement?: HTMLElement;
+  private jumpButtonElement?: HTMLElement;
+
+  // =========================================================
+  // EVENT HANDLERS
+  // =========================================================
 
   private joystickPointerDownHandler?: (event: PointerEvent) => void;
 
@@ -22,13 +47,33 @@ export class Explore3dInputService {
 
   private joystickPointerUpHandler?: () => void;
 
+  private runPointerDownHandler?: (event: PointerEvent) => void;
+
+  private runPointerUpHandler?: (event: PointerEvent) => void;
+
+  private jumpPointerDownHandler?: (event: PointerEvent) => void;
+
+  // =========================================================
+  // INITIALIZE
+  // =========================================================
+
   initialize(): void {
+    // Prevent duplicate initialization from attaching
+    // multiple keyboard listeners.
+    this.dispose();
+
     window.addEventListener('keydown', this.onKeyDown);
 
     window.addEventListener('keyup', this.onKeyUp);
 
     this.setupJoystick();
+
+    this.setupMobileButtons();
   }
+
+  // =========================================================
+  // MOVEMENT
+  // =========================================================
 
   getMovement(camera: ArcRotateCamera): Vector3 {
     const forward = camera.getDirection(Vector3.Forward()).clone();
@@ -47,6 +92,10 @@ export class Explore3dInputService {
 
     const movement = Vector3.Zero();
 
+    // =======================================================
+    // KEYBOARD
+    // =======================================================
+
     if (this.keys['w']) {
       movement.addInPlace(forward);
     }
@@ -62,6 +111,10 @@ export class Explore3dInputService {
     if (this.keys['d']) {
       movement.addInPlace(right);
     }
+
+    // =======================================================
+    // MOBILE JOYSTICK
+    // =======================================================
 
     if (
       this.joystick.active ||
@@ -82,6 +135,10 @@ export class Explore3dInputService {
     return movement;
   }
 
+  // =========================================================
+  // MANUAL MOVEMENT
+  // =========================================================
+
   hasManualMovement(): boolean {
     return (
       !!this.keys['w'] ||
@@ -94,19 +151,83 @@ export class Explore3dInputService {
     );
   }
 
+  // =========================================================
+  // RUN
+  // =========================================================
+
+  isRunning(): boolean {
+    return !!this.keys['shift'] || this.mobileRun;
+  }
+
+  // =========================================================
+  // JUMP
+  // =========================================================
+
+  consumeJumpRequest(): boolean {
+    if (!this.mobileJumpRequested) {
+      return false;
+    }
+
+    this.mobileJumpRequested = false;
+
+    return true;
+  }
+
+  // =========================================================
+  // KEY DOWN
+  // =========================================================
+
   private onKeyDown = (event: KeyboardEvent): void => {
     const key = event.key.toLowerCase();
+
+    // Prevent browser scrolling when using
+    // Space and movement keys.
+    if (['w', 'a', 's', 'd', 'shift', ' '].includes(key)) {
+      event.preventDefault();
+    }
+
+    // =======================================================
+    // MOVEMENT
+    // =======================================================
 
     if (['w', 'a', 's', 'd'].includes(key)) {
       this.keys[key] = true;
     }
+
+    // =======================================================
+    // RUN
+    // =======================================================
+
+    if (key === 'shift') {
+      this.keys['shift'] = true;
+    }
+
+    // =======================================================
+    // JUMP
+    // =======================================================
+
+    if (key === ' ' && !event.repeat) {
+      this.mobileJumpRequested = true;
+    }
   };
+
+  // =========================================================
+  // KEY UP
+  // =========================================================
 
   private onKeyUp = (event: KeyboardEvent): void => {
     const key = event.key.toLowerCase();
 
+    if (['w', 'a', 's', 'd', 'shift', ' '].includes(key)) {
+      event.preventDefault();
+    }
+
     this.keys[key] = false;
   };
+
+  // =========================================================
+  // JOYSTICK
+  // =========================================================
 
   private setupJoystick(): void {
     const joystick = document.getElementById('joystick');
@@ -114,6 +235,8 @@ export class Explore3dInputService {
     const stick = document.getElementById('joystickStick');
 
     if (!joystick || !stick) {
+      console.warn('[Explore3dInput] Joystick elements not found.');
+
       return;
     }
 
@@ -130,6 +253,7 @@ export class Explore3dInputService {
       const centerY = rect.top + rect.height / 2;
 
       let dx = clientX - centerX;
+
       let dy = clientY - centerY;
 
       const distance = Math.sqrt(dx * dx + dy * dy);
@@ -158,7 +282,13 @@ export class Explore3dInputService {
       stick.style.transform = 'translate(0px, 0px)';
     };
 
+    // =======================================================
+    // POINTER DOWN
+    // =======================================================
+
     this.joystickPointerDownHandler = (event: PointerEvent) => {
+      event.preventDefault();
+
       this.joystick.active = true;
 
       joystick.setPointerCapture(event.pointerId);
@@ -166,7 +296,13 @@ export class Explore3dInputService {
       updateJoystick(event.clientX, event.clientY);
     };
 
+    // =======================================================
+    // POINTER MOVE
+    // =======================================================
+
     this.joystickPointerMoveHandler = (event: PointerEvent) => {
+      event.preventDefault();
+
       if (!this.joystick.active) {
         return;
       }
@@ -174,9 +310,17 @@ export class Explore3dInputService {
       updateJoystick(event.clientX, event.clientY);
     };
 
+    // =======================================================
+    // POINTER UP
+    // =======================================================
+
     this.joystickPointerUpHandler = () => {
       resetJoystick();
     };
+
+    // =======================================================
+    // EVENTS
+    // =======================================================
 
     joystick.addEventListener('pointerdown', this.joystickPointerDownHandler);
 
@@ -187,10 +331,108 @@ export class Explore3dInputService {
     joystick.addEventListener('pointercancel', this.joystickPointerUpHandler);
   }
 
+  // =========================================================
+  // MOBILE BUTTONS
+  // =========================================================
+
+  private setupMobileButtons(): void {
+    // IMPORTANT:
+    // These IDs match your HTML exactly.
+    this.runButtonElement = document.getElementById('runButton') ?? undefined;
+
+    this.jumpButtonElement = document.getElementById('jumpButton') ?? undefined;
+
+    // =======================================================
+    // RUN BUTTON
+    // =======================================================
+
+    if (this.runButtonElement) {
+      this.runPointerDownHandler = (event: PointerEvent) => {
+        event.preventDefault();
+
+        this.mobileRun = true;
+
+        this.runButtonElement?.classList.add('active');
+
+        // Keep pointer events attached to the
+        // button while the finger is held.
+        try {
+          this.runButtonElement?.setPointerCapture(event.pointerId);
+        } catch {
+          // Ignore pointer-capture failures.
+        }
+      };
+
+      this.runPointerUpHandler = (event: PointerEvent) => {
+        event.preventDefault();
+
+        this.mobileRun = false;
+
+        this.runButtonElement?.classList.remove('active');
+      };
+
+      this.runButtonElement.addEventListener(
+        'pointerdown',
+        this.runPointerDownHandler,
+      );
+
+      this.runButtonElement.addEventListener(
+        'pointerup',
+        this.runPointerUpHandler,
+      );
+
+      this.runButtonElement.addEventListener(
+        'pointercancel',
+        this.runPointerUpHandler,
+      );
+
+      this.runButtonElement.addEventListener(
+        'lostpointercapture',
+        this.runPointerUpHandler,
+      );
+    } else {
+      console.warn('[Explore3dInput] #runButton not found.');
+    }
+
+    // =======================================================
+    // JUMP BUTTON
+    // =======================================================
+
+    if (this.jumpButtonElement) {
+      this.jumpPointerDownHandler = (event: PointerEvent) => {
+        event.preventDefault();
+
+        // One jump request per tap.
+        this.mobileJumpRequested = true;
+
+        this.jumpButtonElement?.classList.add('active');
+
+        window.setTimeout(() => {
+          this.jumpButtonElement?.classList.remove('active');
+        }, 120);
+      };
+
+      this.jumpButtonElement.addEventListener(
+        'pointerdown',
+        this.jumpPointerDownHandler,
+      );
+    } else {
+      console.warn('[Explore3dInput] #jumpButton not found.');
+    }
+  }
+
+  // =========================================================
+  // DISPOSE
+  // =========================================================
+
   dispose(): void {
     window.removeEventListener('keydown', this.onKeyDown);
 
     window.removeEventListener('keyup', this.onKeyUp);
+
+    // =======================================================
+    // JOYSTICK
+    // =======================================================
 
     if (this.joystickElement && this.joystickPointerDownHandler) {
       this.joystickElement.removeEventListener(
@@ -217,5 +459,72 @@ export class Explore3dInputService {
         this.joystickPointerUpHandler,
       );
     }
+
+    // =======================================================
+    // RUN BUTTON
+    // =======================================================
+
+    if (this.runButtonElement && this.runPointerDownHandler) {
+      this.runButtonElement.removeEventListener(
+        'pointerdown',
+        this.runPointerDownHandler,
+      );
+    }
+
+    if (this.runButtonElement && this.runPointerUpHandler) {
+      this.runButtonElement.removeEventListener(
+        'pointerup',
+        this.runPointerUpHandler,
+      );
+
+      this.runButtonElement.removeEventListener(
+        'pointercancel',
+        this.runPointerUpHandler,
+      );
+
+      this.runButtonElement.removeEventListener(
+        'lostpointercapture',
+        this.runPointerUpHandler,
+      );
+    }
+
+    // =======================================================
+    // JUMP BUTTON
+    // =======================================================
+
+    if (this.jumpButtonElement && this.jumpPointerDownHandler) {
+      this.jumpButtonElement.removeEventListener(
+        'pointerdown',
+        this.jumpPointerDownHandler,
+      );
+    }
+
+    // =======================================================
+    // RESET
+    // =======================================================
+
+    this.keys = {};
+
+    this.joystick.active = false;
+    this.joystick.x = 0;
+    this.joystick.y = 0;
+
+    this.mobileRun = false;
+    this.mobileJumpRequested = false;
+
+    this.joystickElement = undefined;
+    this.joystickStickElement = undefined;
+
+    this.runButtonElement = undefined;
+    this.jumpButtonElement = undefined;
+
+    this.joystickPointerDownHandler = undefined;
+    this.joystickPointerMoveHandler = undefined;
+    this.joystickPointerUpHandler = undefined;
+
+    this.runPointerDownHandler = undefined;
+    this.runPointerUpHandler = undefined;
+
+    this.jumpPointerDownHandler = undefined;
   }
 }

@@ -282,6 +282,7 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
+    // Input service must initialize after the view/DOM exists.
     this.input.initialize();
 
     this.business3d.setupInteraction(
@@ -306,10 +307,18 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
 
       const movement = this.input.getMovement(this.engine3d.camera);
 
+      const manualMovement = this.input.hasManualMovement();
+
+      const running = this.input.isRunning();
+
+      const jumpRequested = this.input.consumeJumpRequest();
+
       this.player.update(
         this.engine3d.camera,
         movement,
-        this.input.hasManualMovement(),
+        manualMovement,
+        running,
+        jumpRequested,
       );
 
       this.engine3d.scene.render();

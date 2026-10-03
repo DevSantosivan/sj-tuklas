@@ -15,6 +15,7 @@ import {
   TransformNode,
   Vector3,
   Node,
+  Texture,
 } from '@babylonjs/core';
 
 import '@babylonjs/loaders/glTF';
@@ -914,6 +915,16 @@ export class Explore3dWorldService {
     }
   }
 
+  // =========================================================
+  // MODEL TEXTURE QUALITY
+  // =========================================================
+  private configureModelTextureQuality(): void {
+    for (const texture of this.scene.textures) {
+      texture.updateSamplingMode(Texture.TRILINEAR_SAMPLINGMODE);
+      texture.anisotropicFilteringLevel = 8;
+    }
+  }
+
   private async loadHubModel(
     config: HubModelConfig,
     position: Vector3,
@@ -927,23 +938,21 @@ export class Explore3dWorldService {
 
     if (this.isDisposed) {
       for (const mesh of result.meshes) {
-        if (!mesh.isDisposed()) mesh.dispose(false, true);
+        if (!mesh.isDisposed()) {
+          mesh.dispose(false, true);
+        }
       }
 
-      for (const mesh of result.meshes) {
-        if (mesh.getTotalVertices() === 0) continue;
-
-        mesh.isPickable = true;
-        mesh.checkCollisions = true;
-
-        mesh.metadata = {
-          ...(mesh.metadata ?? {}),
-          exploreCategory: config.category,
-          isHubModel: true,
-        };
+      for (const node of result.transformNodes) {
+        if (!node.isDisposed()) {
+          node.dispose();
+        }
       }
+
       return;
     }
+
+    this.configureModelTextureQuality();
 
     const root = new TransformNode(
       `hubModel_${config.category.replace(/\W/g, '_')}`,
@@ -1073,6 +1082,9 @@ export class Explore3dWorldService {
       true,
     );
 
+    texture.updateSamplingMode(Texture.TRILINEAR_SAMPLINGMODE);
+    texture.anisotropicFilteringLevel = 8;
+
     const material = new StandardMaterial(`${name}_material`, this.scene);
 
     material.diffuseTexture = texture;
@@ -1149,15 +1161,21 @@ export class Explore3dWorldService {
 
     if (this.isDisposed || this.currentCategory !== category) {
       for (const mesh of result.meshes) {
-        if (!mesh.isDisposed()) mesh.dispose(false, true);
+        if (!mesh.isDisposed()) {
+          mesh.dispose(false, true);
+        }
       }
 
       for (const node of result.transformNodes) {
-        if (!node.isDisposed()) node.dispose(false, true);
+        if (!node.isDisposed()) {
+          node.dispose(false, true);
+        }
       }
 
       return;
     }
+
+    this.configureModelTextureQuality();
 
     const root = new TransformNode(
       `categoryModel_${category.replace(/\W/g, '_')}`,

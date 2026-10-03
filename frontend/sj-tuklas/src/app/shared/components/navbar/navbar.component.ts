@@ -1,20 +1,20 @@
 import { Component, inject, signal } from '@angular/core';
-
 import {
   NavigationEnd,
   Router,
   RouterLink,
   RouterLinkActive,
 } from '@angular/router';
-
-import { filter } from 'rxjs';
+import { filter, firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../../core/services/auth.service';
+import { Explore3dCharacterService } from '../../../core/services/explore3d-character.service';
+import { Explore3dEntryModalComponent } from '../../../features/explore-3d/components/explore3d-entry-modal/explore3d-entry-modal.component';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, Explore3dEntryModalComponent],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss',
 })
@@ -25,17 +25,13 @@ export class NavbarComponent {
 
   readonly authService = inject(AuthService);
   readonly router = inject(Router);
+  private readonly characterService = inject(Explore3dCharacterService);
 
   // =========================================================
   // AUTH STATE
   // =========================================================
 
   readonly currentUser = this.authService.currentUser;
-
-  // TRUE habang chine-check pa kung may active session.
-  //
-  // Prevents "Log in" from flashing habang nire-restore
-  // ang session pagkatapos ng browser refresh / PC restart.
   readonly authLoading = this.authService.authLoading;
 
   // =========================================================
@@ -51,6 +47,105 @@ export class NavbarComponent {
   readonly currentUrl = signal(this.router.url);
 
   // =========================================================
+  // 3D EXPLORE MODAL
+  // =========================================================
+
+  readonly exploreModalOpen = signal(false);
+  readonly exploreModalMode = signal<'auth' | 'character'>('auth');
+  readonly exploreUserName = signal('Explorer');
+  readonly checkingCharacter = signal(false);
+
+  /**
+   * Called when the user clicks the Explore in 3D button.
+   *
+   * Not logged in:
+   *   Open registration/login modal.
+   *
+   * Logged in with a character:
+   *   Navigate directly to 3D Explore.
+   *
+   * Logged in without a character:
+   *   Open character creation modal.
+   */
+  async openExplore3d(event: Event): Promise<void> {
+    event.preventDefault();
+
+    // Wait until the authentication state is restored.
+    if (this.authLoading() || this.checkingCharacter()) {
+      return;
+    }
+
+    const user = this.currentUser();
+
+    // User is not logged in.
+    if (!user) {
+      this.exploreModalMode.set('auth');
+      this.exploreModalOpen.set(true);
+      return;
+    }
+
+    this.exploreUserName.set(user.fullName?.trim() || 'Explorer');
+    this.checkingCharacter.set(true);
+
+    try {
+      const character = await firstValueFrom(
+        this.characterService.getMyCharacter(),
+      );
+
+      // Existing character found.
+      if (character) {
+        await this.router.navigate(['/explore']);
+        return;
+      }
+
+      // Empty response: show character setup.
+      this.exploreModalMode.set('character');
+      this.exploreModalOpen.set(true);
+    } catch (error: any) {
+      // A 404 means the user has not created a character yet.
+      if (error?.status === 404) {
+        this.exploreModalMode.set('character');
+        this.exploreModalOpen.set(true);
+        return;
+      }
+
+      // Don't treat a server/network error as a missing character.
+      console.error('Failed to load Explore 3D character:', error);
+    } finally {
+      this.checkingCharacter.set(false);
+    }
+  }
+
+  closeExploreModal(): void {
+    this.exploreModalOpen.set(false);
+  }
+
+  goToExploreRegister(): void {
+    this.exploreModalOpen.set(false);
+
+    void this.router.navigate(['/register'], {
+      queryParams: {
+        returnUrl: '/explore',
+      },
+    });
+  }
+
+  goToExploreLogin(): void {
+    this.exploreModalOpen.set(false);
+
+    void this.router.navigate(['/login'], {
+      queryParams: {
+        returnUrl: '/explore',
+      },
+    });
+  }
+
+  onExploreCharacterCreated(): void {
+    this.exploreModalOpen.set(false);
+    void this.router.navigate(['/explore']);
+  }
+
+  // =========================================================
   // CONSTRUCTOR
   // =========================================================
 
@@ -62,11 +157,7 @@ export class NavbarComponent {
         ),
       )
       .subscribe((event) => {
-        // Update current URL
         this.currentUrl.set(event.urlAfterRedirects);
-
-        // Automatically close profile dropdown
-        // after navigation.
         this.closeProfileMenu();
       });
   }
@@ -95,8 +186,6 @@ export class NavbarComponent {
 
   // =========================================================
   // DASHBOARD ROUTE
-  //
-  // /dashboard/:id/overview
   // =========================================================
 
   get dashboardRoute(): string {
@@ -111,8 +200,6 @@ export class NavbarComponent {
 
   // =========================================================
   // PROFILE ROUTE
-  //
-  // /dashboard/:id/profile
   // =========================================================
 
   get profileRoute(): string {
@@ -127,16 +214,6 @@ export class NavbarComponent {
 
   // =========================================================
   // HIDE MOBILE BOTTOM NAV
-  //
-  // HIDDEN INSIDE:
-  // /dashboard/:id/*
-  //
-  // Examples:
-  //
-  // /dashboard/123
-  // /dashboard/123/overview
-  // /dashboard/123/profile
-  // /dashboard/123/favorites
   // =========================================================
 
   get hideMobileBottomNav(): boolean {
@@ -162,13 +239,12 @@ export class NavbarComponent {
   // =========================================================
 
   async logout(): Promise<void> {
-    // Close dropdown first
     this.closeProfileMenu();
 
-    // Clear authentication session
-    await this.authService.signOut();
+    // Clear character state from the client as well.
+    this.characterService.clear();
 
-    // Go to login
+    await this.authService.signOut();
     await this.router.navigate(['/login']);
   }
 }

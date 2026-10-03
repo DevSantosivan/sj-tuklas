@@ -1,0 +1,380 @@
+:host {
+  --modal-text: #171717;
+  --modal-muted: #737373;
+  --modal-border: #e5e5e5;
+  --modal-accent: #171717;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(0 0 0 / 58%);
+  backdrop-filter: blur(5px);
+}
+
+.explore-modal {
+  position: relative;
+  width: min(100%, 480px);
+  max-height: min(90dvh, 760px);
+  overflow-y: auto;
+  border: 1px solid var(--modal-border);
+  border-radius: 22px;
+  background: #fff;
+  color: var(--modal-text);
+  animation: modal-enter 180ms ease-out;
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: #f5f5f5;
+  color: #404040;
+  cursor: pointer;
+  font-size: 23px;
+  transition: background 160ms ease;
+
+  &:hover {
+    background: #eaeaea;
+  }
+}
+
+.modal-content {
+  padding: 36px;
+}
+
+.auth-content {
+  text-align: center;
+}
+
+.modal-icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 18px;
+  border: 1px solid var(--modal-border);
+  border-radius: 17px;
+  background: #fafafa;
+  font-size: 29px;
+}
+
+.eyebrow {
+  color: var(--modal-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+h2 {
+  margin: 9px 0 10px;
+  font-size: clamp(23px, 5vw, 30px);
+  font-weight: 750;
+  letter-spacing: -0.045em;
+  line-height: 1.15;
+}
+
+.modal-description {
+  max-width: 350px;
+  margin: 0 auto 25px;
+  color: var(--modal-muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.auth-actions {
+  display: grid;
+  gap: 10px;
+  text-align: left;
+}
+
+.primary-action,
+.secondary-action {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  min-height: 64px;
+  padding: 12px 15px;
+  border: 1px solid var(--modal-border);
+  border-radius: 13px;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+
+  > i:first-child {
+    flex: 0 0 auto;
+    font-size: 23px;
+  }
+
+  span {
+    display: grid;
+    flex: 1;
+    gap: 3px;
+  }
+
+  strong {
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  small {
+    color: var(--modal-muted);
+    font-size: 11px;
+  }
+
+  &:active {
+    transform: scale(0.99);
+  }
+}
+
+.primary-action {
+  border-color: var(--modal-accent);
+  background: var(--modal-accent);
+  color: #fff;
+
+  small {
+    color: #c9c9c9;
+  }
+
+  &:hover {
+    background: #303030;
+  }
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.65;
+  }
+}
+
+.secondary-action {
+  background: #fff;
+  color: var(--modal-text);
+
+  &:hover {
+    border-color: #a3a3a3;
+    background: #fafafa;
+  }
+}
+
+.action-arrow {
+  margin-left: auto;
+  font-size: 20px;
+}
+
+.modal-footnote {
+  margin: 20px 0 0;
+  color: #8a8a8a;
+  font-size: 10px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.character-content {
+  .modal-icon {
+    margin-left: 0;
+  }
+
+  .modal-description {
+    margin: 0 0 22px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  input {
+    width: 100%;
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--modal-border);
+    border-radius: 10px;
+    outline: none;
+    background: #fff;
+    color: var(--modal-text);
+    font: inherit;
+    font-size: 13px;
+
+    &:focus {
+      border-color: #737373;
+      box-shadow: 0 0 0 3px rgb(0 0 0 / 5%);
+    }
+  }
+
+  .model-label {
+    margin-top: 20px;
+  }
+}
+
+.character-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.character-option {
+  position: relative;
+  min-width: 0;
+  padding: 7px;
+  overflow: hidden;
+  border: 1px solid var(--modal-border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--modal-text);
+  cursor: pointer;
+  text-align: center;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease;
+
+  &.selected {
+    border: 2px solid #171717;
+    padding: 6px;
+    background: #fafafa;
+  }
+
+  strong,
+  small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  strong {
+    margin-top: 7px;
+    font-size: 11px;
+  }
+
+  small {
+    margin-top: 3px;
+    color: var(--modal-muted);
+    font-size: 9px;
+  }
+}
+
+.character-preview {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #f2f2f2;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+.selected-check {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #171717;
+  color: #fff;
+  font-size: 14px;
+}
+
+.create-action {
+  justify-content: center;
+  min-height: 47px;
+  margin-top: 18px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.error-message {
+  margin: 12px 0 0;
+  color: #dc2626;
+  font-size: 11px;
+}
+
+.button-spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid rgb(255 255 255 / 40%);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-backdrop {
+    padding: 12px;
+  }
+
+  .explore-modal {
+    border-radius: 18px;
+  }
+
+  .modal-content {
+    padding: 30px 20px 22px;
+  }
+
+  .character-grid {
+    gap: 6px;
+  }
+
+  .character-option {
+    padding: 5px;
+
+    &.selected {
+      padding: 4px;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .explore-modal {
+    animation: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}

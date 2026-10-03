@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Tokens;
@@ -5,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using SjTuklas.Api.Endpoints;
 using SjTuklas.Api.Hubs;
 using SjTuklas.Api.Services;
+using SjTuklas.Api.Services.Explore3d;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,11 +21,10 @@ builder.Services.AddOpenApi();
 // ============================================================
 
 builder.Services.AddScoped<BusinessService>();
-
 builder.Services.AddScoped<ProfileService>();
-
 builder.Services.AddScoped<FavoriteService>();
 builder.Services.AddScoped<ReviewService>();
+
 // ============================================================
 // INQUIRY SERVICE
 // ============================================================
@@ -43,6 +44,15 @@ builder.Services.AddHttpClient<AuthService>();
 builder.Services.AddHttpClient<
     ISupabaseStorageService,
     SupabaseStorageService
+>();
+
+// ============================================================
+// EXPLORE 3D CHARACTER SERVICE
+// ============================================================
+
+builder.Services.AddHttpClient<
+    IExplore3dCharacterService,
+    Explore3dCharacterService
 >();
 
 // ============================================================
@@ -80,21 +90,15 @@ builder.Services
         // SUPABASE JWT AUTHORITY
         // ====================================================
 
-        options.Authority =
-            supabaseIssuer;
-
-        options.Audience =
-            supabaseAudience;
-
-        options.RequireHttpsMetadata =
-            true;
+        options.Authority = supabaseIssuer;
+        options.Audience = supabaseAudience;
+        options.RequireHttpsMetadata = true;
 
         // ====================================================
         // KEEP ORIGINAL JWT CLAIM NAMES
         // ====================================================
 
-        options.MapInboundClaims =
-            false;
+        options.MapInboundClaims = false;
 
         // ====================================================
         // TOKEN VALIDATION
@@ -103,190 +107,175 @@ builder.Services
         options.TokenValidationParameters =
             new TokenValidationParameters
             {
-                ValidateIssuer =
-                    true,
+                ValidateIssuer = true,
+                ValidIssuer = supabaseIssuer,
 
-                ValidIssuer =
-                    supabaseIssuer,
+                ValidateAudience = true,
+                ValidAudience = supabaseAudience,
 
-                ValidateAudience =
-                    true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
 
-                ValidAudience =
-                    supabaseAudience,
+                ClockSkew = TimeSpan.FromSeconds(30),
 
-                ValidateLifetime =
-                    true,
-
-                ValidateIssuerSigningKey =
-                    true,
-
-                ClockSkew =
-                    TimeSpan.FromSeconds(30),
-
-                NameClaimType =
-                    "sub",
+                NameClaimType = "sub",
             };
 
         // ====================================================
         // JWT EVENTS
         // ====================================================
 
-        options.Events =
-            new JwtBearerEvents
+        options.Events = new JwtBearerEvents
+        {
+            // ==================================================
+            // READ JWT FROM HTTPONLY COOKIE
+            // ==================================================
+
+            OnMessageReceived = context =>
             {
-                // ==================================================
-                // READ JWT FROM HTTPONLY COOKIE
-                // ==================================================
-
-                OnMessageReceived = context =>
-                {
-                    var hasCookie =
-                        context.Request.Cookies.ContainsKey(
-                            AuthService.AccessTokenCookieName
-                        );
-
-                    Console.WriteLine(
-                        $"JWT COOKIE PRESENT: {hasCookie}"
+                var hasCookie =
+                    context.Request.Cookies.ContainsKey(
+                        AuthService.AccessTokenCookieName
                     );
 
-                    if (
-                        context.Request.Cookies.TryGetValue(
-                            AuthService.AccessTokenCookieName,
-                            out var accessToken
-                        )
-                        &&
-                        !string.IsNullOrWhiteSpace(
-                            accessToken
-                        )
+                Console.WriteLine(
+                    $"JWT COOKIE PRESENT: {hasCookie}"
+                );
+
+                if (
+                    context.Request.Cookies.TryGetValue(
+                        AuthService.AccessTokenCookieName,
+                        out var accessToken
                     )
-                    {
-                        context.Token =
-                            accessToken;
-
-                        Console.WriteLine(
-                            "JWT TOKEN LOADED FROM HTTPONLY COOKIE."
-                        );
-                    }
-                    else
-                    {
-                        Console.WriteLine(
-                            "JWT TOKEN NOT FOUND IN COOKIE."
-                        );
-                    }
-
-                    return Task.CompletedTask;
-                },
-
-                // ==================================================
-                // TOKEN VALIDATED
-                // ==================================================
-
-                OnTokenValidated = context =>
+                    &&
+                    !string.IsNullOrWhiteSpace(accessToken)
+                )
                 {
-                    var userId =
-                        context.Principal?
-                            .FindFirst("sub")?
-                            .Value;
-
-                    var email =
-                        context.Principal?
-                            .FindFirst("email")?
-                            .Value;
+                    context.Token = accessToken;
 
                     Console.WriteLine(
-                        "=========================================="
+                        "JWT TOKEN LOADED FROM HTTPONLY COOKIE."
                     );
-
-                    Console.WriteLine(
-                        "JWT AUTHENTICATION SUCCESS"
-                    );
-
-                    Console.WriteLine(
-                        $"User ID: {userId}"
-                    );
-
-                    Console.WriteLine(
-                        $"Email: {email}"
-                    );
-
-                    Console.WriteLine(
-                        "=========================================="
-                    );
-
-                    return Task.CompletedTask;
-                },
-
-                // ==================================================
-                // AUTHENTICATION FAILED
-                // ==================================================
-
-                OnAuthenticationFailed = context =>
+                }
+                else
                 {
                     Console.WriteLine(
-                        "=========================================="
+                        "JWT TOKEN NOT FOUND IN COOKIE."
                     );
+                }
 
-                    Console.WriteLine(
-                        "JWT AUTHENTICATION FAILED"
-                    );
+                return Task.CompletedTask;
+            },
 
-                    Console.WriteLine(
-                        $"Exception Type: " +
-                        $"{context.Exception.GetType().Name}"
-                    );
+            // ==================================================
+            // TOKEN VALIDATED
+            // ==================================================
 
-                    Console.WriteLine(
-                        $"Message: " +
-                        $"{context.Exception.Message}"
-                    );
+            OnTokenValidated = context =>
+            {
+                var userId =
+                    context.Principal?
+                        .FindFirst("sub")?
+                        .Value;
 
-                    Console.WriteLine(
-                        context.Exception.ToString()
-                    );
+                var email =
+                    context.Principal?
+                        .FindFirst("email")?
+                        .Value;
 
-                    Console.WriteLine(
-                        "=========================================="
-                    );
+                Console.WriteLine(
+                    "=========================================="
+                );
 
-                    return Task.CompletedTask;
-                },
+                Console.WriteLine(
+                    "JWT AUTHENTICATION SUCCESS"
+                );
 
-                // ==================================================
-                // AUTHORIZATION CHALLENGE
-                // ==================================================
+                Console.WriteLine(
+                    $"User ID: {userId}"
+                );
 
-                OnChallenge = context =>
-                {
-                    Console.WriteLine(
-                        "=========================================="
-                    );
+                Console.WriteLine(
+                    $"Email: {email}"
+                );
 
-                    Console.WriteLine(
-                        "JWT CHALLENGE - 401 UNAUTHORIZED"
-                    );
+                Console.WriteLine(
+                    "=========================================="
+                );
 
-                    Console.WriteLine(
-                        $"Error: {context.Error}"
-                    );
+                return Task.CompletedTask;
+            },
 
-                    Console.WriteLine(
-                        $"Description: " +
-                        $"{context.ErrorDescription}"
-                    );
+            // ==================================================
+            // AUTHENTICATION FAILED
+            // ==================================================
 
-                    Console.WriteLine(
-                        $"Authentication Failure: " +
-                        $"{context.AuthenticateFailure}"
-                    );
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine(
+                    "=========================================="
+                );
 
-                    Console.WriteLine(
-                        "=========================================="
-                    );
+                Console.WriteLine(
+                    "JWT AUTHENTICATION FAILED"
+                );
 
-                    return Task.CompletedTask;
-                },
-            };
+                Console.WriteLine(
+                    $"Exception Type: " +
+                    $"{context.Exception.GetType().Name}"
+                );
+
+                Console.WriteLine(
+                    $"Message: " +
+                    $"{context.Exception.Message}"
+                );
+
+                Console.WriteLine(
+                    context.Exception.ToString()
+                );
+
+                Console.WriteLine(
+                    "=========================================="
+                );
+
+                return Task.CompletedTask;
+            },
+
+            // ==================================================
+            // AUTHORIZATION CHALLENGE
+            // ==================================================
+
+            OnChallenge = context =>
+            {
+                Console.WriteLine(
+                    "=========================================="
+                );
+
+                Console.WriteLine(
+                    "JWT CHALLENGE - 401 UNAUTHORIZED"
+                );
+
+                Console.WriteLine(
+                    $"Error: {context.Error}"
+                );
+
+                Console.WriteLine(
+                    $"Description: " +
+                    $"{context.ErrorDescription}"
+                );
+
+                Console.WriteLine(
+                    $"Authentication Failure: " +
+                    $"{context.AuthenticateFailure}"
+                );
+
+                Console.WriteLine(
+                    "=========================================="
+                );
+
+                return Task.CompletedTask;
+            },
+        };
     });
 
 // ============================================================
@@ -324,16 +313,13 @@ builder.Services.AddCors(options =>
 // BUILD APPLICATION
 // ============================================================
 
-var app =
-    builder.Build();
+var app = builder.Build();
 
 // ============================================================
 // OPENAPI
 // ============================================================
 
-if (
-    app.Environment.IsDevelopment()
-)
+if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
@@ -357,6 +343,12 @@ app.UseAntiforgery();
 app.MapAuthEndpoints();
 
 // ============================================================
+// EXPLORE 3D CHARACTER ENDPOINTS
+// ============================================================
+
+app.MapExplore3dCharacterEndpoints();
+
+// ============================================================
 // BUSINESS ENDPOINTS
 // ============================================================
 
@@ -368,19 +360,18 @@ app.MapBusinessEndpoints();
 
 app.MapFavoriteEndpoints();
 
-
 // ============================================================
 // STATS ENDPOINTS
 // ============================================================
 
 app.MapStatsEndpoints();
 
-
 // ============================================================
 // REVIEW ENDPOINTS
 // ============================================================
 
 app.MapReviewEndpoints();
+
 // ============================================================
 // INQUIRY ENDPOINTS
 // ============================================================
