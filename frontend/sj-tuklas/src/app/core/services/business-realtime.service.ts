@@ -1,355 +1,229 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable } from '@angular/core';
 
 import {
   HubConnection,
   HubConnectionBuilder,
   HubConnectionState,
-  LogLevel,
 } from '@microsoft/signalr';
 
+import { Business } from '../models/business';
 import { API_CONFIG } from '../config/api.config';
 
-export interface Explore3dRemotePlayer {
+// =========================================================
+// BUSINESS STATUS EVENT
+// =========================================================
+
+export interface BusinessStatusChangedEvent {
+  businessId: string;
+  status: Business['status'];
+  business?: Business;
+}
+
+type BusinessStatusChangedHandler = (event: BusinessStatusChangedEvent) => void;
+
+// =========================================================
+// USER REGISTERED EVENT
+// =========================================================
+
+export interface UserRegisteredEvent {
   userId: string;
-  connectionId: string;
-  worldId: string;
-  displayName: string;
-  characterModel: string;
-  x: number;
-  y: number;
-  z: number;
-  rotationY: number;
 }
 
-export interface Explore3dPlayerPosition {
-  x: number;
-  y: number;
-  z: number;
-  rotationY: number;
-}
+type UserRegisteredHandler = (event: UserRegisteredEvent) => void;
 
-interface JoinWorldRequest {
-  worldId: string;
-  displayName: string;
-  characterModel: string;
-  position: Explore3dPlayerPosition;
-}
-
-interface PlayerLeftEvent {
-  connectionId: string;
-}
+// =========================================================
+// SERVICE
+// =========================================================
 
 @Injectable({
   providedIn: 'root',
 })
-export class Explore3dMultiplayerService {
-  private connection?: HubConnection;
-  private startPromise?: Promise<void>;
-  private currentWorld?: JoinWorldRequest;
+export class BusinessRealtimeService {
+  private connection: HubConnection | null = null;
 
-  private readonly _players = signal<Explore3dRemotePlayer[]>([]);
-  private readonly _connected = signal(false);
-  private readonly _joining = signal(false);
+  // =======================================================
+  // BUSINESS LISTENERS
+  // =======================================================
 
-  readonly players = this._players.asReadonly();
-  readonly connected = this._connected.asReadonly();
-  readonly joining = this._joining.asReadonly();
+  private readonly businessListeners = new Set<BusinessStatusChangedHandler>();
 
-  private readonly hubUrl = this.buildHubUrl();
+  // =======================================================
+  // USER REGISTRATION LISTENERS
+  // =======================================================
 
-  /**
-   * Build the SignalR URL.
-   * Use the configured absolute backend URL when available.
-   * If API_CONFIG.baseUrl is relative (e.g. /api), use Render directly.
-   */
-  private buildHubUrl(): string {
-    const configuredBaseUrl = API_CONFIG.baseUrl?.trim();
+  private readonly userRegisteredListeners = new Set<UserRegisteredHandler>();
 
-    if (configuredBaseUrl && /^https?:\/\//i.test(configuredBaseUrl)) {
-      const backendUrl = configuredBaseUrl.replace(/\/api\/?$/i, '');
-      return `${backendUrl.replace(/\/+$/, '')}/hubs/explore3d`;
-    }
+  // =======================================================
+  // SIGNALR URL
+  // =======================================================
 
-    return 'https://sj-tuklas.onrender.com/hubs/explore3d';
+  private get signalRUrl(): string {
+    return API_CONFIG.baseUrl.replace(/\/api\/?$/, '') + '/hubs/business';
   }
 
-  /**
-   * Establish the SignalR connection.
-   * Reuses an existing connection and prevents duplicate starts.
-   */
-  async connect(): Promise<void> {
-    if (this.connection?.state === HubConnectionState.Connected) {
-      this._connected.set(true);
+  // =======================================================
+  // CONNECT
+  // =======================================================
+
+  async connect(handler?: BusinessStatusChangedHandler): Promise<void> {
+    if (handler) {
+      this.businessListeners.add(handler);
+    }
+
+    // -------------------------------------------------------
+    // ALREADY CONNECTED
+    // -------------------------------------------------------
+
+    if (
+      this.connection &&
+      this.connection.state !== HubConnectionState.Disconnected
+    ) {
+      console.log('BUSINESS SIGNALR ALREADY CONNECTED:', this.connection.state);
+
       return;
     }
 
-    if (this.startPromise) {
-      return this.startPromise;
-    }
+    // -------------------------------------------------------
+    // CREATE CONNECTION
+    // -------------------------------------------------------
 
-    if (!this.connection) {
-      this.createConnection();
-    }
-
-    const connection = this.connection!;
-
-    if (connection.state === HubConnectionState.Connecting) {
-      // Wait for the existing start attempt, if one is in progress.
-      if (this.startPromise) {
-        return this.startPromise;
-      }
-
-      throw new Error('SignalR connection is already starting.');
-    }
-
-    if (connection.state === HubConnectionState.Reconnecting) {
-      throw new Error('SignalR is reconnecting. Please try again shortly.');
-    }
-
-    this.startPromise = connection
-      .start()
-      .then(() => {
-        this._connected.set(true);
-        console.info('[Explore3D Multiplayer] Connected:', this.hubUrl);
-      })
-      .catch((error: unknown) => {
-        this._connected.set(false);
-        console.error('[Explore3D Multiplayer] Connection failed:', error);
-        throw error;
-      })
-      .finally(() => {
-        this.startPromise = undefined;
-      });
-
-    return this.startPromise;
-  }
-
-  /**
-   * Create and configure the SignalR connection.
-   */
-  private createConnection(): void {
     this.connection = new HubConnectionBuilder()
-      .withUrl(this.hubUrl, {
+      .withUrl(this.signalRUrl, {
         withCredentials: true,
       })
       .withAutomaticReconnect()
-      .configureLogging(LogLevel.Information)
       .build();
 
-    this.registerHubEvents(this.connection);
-  }
+    console.log('BUSINESS SIGNALR URL:', this.signalRUrl);
 
-  /**
-   * Register server events and connection lifecycle handlers.
-   */
-  private registerHubEvents(connection: HubConnection): void {
-    connection.on('ExistingPlayers', (players: Explore3dRemotePlayer[]) => {
-      this._players.set(players ?? []);
-    });
+    // =======================================================
+    // BUSINESS STATUS CHANGED
+    // =======================================================
 
-    connection.on('PlayerJoined', (player: Explore3dRemotePlayer) => {
-      this.upsertPlayer(player);
-    });
+    this.connection.on(
+      'BusinessStatusChanged',
+      (event: BusinessStatusChangedEvent) => {
+        console.log('BUSINESS STATUS CHANGED:', event);
 
-    connection.on('PlayerMoved', (player: Explore3dRemotePlayer) => {
-      this.upsertPlayer(player);
-    });
+        for (const listener of this.businessListeners) {
+          try {
+            listener(event);
+          } catch (error) {
+            console.error('BUSINESS REALTIME LISTENER ERROR:', error);
+          }
+        }
+      },
+    );
 
-    connection.on('PlayerLeft', (event: PlayerLeftEvent) => {
-      if (!event?.connectionId) {
-        return;
-      }
+    // =======================================================
+    // USER REGISTERED
+    // =======================================================
 
-      this._players.update((players) =>
-        players.filter((player) => player.connectionId !== event.connectionId),
-      );
-    });
+    this.connection.on('UserRegistered', (event: UserRegisteredEvent) => {
+      console.log('USER REGISTERED REALTIME:', event);
 
-    connection.onreconnecting(() => {
-      this._connected.set(false);
-      console.warn('[Explore3D Multiplayer] Reconnecting...');
-    });
-
-    connection.onreconnected(async () => {
-      this._connected.set(true);
-      console.info('[Explore3D Multiplayer] Reconnected.');
-
-      // A reconnect creates a new server-side connection.
-      // Rejoin the previous world.
-      if (this.currentWorld) {
+      for (const listener of this.userRegisteredListeners) {
         try {
-          await connection.invoke('JoinWorld', this.currentWorld);
+          listener(event);
         } catch (error) {
-          console.error(
-            '[Explore3D Multiplayer] Failed to rejoin world:',
-            error,
-          );
+          console.error('USER REGISTERED LISTENER ERROR:', error);
         }
       }
     });
 
-    connection.onclose((error) => {
-      this._connected.set(false);
-      this._players.set([]);
+    // =======================================================
+    // RECONNECTING
+    // =======================================================
 
-      if (error) {
-        console.error('[Explore3D Multiplayer] Connection closed:', error);
-      }
-    });
-  }
-
-  /**
-   * Join a specific 3D world.
-   */
-  async joinWorld(
-    worldId: string,
-    displayName: string,
-    characterModel: string,
-    position: Explore3dPlayerPosition,
-  ): Promise<void> {
-    const request: JoinWorldRequest = {
-      worldId,
-      displayName,
-      characterModel,
-      position: { ...position },
-    };
-
-    this._joining.set(true);
-
-    try {
-      await this.connect();
-
-      if (!this.connection) {
-        throw new Error('SignalR connection is not available.');
-      }
-
-      this.currentWorld = request;
-
-      await this.connection.invoke('JoinWorld', request);
-
-      console.info(`[Explore3D Multiplayer] Joined world: ${worldId}`);
-    } catch (error) {
-      this._joining.set(false);
-      throw error;
-    } finally {
-      this._joining.set(false);
-    }
-  }
-
-  /**
-   * Send the local player's latest position to the server.
-   */
-  async movePlayer(position: Explore3dPlayerPosition): Promise<void> {
-    if (this.connection?.state !== HubConnectionState.Connected) {
-      return;
-    }
-
-    if (!this.currentWorld) {
-      return;
-    }
-
-    await this.connection.invoke('MovePlayer', {
-      ...position,
+    this.connection.onreconnecting((error) => {
+      console.warn('BUSINESS SIGNALR RECONNECTING:', error);
     });
 
-    // Keep the latest local position for reconnect handling.
-    this.currentWorld = {
-      ...this.currentWorld,
-      position: { ...position },
-    };
-  }
+    // =======================================================
+    // RECONNECTED
+    // =======================================================
 
-  /**
-   * Leave the currently joined world.
-   */
-  async leaveWorld(): Promise<void> {
-    this.currentWorld = undefined;
+    this.connection.onreconnected((connectionId) => {
+      console.log('BUSINESS SIGNALR RECONNECTED:', connectionId);
+    });
 
-    if (this.connection?.state !== HubConnectionState.Connected) {
-      this._players.set([]);
-      return;
-    }
+    // =======================================================
+    // CLOSED
+    // =======================================================
+
+    this.connection.onclose((error) => {
+      console.warn('BUSINESS SIGNALR CLOSED:', error);
+    });
+
+    // =======================================================
+    // START
+    // =======================================================
 
     try {
-      await this.connection.invoke('LeaveWorld');
+      await this.connection.start();
+
+      console.log('BUSINESS SIGNALR CONNECTED');
     } catch (error) {
-      console.error('[Explore3D Multiplayer] Failed to leave world:', error);
+      if (handler) {
+        this.businessListeners.delete(handler);
+      }
+
+      console.error('FAILED TO CONNECT BUSINESS SIGNALR:', error);
+
       throw error;
-    } finally {
-      this._players.set([]);
     }
   }
 
-  /**
-   * Stop the SignalR connection and clear multiplayer state.
-   */
+  // =========================================================
+  // USER REGISTERED LISTENER
+  // =========================================================
+
+  addUserRegisteredListener(handler: UserRegisteredHandler): void {
+    this.userRegisteredListeners.add(handler);
+
+    console.log('USER REGISTERED LISTENER ADDED');
+  }
+
+  // =========================================================
+  // REMOVE USER REGISTERED LISTENER
+  // =========================================================
+
+  removeUserRegisteredListener(handler: UserRegisteredHandler): void {
+    this.userRegisteredListeners.delete(handler);
+
+    console.log('USER REGISTERED LISTENER REMOVED');
+  }
+
+  // =========================================================
+  // REMOVE BUSINESS LISTENER
+  // =========================================================
+
+  removeListener(handler: BusinessStatusChangedHandler): void {
+    this.businessListeners.delete(handler);
+
+    console.log('BUSINESS SIGNALR LISTENER REMOVED');
+  }
+
+  // =========================================================
+  // DISCONNECT
+  // =========================================================
+
   async disconnect(): Promise<void> {
-    this.currentWorld = undefined;
+    this.businessListeners.clear();
+    this.userRegisteredListeners.clear();
 
-    const connection = this.connection;
-
-    this.connection = undefined;
-    this.startPromise = undefined;
-
-    if (connection) {
-      await connection.stop();
-    }
-
-    this._players.set([]);
-    this._connected.set(false);
-    this._joining.set(false);
-  }
-
-  /**
-   * Add a player to the list or update an existing player.
-   */
-  private upsertPlayer(player: Explore3dRemotePlayer): void {
-    if (!player?.connectionId) {
+    if (!this.connection) {
       return;
     }
 
-    this._players.update((players) => {
-      const index = players.findIndex(
-        (existing) => existing.connectionId === player.connectionId,
-      );
+    try {
+      await this.connection.stop();
 
-      if (index === -1) {
-        return [...players, player];
-      }
-
-      return players.map((existing, i) => (i === index ? player : existing));
-    });
-  }
-
-  /**
-   * Get a remote player by connection ID.
-   */
-  getPlayer(connectionId: string): Explore3dRemotePlayer | undefined {
-    return this._players().find(
-      (player) => player.connectionId === connectionId,
-    );
-  }
-
-  /**
-   * Check whether a player is currently tracked.
-   */
-  hasPlayer(connectionId: string): boolean {
-    return this._players().some(
-      (player) => player.connectionId === connectionId,
-    );
-  }
-
-  /**
-   * Return the number of currently tracked remote players.
-   */
-  getPlayerCount(): number {
-    return this._players().length;
-  }
-
-  /**
-   * Clear local multiplayer state without stopping the connection.
-   */
-  clearPlayers(): void {
-    this._players.set([]);
+      console.log('BUSINESS SIGNALR DISCONNECTED');
+    } catch (error) {
+      console.error('FAILED TO DISCONNECT BUSINESS SIGNALR:', error);
+    } finally {
+      this.connection = null;
+    }
   }
 }
