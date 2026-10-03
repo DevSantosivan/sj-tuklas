@@ -45,7 +45,6 @@ interface PlayerLeftEvent {
 export class Explore3dMultiplayerService {
   private connection?: HubConnection;
   private startPromise?: Promise<void>;
-
   private currentWorld?: JoinWorldRequest;
 
   private readonly _players = signal<Explore3dRemotePlayer[]>([]);
@@ -56,11 +55,15 @@ export class Explore3dMultiplayerService {
   readonly connected = this._connected.asReadonly();
   readonly joining = this._joining.asReadonly();
 
-  private readonly hubUrl = `${API_CONFIG.baseUrl.replace(/\/api\/?$/, '')}/hubs/explore3d`;
+  /**
+   * Regular API requests still use API_CONFIG.baseUrl = '/api'.
+   * SignalR connects directly to the deployed ASP.NET Core backend.
+   */
+  private readonly hubUrl = 'https://sj-tuklas.onrender.com/hubs/explore3d';
 
   /**
    * Establish the SignalR connection.
-   * Reuses an existing connection and prevents duplicate starts.
+   * Reuse an existing connection and prevent duplicate starts.
    */
   async connect(): Promise<void> {
     if (this.connection?.state === HubConnectionState.Connected) {
@@ -79,16 +82,29 @@ export class Explore3dMultiplayerService {
     const connection = this.connection!;
 
     if (connection.state === HubConnectionState.Connecting) {
-      return;
+      if (this.startPromise) {
+        return this.startPromise;
+      }
+
+      throw new Error('SignalR connection is already starting.');
+    }
+
+    if (connection.state === HubConnectionState.Reconnecting) {
+      throw new Error('SignalR is reconnecting. Please try again shortly.');
     }
 
     this.startPromise = connection
       .start()
       .then(() => {
         this._connected.set(true);
+
+        console.info('[Explore3D Multiplayer] Connected:', this.hubUrl);
       })
       .catch((error: unknown) => {
         this._connected.set(false);
+
+        console.error('[Explore3D Multiplayer] Connection failed:', error);
+
         throw error;
       })
       .finally(() => {
@@ -119,10 +135,20 @@ export class Explore3dMultiplayerService {
   private registerHubEvents(connection: HubConnection): void {
     connection.on('ExistingPlayers', (players: Explore3dRemotePlayer[]) => {
       this._players.set(players ?? []);
+
+      console.info(
+        '[Explore3D Multiplayer] Existing players:',
+        players?.length ?? 0,
+      );
     });
 
     connection.on('PlayerJoined', (player: Explore3dRemotePlayer) => {
       this.upsertPlayer(player);
+
+      console.info(
+        '[Explore3D Multiplayer] Player joined:',
+        player?.displayName,
+      );
     });
 
     connection.on('PlayerMoved', (player: Explore3dRemotePlayer) => {
@@ -137,20 +163,30 @@ export class Explore3dMultiplayerService {
       this._players.update((players) =>
         players.filter((player) => player.connectionId !== event.connectionId),
       );
+
+      console.info('[Explore3D Multiplayer] Player left:', event.connectionId);
     });
 
-    connection.onreconnecting(() => {
+    connection.onreconnecting((error) => {
       this._connected.set(false);
+
+      console.warn('[Explore3D Multiplayer] Reconnecting...', error);
     });
 
     connection.onreconnected(async () => {
       this._connected.set(true);
 
-      // A reconnect creates a new server-side connection.
-      // Rejoin the previous world so other players can see this player again.
+      console.info('[Explore3D Multiplayer] Reconnected.');
+
+      // Rejoin the previous world after SignalR reconnects.
       if (this.currentWorld) {
         try {
           await connection.invoke('JoinWorld', this.currentWorld);
+
+          console.info(
+            '[Explore3D Multiplayer] Rejoined world:',
+            this.currentWorld.worldId,
+          );
         } catch (error) {
           console.error(
             '[Explore3D Multiplayer] Failed to rejoin world:',
@@ -160,9 +196,15 @@ export class Explore3dMultiplayerService {
       }
     });
 
-    connection.onclose(() => {
+    connection.onclose((error) => {
       this._connected.set(false);
       this._players.set([]);
+
+      if (error) {
+        console.error('[Explore3D Multiplayer] Connection closed:', error);
+      } else {
+        console.info('[Explore3D Multiplayer] Connection stopped.');
+      }
     });
   }
 
@@ -194,8 +236,13 @@ export class Explore3dMultiplayerService {
       this.currentWorld = request;
 
       await this.connection.invoke('JoinWorld', request);
+
+      console.info('[Explore3D Multiplayer] Joined world:', worldId);
     } catch (error) {
-      this._joining.set(false);
+      this.currentWorld = undefined;
+
+      console.error('[Explore3D Multiplayer] Failed to join world:', error);
+
       throw error;
     } finally {
       this._joining.set(false);
@@ -214,9 +261,13 @@ export class Explore3dMultiplayerService {
       return;
     }
 
-    await this.connection.invoke('MovePlayer', {
-      ...position,
-    });
+    await this.connection.invoke('MovePlayer', { ...position });
+
+    // Keep the latest position for reconnect handling.
+    this.currentWorld = {
+      ...this.currentWorld,
+      position: { ...position },
+    };
   }
 
   /**
@@ -232,6 +283,12 @@ export class Explore3dMultiplayerService {
 
     try {
       await this.connection.invoke('LeaveWorld');
+
+      console.info('[Explore3D Multiplayer] Left world.');
+    } catch (error) {
+      console.error('[Explore3D Multiplayer] Failed to leave world:', error);
+
+      throw error;
     } finally {
       this._players.set([]);
     }
@@ -255,6 +312,8 @@ export class Explore3dMultiplayerService {
     this._players.set([]);
     this._connected.set(false);
     this._joining.set(false);
+
+    console.info('[Explore3D Multiplayer] Disconnected.');
   }
 
   /**
@@ -297,14 +356,14 @@ export class Explore3dMultiplayerService {
   }
 
   /**
-   * Return the number of currently tracked remote players.
+   * Return the number of currently tracked players.
    */
   getPlayerCount(): number {
     return this._players().length;
   }
 
   /**
-   * Clear local multiplayer state without stopping the connection.
+   * Clear local multiplayer state without stopping connection.
    */
   clearPlayers(): void {
     this._players.set([]);
