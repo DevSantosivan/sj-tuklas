@@ -129,7 +129,17 @@ export class Explore3dMultiplayerService {
   ======================================================= */
 
   private get hubUrl(): string {
-    return API_CONFIG.baseUrl.replace(/\/api\/?$/, '') + '/hubs/explore3d';
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+
+      // Production frontend
+      if (hostname === 'sj-tuklas.sjtuklas.workers.dev') {
+        return 'https://sj-tuklas.onrender.com/hubs/explore3d';
+      }
+    }
+
+    // Local / development
+    return '/hubs/explore3d';
   }
 
   /* =======================================================
