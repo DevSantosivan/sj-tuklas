@@ -231,9 +231,9 @@ export class Explore3dPlayerService {
   /*
    * Remote visual movement smoothing.
    */
-  private readonly remotePositionSmoothSpeed = 18;
+  private readonly remotePositionSmoothSpeed = 22;
 
-  private readonly remoteRotationSmoothSpeed = 15;
+  private readonly remoteRotationSmoothSpeed = 18;
 
   // =========================================================
   // MOVEMENT
@@ -255,7 +255,6 @@ export class Explore3dPlayerService {
   // =========================================================
   // NETWORK MOVEMENT
   // =========================================================
-
   private lastNetworkPosition = Vector3.Zero();
 
   private lastNetworkRotationY = 0;
@@ -263,13 +262,15 @@ export class Explore3dPlayerService {
   private networkMoveTimer = 0;
 
   /**
-   * Approximately 10 network updates per second.
+   * Approximately 15 network updates per second.
+   *
+   * 0.066 seconds ≈ 15 updates/sec.
+   *
+   * The local player still moves at the normal
+   * Babylon render rate. This only controls how
+   * often movement is sent over SignalR.
    */
-  private readonly networkUpdateInterval = 0.1;
-
-  private networkMoveInFlight = false;
-
-  private networkMovePending = false;
+  private readonly networkUpdateInterval = 0.066;
 
   // =========================================================
   // JUMP
@@ -1759,10 +1760,6 @@ export class Explore3dPlayerService {
     );
   }
 
-  // =========================================================
-  // NETWORK POSITION
-  // =========================================================
-
   private updateNetworkPosition(delta: number): void {
     if (
       !this.player ||
@@ -1778,6 +1775,7 @@ export class Explore3dPlayerService {
 
     this.networkMoveTimer += delta;
 
+    // Send movement approximately 15 times per second.
     if (this.networkMoveTimer < this.networkUpdateInterval) {
       return;
     }
@@ -1785,7 +1783,6 @@ export class Explore3dPlayerService {
     this.networkMoveTimer = 0;
 
     const position = this.player.position;
-
     const rotationY = this.player.rotation.y;
 
     const positionDifference = Vector3.Distance(
@@ -1795,67 +1792,27 @@ export class Explore3dPlayerService {
 
     const rotationDifference = Math.abs(rotationY - this.lastNetworkRotationY);
 
-    if (positionDifference < 0.01 && rotationDifference < 0.01) {
+    // Don't send unnecessary packets when the player is basically still.
+    if (positionDifference < 0.005 && rotationDifference < 0.01) {
       return;
     }
 
     this.lastNetworkPosition = position.clone();
-
     this.lastNetworkRotationY = rotationY;
 
-    this.networkMovePending = true;
-
-    this.flushNetworkMovement();
-  }
-
-  // =========================================================
-  // FLUSH NETWORK MOVEMENT
-  // =========================================================
-
-  private async flushNetworkMovement(): Promise<void> {
-    if (this.networkMoveInFlight) {
-      return;
-    }
-
-    if (!this.networkMovePending) {
-      return;
-    }
-
-    if (!this.player || this.player.isDisposed()) {
-      return;
-    }
-
-    if (!this.multiplayer.connected()) {
-      return;
-    }
-
-    if (!this.multiplayer.getCurrentWorld()) {
-      return;
-    }
-
-    this.networkMovePending = false;
-
-    this.networkMoveInFlight = true;
-
-    try {
-      await this.multiplayer.movePlayer({
-        x: this.player.position.x,
-
-        y: this.player.position.y,
-
-        z: this.player.position.z,
-
-        rotationY: this.player.rotation.y,
+    // IMPORTANT:
+    // Do not await this.
+    // Network latency must not block the local movement loop.
+    void this.multiplayer
+      .movePlayer({
+        x: position.x,
+        y: position.y,
+        z: position.z,
+        rotationY,
+      })
+      .catch((error) => {
+        console.warn('[Explore3D Multiplayer] Network movement failed:', error);
       });
-    } catch (error) {
-      console.warn('[Explore3D Multiplayer] Network movement failed:', error);
-    } finally {
-      this.networkMoveInFlight = false;
-
-      if (this.networkMovePending) {
-        void this.flushNetworkMovement();
-      }
-    }
   }
 
   // =========================================================
@@ -2979,19 +2936,41 @@ export class Explore3dPlayerService {
 
     this.isActuallyMoving = false;
 
+    /*
+     * Reset network baseline so the next movement update
+     * correctly sends the new position.
+     */
     this.lastNetworkPosition = position.clone();
 
     this.lastNetworkRotationY = 0;
 
     this.networkMoveTimer = 0;
 
-    this.networkMovePending = true;
-
     this.stopAllAnimations();
 
     this.playPlayerAnimation('idle');
-  }
 
+    /*
+     * Immediately announce the reset position.
+     *
+     * This is intentionally fire-and-forget.
+     */
+    if (this.multiplayer.connected() && this.multiplayer.getCurrentWorld()) {
+      void this.multiplayer
+        .movePlayer({
+          x: position.x,
+          y: position.y,
+          z: position.z,
+          rotationY: 0,
+        })
+        .catch((error) => {
+          console.warn(
+            '[Explore3D Multiplayer] Failed to sync reset position:',
+            error,
+          );
+        });
+    }
+  }
   // =========================================================
   // REMOTE PLAYER COUNT
   // =========================================================
@@ -3062,10 +3041,6 @@ export class Explore3dPlayerService {
     this.isActuallyMoving = false;
 
     this.networkMoveTimer = 0;
-
-    this.networkMoveInFlight = false;
-
-    this.networkMovePending = false;
 
     // =======================================================
     // LOCAL VISUAL

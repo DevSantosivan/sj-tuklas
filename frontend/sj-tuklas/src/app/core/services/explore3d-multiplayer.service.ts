@@ -185,8 +185,6 @@ export class Explore3dMultiplayerService {
       this._connected.set(true);
       this._connectionError.set(null);
 
-      console.log('[Explore3D Multiplayer] Connected:', this.hubUrl);
-
       /*
        * Rejoin after connection restoration.
        */
@@ -543,23 +541,29 @@ export class Explore3dMultiplayerService {
       return;
     }
 
+    // Keep our local world state updated immediately.
     this.currentWorld = {
       ...this.currentWorld,
-
       position: {
         ...position,
       },
     };
 
     try {
-      await this.connection.invoke('MovePlayer', {
+      // IMPORTANT:
+      // Movement does not need a response from the server.
+      //
+      // `send()` is fire-and-forget, so the local player
+      // does not wait for the network round trip before
+      // the next movement update can be sent.
+      await this.connection.send('MovePlayer', {
         x: position.x,
         y: position.y,
         z: position.z,
         rotationY: position.rotationY,
       });
     } catch (error) {
-      console.error('[Explore3D Multiplayer] MovePlayer failed:', error);
+      console.warn('[Explore3D Multiplayer] MovePlayer failed:', error);
     }
   }
 
