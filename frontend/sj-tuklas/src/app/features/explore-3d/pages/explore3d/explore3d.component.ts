@@ -200,7 +200,7 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
     private readonly business3d: Explore3dBusiness3dService,
     private readonly input: Explore3dInputService,
     private readonly chat: Explore3dChatService,
-    private readonly multiplayer: Explore3dMultiplayerService,
+    readonly multiplayer: Explore3dMultiplayerService,
     private readonly characterService: Explore3dCharacterService,
   ) {}
 
