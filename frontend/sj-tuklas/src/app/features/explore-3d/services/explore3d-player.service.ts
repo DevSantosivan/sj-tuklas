@@ -369,7 +369,6 @@ export class Explore3dPlayerService {
         this.lastNetworkRotationY = this.player.rotation.y;
       }
     } catch (error) {
-      console.error('[Explore3D] Player initialization failed:', error);
     } finally {
       this.isLoading = false;
     }
@@ -381,10 +380,6 @@ export class Explore3dPlayerService {
 
   private async createPlayer(model: CharacterModelConfig): Promise<void> {
     try {
-      console.info(
-        `[Explore3D] Loading ${model.name}: ${model.rootUrl}${model.fileName}`,
-      );
-
       const result = await SceneLoader.ImportMeshAsync(
         '',
         model.rootUrl,
@@ -405,11 +400,6 @@ export class Explore3dPlayerService {
       if (!result.meshes.length) {
         throw new Error(`${model.fileName} loaded without meshes.`);
       }
-
-      console.info(
-        `[Explore3D] ${model.name} meshes loaded:`,
-        result.meshes.length,
-      );
 
       this.logImportedSkeletons(result.meshes);
 
@@ -473,14 +463,7 @@ export class Explore3dPlayerService {
       const playerSkeleton = this.findPlayerSkeleton(result.meshes);
 
       if (playerSkeleton) {
-        console.info(
-          `[Explore3D] ${model.name} skeleton:`,
-          playerSkeleton.name,
-          '| bones:',
-          playerSkeleton.bones.length,
-        );
       } else {
-        console.warn(`[Explore3D] No skeleton found for ${model.name}.`);
       }
 
       // =====================================================
@@ -502,23 +485,11 @@ export class Explore3dPlayerService {
       if (this.idleAnimation) {
         this.playPlayerAnimation('idle');
       } else {
-        console.warn(
-          `[Explore3D] ${model.name} has no recognized Idle animation.`,
-        );
       }
-
-      console.info(`[Explore3D] ${model.name} loaded successfully.`);
-
-      console.info(
-        '[Explore3D] Animation groups:',
-        this.playerAnimations.map((group) => group.name),
-      );
     } catch (error) {
       if (this.isDisposed) {
         return;
       }
-
-      console.error(`[Explore3D] Failed to load ${model.fileName}:`, error);
 
       this.createFallbackPlayer();
     }
@@ -899,11 +870,6 @@ export class Explore3dPlayerService {
 
       remote.namePlate.position.y = Math.max(2.3, topRelativeToRoot + 0.45);
     } catch (error) {
-      console.warn(
-        '[Explore3D Multiplayer] Failed to position nameplate:',
-        error,
-      );
-
       remote.namePlate.position.y = 2.8;
     }
   }
@@ -1017,17 +983,6 @@ export class Explore3dPlayerService {
           rootTargets.has(target as AbstractMesh | TransformNode) &&
           targeted.animation.targetProperty === 'position'
         ) {
-          console.info(
-            '[Explore3D Multiplayer] Removing root-motion position animation:',
-            {
-              player: character.name,
-
-              animation: group.name,
-
-              target: target.name,
-            },
-          );
-
           group.removeTargetedAnimation(targeted.animation);
         }
       }
@@ -1087,26 +1042,7 @@ export class Explore3dPlayerService {
       remote.visualGroundOffset = -minRelativeY;
 
       remote.visualRoot.position.y = remote.visualGroundOffset;
-
-      console.info('[Explore3D Multiplayer] Character ground alignment:', {
-        player: remote.displayName,
-
-        character: remote.characterModel,
-
-        boundsMinY: bounds.min.y,
-
-        rootWorldY,
-
-        minRelativeY,
-
-        visualGroundOffset: remote.visualGroundOffset,
-      });
     } catch (error) {
-      console.warn(
-        '[Explore3D Multiplayer] Failed to align remote character:',
-        error,
-      );
-
       remote.visualGroundOffset = 0;
 
       remote.visualRoot.position.y = 0;
@@ -1122,14 +1058,6 @@ export class Explore3dPlayerService {
     model: CharacterModelConfig,
   ): Promise<void> {
     try {
-      console.info('[Explore3D Multiplayer] Loading remote player:', {
-        connectionId: remote.connectionId,
-
-        displayName: remote.displayName,
-
-        character: model.id,
-      });
-
       const result = await SceneLoader.ImportMeshAsync(
         '',
         model.rootUrl,
@@ -1241,25 +1169,7 @@ export class Explore3dPlayerService {
       this.playRemoteAnimation(remote, 'idle');
 
       remote.isLoading = false;
-
-      console.info('[Explore3D Multiplayer] Remote player loaded:', {
-        connectionId: remote.connectionId,
-
-        displayName: remote.displayName,
-
-        character: model.id,
-
-        visualGroundOffset: remote.visualGroundOffset,
-      });
     } catch (error) {
-      console.error('[Explore3D Multiplayer] Failed to load remote player:', {
-        player: remote.displayName,
-
-        character: model.id,
-
-        error,
-      });
-
       remote.isLoading = false;
     }
   }
@@ -1346,20 +1256,6 @@ export class Explore3dPlayerService {
     ) {
       remote.jumpAnimation = undefined;
     }
-
-    console.info('[Explore3D Multiplayer] Remote animation selection:', {
-      player: remote.displayName,
-
-      character: model.id,
-
-      idle: remote.idleAnimation?.name ?? 'NOT FOUND',
-
-      walk: remote.walkAnimation?.name ?? 'NOT FOUND',
-
-      run: remote.runAnimation?.name ?? 'NOT FOUND',
-
-      jump: remote.jumpAnimation?.name ?? 'NOT FOUND',
-    });
   }
 
   // =========================================================
@@ -1753,11 +1649,6 @@ export class Explore3dPlayerService {
     this.remotePlayers.delete(connectionId);
 
     this.remotePlayerLoadPromises.delete(connectionId);
-
-    console.info(
-      '[Explore3D Multiplayer] Remote player removed:',
-      connectionId,
-    );
   }
 
   private updateNetworkPosition(delta: number): void {
@@ -1810,9 +1701,7 @@ export class Explore3dPlayerService {
         z: position.z,
         rotationY,
       })
-      .catch((error) => {
-        console.warn('[Explore3D Multiplayer] Network movement failed:', error);
-      });
+      .catch((error) => {});
   }
 
   // =========================================================
@@ -1838,15 +1727,6 @@ export class Explore3dPlayerService {
 
     skeletons.sort((a, b) => b.bones.length - a.bones.length);
 
-    console.info(
-      '[Explore3D] Available skeletons:',
-      skeletons.map((skeleton) => ({
-        name: skeleton.name,
-
-        bones: skeleton.bones.length,
-      })),
-    );
-
     return skeletons[0];
   }
 
@@ -1863,82 +1743,21 @@ export class Explore3dPlayerService {
       ),
     ];
 
-    console.group('[Explore3D] IMPORTED SKELETONS');
-
     for (const skeleton of skeletons) {
-      console.log({
-        name: skeleton.name,
-
-        bones: skeleton.bones.length,
-      });
     }
-
-    console.groupEnd();
   }
 
   // =========================================================
   // ANIMATION DIAGNOSTICS
   // =========================================================
 
-  private logFinalAnimations(): void {
-    console.group(
-      `[Explore3D] ANIMATION DEBUG - ${this.selectedCharacter.name}`,
-    );
-
-    console.table(
-      this.playerAnimations.map((group, index) => ({
-        index,
-
-        name: group.name,
-
-        from: group.from,
-
-        to: group.to,
-
-        isPlaying: group.isPlaying,
-
-        targets: group.targetedAnimations.length,
-
-        speedRatio: group.speedRatio,
-      })),
-    );
-
-    console.info('Selected Idle:', this.idleAnimation?.name ?? 'NOT FOUND');
-
-    console.info('Selected Walk:', this.walkAnimation?.name ?? 'NOT FOUND');
-
-    console.info('Selected Run:', this.runAnimation?.name ?? 'NOT FOUND');
-
-    console.info('Selected Jump:', this.jumpAnimation?.name ?? 'NOT FOUND');
-
-    console.groupEnd();
-  }
+  private logFinalAnimations(): void {}
 
   // =========================================================
   // ANIMATION TARGET DEBUG
   // =========================================================
 
-  private logAnimationTargets(): void {
-    console.group('[Explore3D] ANIMATION TARGETS');
-
-    console.table(
-      this.playerAnimations.flatMap((group) =>
-        group.targetedAnimations.map((item) => ({
-          group: group.name,
-
-          target: item.target?.name ?? 'Unknown',
-
-          property: item.animation.targetProperty,
-
-          from: group.from,
-
-          to: group.to,
-        })),
-      ),
-    );
-
-    console.groupEnd();
-  }
+  private logAnimationTargets(): void {}
 
   // =========================================================
   // SKELETON BONE DEBUG
@@ -1954,15 +1773,6 @@ export class Explore3dPlayerService {
     ];
 
     for (const skeleton of skeletons) {
-      console.info(`[Explore3D] Skeleton: ${skeleton.name}`);
-
-      console.table(
-        skeleton.bones.map((bone) => ({
-          name: bone.name,
-
-          parent: bone.getParent()?.name ?? 'None',
-        })),
-      );
     }
   }
 
@@ -1971,30 +1781,6 @@ export class Explore3dPlayerService {
   // =========================================================
 
   private configureImportedModel(meshes: AbstractMesh[]): void {
-    console.group(
-      `[Explore3D] MODEL DIAGNOSTICS - ${this.selectedCharacter.name}`,
-    );
-
-    console.table(
-      meshes.map((mesh) => ({
-        name: mesh.name,
-
-        parent: mesh.parent?.name ?? 'None',
-
-        vertices: mesh.getTotalVertices(),
-
-        material: mesh.material?.name ?? 'None',
-
-        materialType: mesh.material?.getClassName() ?? 'None',
-
-        enabled: mesh.isEnabled(),
-
-        visible: mesh.isVisible,
-
-        skeleton: mesh.skeleton?.name ?? 'None',
-      })),
-    );
-
     const textures = meshes.flatMap(
       (mesh) =>
         mesh.material?.getActiveTextures().map((texture) => {
@@ -2017,10 +1803,6 @@ export class Explore3dPlayerService {
           };
         }) ?? [],
     );
-
-    console.table(textures);
-
-    console.groupEnd();
 
     for (const mesh of meshes) {
       mesh.isPickable = false;
@@ -2070,8 +1852,6 @@ export class Explore3dPlayerService {
   // =========================================================
 
   private createFallbackPlayer(): void {
-    console.warn('[Explore3D] Using fallback capsule.');
-
     const collider = this.createCollider();
 
     const material = new StandardMaterial('playerFallbackMaterial', this.scene);
@@ -2100,26 +1880,6 @@ export class Explore3dPlayerService {
     const validGroups = groups.filter(
       (group) => group.targetedAnimations.length > 0,
     );
-
-    console.group(`[Explore3D] ANIMATION GROUPS - ${model.name}`);
-
-    console.table(
-      groups.map((group, index) => ({
-        index,
-
-        name: group.name,
-
-        normalized: normalize(group.name),
-
-        from: group.from,
-
-        to: group.to,
-
-        targets: group.targetedAnimations.length,
-      })),
-    );
-
-    console.groupEnd();
 
     const findAnimation = (aliases: string[]): AnimationGroup | undefined => {
       // Exact
@@ -2161,8 +1921,6 @@ export class Explore3dPlayerService {
 
     if (!this.walkAnimation && this.runAnimation) {
       this.walkAnimation = this.runAnimation;
-
-      console.info(`[Explore3D] ${model.name}: using Run as Walk fallback.`);
     }
 
     if (this.walkAnimation === this.idleAnimation) {
@@ -2180,36 +1938,6 @@ export class Explore3dPlayerService {
     ) {
       this.jumpAnimation = undefined;
     }
-
-    console.group(`[Explore3D] ANIMATION SELECTION - ${model.name}`);
-
-    console.table(
-      groups.map((group, index) => ({
-        index,
-
-        name: group.name,
-
-        targets: group.targetedAnimations.length,
-
-        idle: group === this.idleAnimation,
-
-        walk: group === this.walkAnimation,
-
-        run: group === this.runAnimation,
-
-        jump: group === this.jumpAnimation,
-      })),
-    );
-
-    console.info('Idle:', this.idleAnimation?.name ?? 'NOT FOUND');
-
-    console.info('Walk:', this.walkAnimation?.name ?? 'NOT FOUND');
-
-    console.info('Run:', this.runAnimation?.name ?? 'NOT FOUND');
-
-    console.info('Jump:', this.jumpAnimation?.name ?? 'NOT FOUND');
-
-    console.groupEnd();
   }
 
   // =========================================================
@@ -2251,10 +1979,6 @@ export class Explore3dPlayerService {
     if (!next || next.targetedAnimations.length === 0) {
       if (!this.warnedAnimations.has(type)) {
         this.warnedAnimations.add(type);
-
-        console.warn(
-          `[Explore3D] ${this.selectedCharacter.name}: ${type.toUpperCase()} animation unavailable.`,
-        );
       }
 
       if (type === 'jump' && this.currentPlayerAnimation) {
@@ -2295,24 +2019,6 @@ export class Explore3dPlayerService {
     next.start(shouldLoop, 1, next.from, next.to, false);
 
     this.currentPlayerAnimation = type;
-
-    console.info(`[Explore3D] ▶ PLAYING ${type.toUpperCase()}`, {
-      character: this.selectedCharacter.name,
-
-      name: next.name,
-
-      from: next.from,
-
-      to: next.to,
-
-      targets: next.targetedAnimations.length,
-
-      isPlaying: next.isPlaying,
-
-      speedRatio: next.speedRatio,
-
-      loop: shouldLoop,
-    });
   }
 
   // =========================================================
@@ -2913,14 +2619,42 @@ export class Explore3dPlayerService {
   // RESET POSITION
   // =========================================================
 
-  resetPosition(position: Vector3 = Vector3.Zero()): void {
+  // =========================================================
+  // RESET POSITION
+  // =========================================================
+
+  resetPosition(position?: Vector3): void {
     if (!this.player || this.player.isDisposed() || this.isDisposed) {
       return;
     }
 
     this.cancelNavigation();
 
-    this.player.position.copyFrom(position);
+    // =======================================================
+    // SAFE HUB SPAWN
+    // =======================================================
+
+    const spawnPoints = [
+      new Vector3(-24, 1.2, -24),
+      new Vector3(24, 1.2, -24),
+      new Vector3(-24, 1.2, 24),
+      new Vector3(24, 1.2, 24),
+
+      new Vector3(-28, 1.2, -18),
+      new Vector3(28, 1.2, -18),
+      new Vector3(-28, 1.2, 18),
+      new Vector3(28, 1.2, 18),
+    ];
+
+    const spawn =
+      position?.clone() ??
+      spawnPoints[Math.floor(Math.random() * spawnPoints.length)].clone();
+
+    // =======================================================
+    // APPLY POSITION
+    // =======================================================
+
+    this.player.position.copyFrom(spawn);
 
     this.player.rotation.y = 0;
 
@@ -2936,39 +2670,37 @@ export class Explore3dPlayerService {
 
     this.isActuallyMoving = false;
 
-    /*
-     * Reset network baseline so the next movement update
-     * correctly sends the new position.
-     */
-    this.lastNetworkPosition = position.clone();
+    // =======================================================
+    // NETWORK BASELINE
+    // =======================================================
+
+    this.lastNetworkPosition = spawn.clone();
 
     this.lastNetworkRotationY = 0;
 
     this.networkMoveTimer = 0;
 
+    // =======================================================
+    // ANIMATION
+    // =======================================================
+
     this.stopAllAnimations();
 
     this.playPlayerAnimation('idle');
 
-    /*
-     * Immediately announce the reset position.
-     *
-     * This is intentionally fire-and-forget.
-     */
+    // =======================================================
+    // SYNC MULTIPLAYER
+    // =======================================================
+
     if (this.multiplayer.connected() && this.multiplayer.getCurrentWorld()) {
       void this.multiplayer
         .movePlayer({
-          x: position.x,
-          y: position.y,
-          z: position.z,
+          x: spawn.x,
+          y: spawn.y,
+          z: spawn.z,
           rotationY: 0,
         })
-        .catch((error) => {
-          console.warn(
-            '[Explore3D Multiplayer] Failed to sync reset position:',
-            error,
-          );
-        });
+        .catch((error) => {});
     }
   }
   // =========================================================
@@ -3059,7 +2791,5 @@ export class Explore3dPlayerService {
     this.verticalVelocity = 0;
 
     this.isGrounded = false;
-
-    console.info('[Explore3D] Player service disposed.');
   }
 }

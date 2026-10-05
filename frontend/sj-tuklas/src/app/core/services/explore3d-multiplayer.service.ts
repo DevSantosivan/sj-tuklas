@@ -1,4 +1,5 @@
 import { Injectable, signal } from '@angular/core';
+
 import {
   HubConnection,
   HubConnectionBuilder,
@@ -8,33 +9,33 @@ import {
 
 import { API_CONFIG } from '../config/api.config';
 
-/* =========================================================
-   AVAILABLE CHARACTERS
-========================================================= */
+// =============================================================
+// CHARACTER MODEL
+// =============================================================
 
 export type Explore3dCharacterModel = 'aj' | 'suit' | 'brian';
 
-/* =========================================================
-   REMOTE PLAYER
-========================================================= */
+// =============================================================
+// REMOTE PLAYER
+// =============================================================
 
 export interface Explore3dRemotePlayer {
   userId: string;
   connectionId: string;
   worldId: string;
-
   displayName: string;
   characterModel: Explore3dCharacterModel;
 
   x: number;
   y: number;
   z: number;
+
   rotationY: number;
 }
 
-/* =========================================================
-   PLAYER POSITION
-========================================================= */
+// =============================================================
+// PLAYER POSITION
+// =============================================================
 
 export interface Explore3dPlayerPosition {
   x: number;
@@ -43,9 +44,22 @@ export interface Explore3dPlayerPosition {
   rotationY: number;
 }
 
-/* =========================================================
-   JOIN REQUEST
-========================================================= */
+// =============================================================
+// JOIN REQUEST
+// =============================================================
+
+/*
+ * Must match:
+ *
+ * C# JoinExplore3dWorldRequest
+ *
+ * {
+ *   worldId,
+ *   displayName,
+ *   characterModel,
+ *   position
+ * }
+ */
 
 interface JoinWorldRequest {
   worldId: string;
@@ -54,9 +68,9 @@ interface JoinWorldRequest {
   position: Explore3dPlayerPosition;
 }
 
-/* =========================================================
-   CURRENT WORLD
-========================================================= */
+// =============================================================
+// CURRENT WORLD
+// =============================================================
 
 interface CurrentWorldState {
   worldId: string;
@@ -65,9 +79,9 @@ interface CurrentWorldState {
   position: Explore3dPlayerPosition;
 }
 
-/* =========================================================
-   PLAYER LEFT
-========================================================= */
+// =============================================================
+// PLAYER LEFT EVENT
+// =============================================================
 
 interface PlayerLeftEvent {
   userId: string;
@@ -75,17 +89,36 @@ interface PlayerLeftEvent {
   worldId: string;
 }
 
-/* =========================================================
-   SERVICE
-========================================================= */
+// =============================================================
+// PLAYER MOVED EVENT
+// =============================================================
+
+interface PlayerMovedEvent {
+  player: Explore3dRemotePlayer;
+
+  /*
+   * Current backend sends only:
+   *
+   * PlayerMoved
+   * -> updatedPlayer
+   *
+   * These are therefore optional.
+   */
+  clientSentAt?: number;
+  serverReceivedAt?: number;
+}
+
+// =============================================================
+// SERVICE
+// =============================================================
 
 @Injectable({
   providedIn: 'root',
 })
 export class Explore3dMultiplayerService {
-  /* =======================================================
-     AVAILABLE CHARACTER MODELS
-  ======================================================= */
+  // ===========================================================
+  // AVAILABLE CHARACTERS
+  // ===========================================================
 
   readonly availableCharacters: Explore3dCharacterModel[] = [
     'aj',
@@ -93,9 +126,9 @@ export class Explore3dMultiplayerService {
     'brian',
   ];
 
-  /* =======================================================
-     SIGNALS
-  ======================================================= */
+  // ===========================================================
+  // SIGNALS
+  // ===========================================================
 
   private readonly _players = signal<Explore3dRemotePlayer[]>([]);
 
@@ -105,49 +138,98 @@ export class Explore3dMultiplayerService {
 
   private readonly _connectionError = signal<string | null>(null);
 
+  private readonly _latency = signal(0);
+
+  private readonly _onlinePlayers = signal(0);
+
+  private readonly _movementDelay = signal(0);
+
+  // ===========================================================
+  // PUBLIC SIGNALS
+  // ===========================================================
+
   readonly players = this._players.asReadonly();
+
   readonly connected = this._connected.asReadonly();
+
   readonly joining = this._joining.asReadonly();
+
   readonly connectionError = this._connectionError.asReadonly();
 
-  /* =======================================================
-     SIGNALR
-  ======================================================= */
+  readonly latency = this._latency.asReadonly();
+
+  readonly onlinePlayers = this._onlinePlayers.asReadonly();
+
+  readonly movementDelay = this._movementDelay.asReadonly();
+
+  // ===========================================================
+  // CONNECTION
+  // ===========================================================
 
   private connection: HubConnection | null = null;
 
   private connectionPromise: Promise<void> | null = null;
 
-  /* =======================================================
-     CURRENT WORLD
-  ======================================================= */
+  // ===========================================================
+  // CURRENT WORLD
+  // ===========================================================
 
   private currentWorld: CurrentWorldState | null = null;
 
-  /* =======================================================
-     HUB URL
-  ======================================================= */
+  // ===========================================================
+  // JOIN STATE
+  // ===========================================================
+
+  /*
+   * IMPORTANT:
+   *
+   * SignalR being Connected does NOT mean that the player
+   * has successfully joined the Explore3D world.
+   *
+   * Therefore:
+   *
+   * connected === true
+   *
+   * does NOT automatically mean:
+   *
+   * joinedWorld === true
+   */
+
+  private joinedWorld = false;
+
+  // ===========================================================
+  // HUB URL
+  // ===========================================================
 
   private get hubUrl(): string {
     return API_CONFIG.baseUrl.replace(/\/api\/?$/, '') + '/hubs/explore3d';
   }
 
-  /* =======================================================
-     CONNECT
-  ======================================================= */
+  // ===========================================================
+  // CONNECT
+  // ===========================================================
 
   async connect(): Promise<void> {
+    // ---------------------------------------------------------
+    // Already connected
+    // ---------------------------------------------------------
+
     if (this.connection?.state === HubConnectionState.Connected) {
-      console.log('[Explore3D Multiplayer] Already connected:', this.hubUrl);
-
       this._connected.set(true);
-
       return;
     }
+
+    // ---------------------------------------------------------
+    // Existing connection attempt
+    // ---------------------------------------------------------
 
     if (this.connectionPromise) {
       return this.connectionPromise;
     }
+
+    // ---------------------------------------------------------
+    // Create connection
+    // ---------------------------------------------------------
 
     this.connectionPromise = this.createConnection();
 
@@ -158,153 +240,164 @@ export class Explore3dMultiplayerService {
     }
   }
 
-  /* =======================================================
-     CREATE CONNECTION
-  ======================================================= */
+  // ===========================================================
+  // CREATE CONNECTION
+  // ===========================================================
 
   private async createConnection(): Promise<void> {
     this._connectionError.set(null);
-
-    console.log('[Explore3D Multiplayer] Hub URL:', this.hubUrl);
 
     const connection = new HubConnectionBuilder()
       .withUrl(this.hubUrl, {
         withCredentials: true,
       })
       .withAutomaticReconnect([0, 2000, 5000, 10000, 20000])
-      .configureLogging(LogLevel.Information)
+      .configureLogging(LogLevel.Error)
       .build();
 
     this.connection = connection;
 
+    // Register events BEFORE start.
     this.registerHubEvents(connection);
 
     try {
       await connection.start();
 
       this._connected.set(true);
+
       this._connectionError.set(null);
 
       /*
-       * Rejoin after connection restoration.
+       * IMPORTANT:
+       *
+       * Do NOT call JoinWorld here.
+       *
+       * joinWorld() is responsible for joining.
+       *
+       * This prevents:
+       *
+       * connect()
+       *      ↓
+       * createConnection()
+       *      ↓
+       * JoinWorld()
+       *
+       * AND
+       *
+       * joinWorld()
+       *      ↓
+       * JoinWorld()
+       *
+       * from happening twice.
        */
-      if (this.currentWorld) {
-        console.log(
-          '[Explore3D Multiplayer] Rejoining world:',
-          this.currentWorld.worldId,
-        );
 
-        await this.joinWorldInternal(this.currentWorld);
-      }
+      void this.measureLatency();
     } catch (error) {
       this._connected.set(false);
 
-      const message = this.getErrorMessage(error);
+      this.joinedWorld = false;
 
-      this._connectionError.set(message);
-
-      console.error('[Explore3D Multiplayer] Connection failed:', error);
+      this._connectionError.set(this.getErrorMessage(error));
 
       throw error;
     }
   }
 
-  /* =======================================================
-     HUB EVENTS
-  ======================================================= */
+  // ===========================================================
+  // HUB EVENTS
+  // ===========================================================
 
   private registerHubEvents(connection: HubConnection): void {
-    /* =====================================================
-       EXISTING PLAYERS
-    ===================================================== */
+    // =========================================================
+    // EXISTING PLAYERS
+    // =========================================================
 
     connection.on('ExistingPlayers', (players: Explore3dRemotePlayer[]) => {
-      console.log(
-        '[Explore3D Multiplayer] Existing players:',
-        players?.length ?? 0,
-      );
-
       if (!Array.isArray(players)) {
-        console.warn(
-          '[Explore3D Multiplayer] Invalid ExistingPlayers payload:',
-          players,
-        );
-
         return;
       }
 
-      const validPlayers: Explore3dRemotePlayer[] = players
-        .filter((player) => this.isCurrentWorldPlayer(player))
-        .map((player) => this.normalizeRemotePlayer(player));
-
-      console.log(
-        '[Explore3D Multiplayer] Valid existing players:',
-        validPlayers.length,
+      this._players.set(
+        players
+          .filter((player) => this.isCurrentWorldPlayer(player))
+          .map((player) => this.normalizeRemotePlayer(player)),
       );
-
-      this._players.set(validPlayers);
-
-      console.log('[Explore3D Multiplayer] Players state:', this._players());
     });
 
-    /* =====================================================
-       PLAYER JOINED
-    ===================================================== */
+    // =========================================================
+    // PLAYER JOINED
+    // =========================================================
 
     connection.on('PlayerJoined', (player: Explore3dRemotePlayer) => {
-      console.log('[Explore3D Multiplayer] PlayerJoined:', player);
-
-      if (!player) {
+      if (!player || !this.isCurrentWorldPlayer(player)) {
         return;
       }
 
-      if (!this.isCurrentWorldPlayer(player)) {
-        console.warn('[Explore3D Multiplayer] PlayerJoined rejected:', {
-          currentWorld: this.currentWorld?.worldId,
-
-          playerWorld: player?.worldId,
-
-          connectionId: player?.connectionId,
-        });
-
-        return;
-      }
-
-      const normalized = this.normalizeRemotePlayer(player);
-
-      this.upsertPlayer(normalized);
-
-      console.log(
-        '[Explore3D Multiplayer] Total players:',
-        this._players().length,
-      );
+      this.upsertPlayer(this.normalizeRemotePlayer(player));
     });
 
-    /* =====================================================
-       PLAYER MOVED
-    ===================================================== */
+    // =========================================================
+    // PLAYER MOVED
+    // =========================================================
 
-    connection.on('PlayerMoved', (player: Explore3dRemotePlayer) => {
-      if (!player) {
-        return;
-      }
+    connection.on(
+      'PlayerMoved',
+      (message: Explore3dRemotePlayer | PlayerMovedEvent) => {
+        if (!message) {
+          return;
+        }
 
-      if (!this.isCurrentWorldPlayer(player)) {
-        return;
-      }
+        /*
+         * Current backend sends:
+         *
+         * SendAsync(
+         *   "PlayerMoved",
+         *   updatedPlayer
+         * )
+         *
+         * So support both:
+         *
+         * 1. direct player object
+         * 2. wrapped PlayerMovedEvent
+         */
 
-      const normalized = this.normalizeRemotePlayer(player);
+        const player = this.isPlayerMovedEvent(message)
+          ? message.player
+          : message;
 
-      this.upsertPlayer(normalized);
-    });
+        if (!player) {
+          return;
+        }
 
-    /* =====================================================
-       PLAYER LEFT
-    ===================================================== */
+        if (!this.isCurrentWorldPlayer(player)) {
+          return;
+        }
+
+        /*
+         * Only calculate movement delay if the
+         * backend actually provides clientSentAt.
+         */
+
+        if (
+          this.isPlayerMovedEvent(message) &&
+          typeof message.clientSentAt === 'number'
+        ) {
+          const receivedAt = Date.now();
+
+          const movementDelay = receivedAt - message.clientSentAt;
+
+          this._movementDelay.set(Math.max(0, movementDelay));
+        }
+
+        this.upsertPlayer(this.normalizeRemotePlayer(player));
+      },
+    );
+
+    // =========================================================
+    // PLAYER LEFT
+    // =========================================================
 
     connection.on('PlayerLeft', (event: PlayerLeftEvent) => {
-      console.log('[Explore3D Multiplayer] PlayerLeft:', event);
-
       if (!event?.connectionId) {
         return;
       }
@@ -312,53 +405,105 @@ export class Explore3dMultiplayerService {
       this.removePlayer(event.connectionId);
     });
 
-    /* =====================================================
-       CONNECTION CLOSED
-    ===================================================== */
+    // =========================================================
+    // WORLD PLAYER COUNT
+    // =========================================================
+
+    connection.on('WorldPlayerCount', (count: number) => {
+      this._onlinePlayers.set(Math.max(0, Number(count) || 0));
+    });
+
+    // =========================================================
+    // CLOSED
+    // =========================================================
 
     connection.onclose((error) => {
       this._connected.set(false);
 
-      console.warn('[Explore3D Multiplayer] Connection closed:', error);
+      this.joinedWorld = false;
 
       if (error) {
         this._connectionError.set(this.getErrorMessage(error));
       }
     });
 
-    /* =====================================================
-       RECONNECTING
-    ===================================================== */
+    // =========================================================
+    // RECONNECTING
+    // =========================================================
 
-    connection.onreconnecting((error) => {
+    connection.onreconnecting(() => {
       this._connected.set(false);
 
-      console.warn('[Explore3D Multiplayer] Reconnecting...', error);
+      this.joinedWorld = false;
+
+      this._connectionError.set('Reconnecting to Explore3D...');
     });
 
-    /* =====================================================
-       RECONNECTED
-    ===================================================== */
+    // =========================================================
+    // RECONNECTED
+    // =========================================================
 
-    connection.onreconnected(async (connectionId) => {
+    connection.onreconnected(async () => {
       this._connected.set(true);
+
+      this.joinedWorld = false;
+
       this._connectionError.set(null);
 
-      console.log('[Explore3D Multiplayer] Reconnected:', connectionId);
+      /*
+       * SignalR reconnect creates a new server-side
+       * connection.
+       *
+       * Therefore the server no longer has the old
+       * connection in Players.
+       *
+       * We must join the world again.
+       */
 
       if (this.currentWorld) {
         try {
           await this.joinWorldInternal(this.currentWorld);
         } catch (error) {
-          console.error('[Explore3D Multiplayer] Rejoin failed:', error);
+          this._connectionError.set(this.getErrorMessage(error));
         }
       }
+
+      void this.measureLatency();
     });
   }
 
-  /* =======================================================
-     CHARACTER VALIDATION
-  ======================================================= */
+  // ===========================================================
+  // LATENCY
+  // ===========================================================
+
+  async measureLatency(): Promise<number> {
+    if (
+      !this.connection ||
+      this.connection.state !== HubConnectionState.Connected
+    ) {
+      return 0;
+    }
+
+    try {
+      const startedAt = performance.now();
+
+      await this.connection.invoke('Ping');
+
+      const latency = Math.round(performance.now() - startedAt);
+
+      this._latency.set(latency);
+
+      return latency;
+    } catch {
+      this._latency.set(0);
+
+      return 0;
+    }
+  }
+
+  // ===========================================================
+  // CHARACTER VALIDATION
+  // ===========================================================
 
   isValidCharacterModel(
     value: string | null | undefined,
@@ -366,28 +511,21 @@ export class Explore3dMultiplayerService {
     return value === 'aj' || value === 'suit' || value === 'brian';
   }
 
-  /* =======================================================
-     NORMALIZE CHARACTER
-  ======================================================= */
+  // ===========================================================
+  // NORMALIZE CHARACTER
+  // ===========================================================
 
   private normalizeCharacterModel(
     value: string | null | undefined,
   ): Explore3dCharacterModel {
     const normalized = value?.trim().toLowerCase();
 
-    if (this.isValidCharacterModel(normalized)) {
-      return normalized;
-    }
-
-    /*
-     * Safe fallback.
-     */
-    return 'aj';
+    return this.isValidCharacterModel(normalized) ? normalized : 'aj';
   }
 
-  /* =======================================================
-     NORMALIZE REMOTE PLAYER
-  ======================================================= */
+  // ===========================================================
+  // NORMALIZE REMOTE PLAYER
+  // ===========================================================
 
   private normalizeRemotePlayer(
     player: Explore3dRemotePlayer,
@@ -399,25 +537,24 @@ export class Explore3dMultiplayerService {
     };
   }
 
-  /* =======================================================
-     CHECK WORLD
-  ======================================================= */
+  // ===========================================================
+  // CURRENT WORLD CHECK
+  // ===========================================================
 
   private isCurrentWorldPlayer(
     player: Explore3dRemotePlayer | null | undefined,
   ): boolean {
     return !!(
-      player &&
-      player.connectionId &&
+      player?.connectionId &&
       player.worldId &&
       this.currentWorld &&
       player.worldId === this.currentWorld.worldId
     );
   }
 
-  /* =======================================================
-     JOIN WORLD
-  ======================================================= */
+  // ===========================================================
+  // JOIN WORLD
+  // ===========================================================
 
   async joinWorld(
     worldId: string,
@@ -425,53 +562,91 @@ export class Explore3dMultiplayerService {
     characterModel: string,
     position: Explore3dPlayerPosition,
   ): Promise<void> {
-    if (!worldId) {
+    // ---------------------------------------------------------
+    // Validate world
+    // ---------------------------------------------------------
+
+    if (!worldId?.trim()) {
       throw new Error('World ID is required.');
     }
 
-    /*
-     * IMPORTANT:
-     *
-     * Do NOT send "explorer".
-     *
-     * Only:
-     * aj
-     * suit
-     * brian
-     */
+    // ---------------------------------------------------------
+    // Normalize data
+    // ---------------------------------------------------------
+
+    const normalizedWorldId = worldId.trim();
 
     const normalizedCharacter = this.normalizeCharacterModel(characterModel);
 
     const safeDisplayName = displayName?.trim() || 'Guest';
 
-    const safePosition: Explore3dPlayerPosition = position ?? {
+    const safePosition = position ?? {
       x: 0,
       y: 0,
       z: 0,
       rotationY: 0,
     };
 
+    // ---------------------------------------------------------
+    // Save current world
+    // ---------------------------------------------------------
+
     this.currentWorld = {
-      worldId,
+      worldId: normalizedWorldId,
+
       displayName: safeDisplayName,
+
       characterModel: normalizedCharacter,
+
       position: {
-        ...safePosition,
+        x: safePosition.x ?? 0,
+
+        y: safePosition.y ?? 0,
+
+        z: safePosition.z ?? 0,
+
+        rotationY: safePosition.rotationY ?? 0,
       },
     };
 
-    console.log('[Explore3D Multiplayer] Joining world:', this.currentWorld);
+    // ---------------------------------------------------------
+    // Reset join state
+    // ---------------------------------------------------------
+
+    this.joinedWorld = false;
+
+    this.clearPlayers();
+
+    this._onlinePlayers.set(0);
+
+    this._movementDelay.set(0);
+
+    // ---------------------------------------------------------
+    // Connect
+    // ---------------------------------------------------------
 
     await this.connect();
+
+    // ---------------------------------------------------------
+    // Join exactly once
+    // ---------------------------------------------------------
+
+    if (!this.currentWorld) {
+      return;
+    }
 
     await this.joinWorldInternal(this.currentWorld);
   }
 
-  /* =======================================================
-     JOIN WORLD INTERNAL
-  ======================================================= */
+  // ===========================================================
+  // JOIN WORLD INTERNAL
+  // ===========================================================
 
   private async joinWorldInternal(world: CurrentWorldState): Promise<void> {
+    // ---------------------------------------------------------
+    // Validate connection
+    // ---------------------------------------------------------
+
     if (!this.connection) {
       throw new Error('SignalR connection is not initialized.');
     }
@@ -480,13 +655,22 @@ export class Explore3dMultiplayerService {
       throw new Error('SignalR connection is not connected.');
     }
 
-    if (this._joining()) {
-      console.log('[Explore3D Multiplayer] Already joining world.');
+    // ---------------------------------------------------------
+    // Already joining
+    // ---------------------------------------------------------
 
+    if (this._joining()) {
       return;
     }
 
+    // ---------------------------------------------------------
+    // Start joining
+    // ---------------------------------------------------------
+
     this._joining.set(true);
+
+    this.joinedWorld = false;
+
     this._connectionError.set(null);
 
     try {
@@ -495,10 +679,6 @@ export class Explore3dMultiplayerService {
 
         displayName: world.displayName,
 
-        /*
-         * This will ONLY be:
-         * aj / suit / brian
-         */
         characterModel: world.characterModel,
 
         position: {
@@ -506,17 +686,33 @@ export class Explore3dMultiplayerService {
         },
       };
 
-      console.log('[Explore3D Multiplayer] JoinWorld request:', request);
+      console.log('[Explore3D] Joining world:', request);
+
+      // =======================================================
+      // THIS MUST MATCH C#:
+      //
+      // JoinWorld(JoinExplore3dWorldRequest request)
+      // =======================================================
 
       await this.connection.invoke('JoinWorld', request);
 
-      console.log('[Explore3D Multiplayer] Joined world:', world.worldId);
+      // =======================================================
+      // ONLY MARK JOINED AFTER SERVER SUCCESS
+      // =======================================================
+
+      this.joinedWorld = true;
+
+      console.log('[Explore3D] JoinWorld success.');
+
+      void this.measureLatency();
     } catch (error) {
+      this.joinedWorld = false;
+
       const message = this.getErrorMessage(error);
 
-      this._connectionError.set(message);
+      console.error('[Explore3D] JoinWorld failed:', error);
 
-      console.error('[Explore3D Multiplayer] JoinWorld failed:', error);
+      this._connectionError.set(message);
 
       throw error;
     } finally {
@@ -524,108 +720,165 @@ export class Explore3dMultiplayerService {
     }
   }
 
-  /* =======================================================
-     MOVE PLAYER
-  ======================================================= */
+  // ===========================================================
+  // MOVE PLAYER
+  // ===========================================================
 
   async movePlayer(position: Explore3dPlayerPosition): Promise<void> {
-    if (!this.connection) {
+    // ---------------------------------------------------------
+    // No connection
+    // ---------------------------------------------------------
+
+    if (
+      !this.connection ||
+      this.connection.state !== HubConnectionState.Connected
+    ) {
       return;
     }
 
-    if (this.connection.state !== HubConnectionState.Connected) {
-      return;
-    }
+    // ---------------------------------------------------------
+    // No current world
+    // ---------------------------------------------------------
 
     if (!this.currentWorld) {
       return;
     }
 
-    // Keep our local world state updated immediately.
-    this.currentWorld = {
-      ...this.currentWorld,
-      position: {
-        ...position,
-      },
-    };
+    // ---------------------------------------------------------
+    // IMPORTANT:
+    //
+    // Do not send movement before JoinWorld succeeds.
+    // ---------------------------------------------------------
 
-    try {
-      // IMPORTANT:
-      // Movement does not need a response from the server.
-      //
-      // `send()` is fire-and-forget, so the local player
-      // does not wait for the network round trip before
-      // the next movement update can be sent.
-      await this.connection.send('MovePlayer', {
-        x: position.x,
-        y: position.y,
-        z: position.z,
-        rotationY: position.rotationY,
-      });
-    } catch (error) {
-      console.warn('[Explore3D Multiplayer] MovePlayer failed:', error);
-    }
-  }
-
-  /* =======================================================
-     LEAVE WORLD
-  ======================================================= */
-
-  async leaveWorld(): Promise<void> {
-    if (!this.connection) {
-      this.clearPlayers();
-      this.currentWorld = null;
+    if (!this.joinedWorld) {
       return;
     }
 
-    try {
-      if (this.connection.state === HubConnectionState.Connected) {
-        console.log(
-          '[Explore3D Multiplayer] Leaving world:',
-          this.currentWorld?.worldId,
-        );
+    // ---------------------------------------------------------
+    // Do not move while joining
+    // ---------------------------------------------------------
 
-        await this.connection.invoke('LeaveWorld');
-      }
+    if (this._joining()) {
+      return;
+    }
+
+    // ---------------------------------------------------------
+    // Update local world position
+    // ---------------------------------------------------------
+
+    this.currentWorld = {
+      ...this.currentWorld,
+
+      position: {
+        x: position.x,
+
+        y: position.y,
+
+        z: position.z,
+
+        rotationY: position.rotationY,
+      },
+    };
+
+    // ---------------------------------------------------------
+    // Send movement
+    //
+    // Backend:
+    //
+    // MovePlayer(
+    //     Explore3dPlayerPosition position
+    // )
+    //
+    // So ONLY ONE ARGUMENT is sent.
+    // ---------------------------------------------------------
+
+    try {
+      await this.connection.send('MovePlayer', {
+        x: position.x,
+
+        y: position.y,
+
+        z: position.z,
+
+        rotationY: position.rotationY,
+      });
     } catch (error) {
-      console.warn('[Explore3D Multiplayer] LeaveWorld failed:', error);
+      /*
+       * Individual movement packets are allowed to fail.
+       *
+       * Do not destroy the entire connection because of
+       * one movement packet.
+       */
+
+      console.warn('[Explore3D] MovePlayer failed:', error);
+    }
+  }
+
+  // ===========================================================
+  // LEAVE WORLD
+  // ===========================================================
+
+  async leaveWorld(): Promise<void> {
+    this.joinedWorld = false;
+
+    if (this.connection?.state === HubConnectionState.Connected) {
+      try {
+        await this.connection.invoke('LeaveWorld');
+      } catch (error) {
+        console.warn('[Explore3D] LeaveWorld failed:', error);
+      }
     }
 
     this.clearPlayers();
+
     this.currentWorld = null;
+
+    this._onlinePlayers.set(0);
+
+    this._movementDelay.set(0);
   }
 
-  /* =======================================================
-     DISCONNECT
-  ======================================================= */
+  // ===========================================================
+  // DISCONNECT
+  // ===========================================================
 
   async disconnect(): Promise<void> {
-    console.log('[Explore3D Multiplayer] Disconnecting...');
+    this.joinedWorld = false;
 
     this.currentWorld = null;
 
     this.clearPlayers();
 
+    this._onlinePlayers.set(0);
+
+    this._latency.set(0);
+
+    this._movementDelay.set(0);
+
     if (!this.connection) {
       this._connected.set(false);
+
       return;
     }
 
     try {
       await this.connection.stop();
-    } catch (error) {
-      console.warn('[Explore3D Multiplayer] Disconnect failed:', error);
+    } catch {
+      // Ignore disconnect errors.
     } finally {
       this.connection = null;
 
       this._connected.set(false);
+
       this._joining.set(false);
+
+      this.joinedWorld = false;
     }
   }
 
-  /* =======================================================
-     UPSERT PLAYER
-  ======================================================= */
+  // ===========================================================
+  // UPSERT PLAYER
+  // ===========================================================
 
   private upsertPlayer(player: Explore3dRemotePlayer): void {
     if (!player?.connectionId) {
@@ -638,12 +891,7 @@ export class Explore3dMultiplayerService {
       );
 
       if (index === -1) {
-        return [
-          ...players,
-          {
-            ...player,
-          },
-        ];
+        return [...players, player];
       }
 
       const updated = [...players];
@@ -657,26 +905,19 @@ export class Explore3dMultiplayerService {
     });
   }
 
-  /* =======================================================
-     REMOVE PLAYER
-  ======================================================= */
+  // ===========================================================
+  // REMOVE PLAYER
+  // ===========================================================
 
   private removePlayer(connectionId: string): void {
     this._players.update((players) =>
       players.filter((player) => player.connectionId !== connectionId),
     );
-
-    console.log('[Explore3D Multiplayer] Removed player:', connectionId);
-
-    console.log(
-      '[Explore3D Multiplayer] Remaining players:',
-      this._players().length,
-    );
   }
 
-  /* =======================================================
-     GET PLAYER
-  ======================================================= */
+  // ===========================================================
+  // GET PLAYER
+  // ===========================================================
 
   getPlayer(connectionId: string): Explore3dRemotePlayer | undefined {
     return this._players().find(
@@ -684,9 +925,9 @@ export class Explore3dMultiplayerService {
     );
   }
 
-  /* =======================================================
-     HAS PLAYER
-  ======================================================= */
+  // ===========================================================
+  // HAS PLAYER
+  // ===========================================================
 
   hasPlayer(connectionId: string): boolean {
     return this._players().some(
@@ -694,25 +935,25 @@ export class Explore3dMultiplayerService {
     );
   }
 
-  /* =======================================================
-     PLAYER COUNT
-  ======================================================= */
+  // ===========================================================
+  // PLAYER COUNT
+  // ===========================================================
 
   getPlayerCount(): number {
     return this._players().length;
   }
 
-  /* =======================================================
-     CLEAR PLAYERS
-  ======================================================= */
+  // ===========================================================
+  // CLEAR PLAYERS
+  // ===========================================================
 
   clearPlayers(): void {
     this._players.set([]);
   }
 
-  /* =======================================================
-     CURRENT WORLD
-  ======================================================= */
+  // ===========================================================
+  // CURRENT WORLD
+  // ===========================================================
 
   getCurrentWorld(): CurrentWorldState | null {
     if (!this.currentWorld) {
@@ -728,17 +969,27 @@ export class Explore3dMultiplayerService {
     };
   }
 
-  /* =======================================================
-     CONNECTION STATE
-  ======================================================= */
+  // ===========================================================
+  // CONNECTION STATE
+  // ===========================================================
 
   getConnectionState(): HubConnectionState | null {
     return this.connection?.state ?? null;
   }
 
-  /* =======================================================
-     ERROR
-  ======================================================= */
+  // ===========================================================
+  // PLAYER MOVED EVENT CHECK
+  // ===========================================================
+
+  private isPlayerMovedEvent(
+    value: Explore3dRemotePlayer | PlayerMovedEvent,
+  ): value is PlayerMovedEvent {
+    return typeof value === 'object' && value !== null && 'player' in value;
+  }
+
+  // ===========================================================
+  // ERROR MESSAGE
+  // ===========================================================
 
   private getErrorMessage(error: unknown): string {
     if (error instanceof Error) {

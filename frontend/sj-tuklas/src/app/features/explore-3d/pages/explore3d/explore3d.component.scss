@@ -2711,3 +2711,69 @@
     transition-duration: 0.01ms !important;
   }
 }
+.topbar-live {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-shrink: 0;
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  flex-shrink: 0;
+}
+
+.live-status-copy {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  strong {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+}
+
+.live-metrics {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.live-metric {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+
+  i {
+    font-size: 13px;
+  }
+}
+
+.live-divider {
+  width: 1px;
+  height: 12px;
+  background: currentColor;
+  opacity: 0.25;
+}
+
+.ping-good {
+  color: #22c55e;
+}
+
+.ping-medium {
+  color: #eab308;
+}
+
+.ping-bad {
+  color: #ef4444;
+}

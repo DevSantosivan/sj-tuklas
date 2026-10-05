@@ -129,7 +129,31 @@ export class Explore3dWorldService {
     'Boarding House': new Vector3(1700, 0, 0),
   };
 
-  private readonly hubSpawnPoint = new Vector3(0, 1, 0);
+  private readonly hubSpawnPoints: readonly Vector3[] = [
+    // upper-left
+    new Vector3(-24, 1.2, -24),
+
+    // upper-right
+    new Vector3(24, 1.2, -24),
+
+    // lower-left
+    new Vector3(-24, 1.2, 24),
+
+    // lower-right
+    new Vector3(24, 1.2, 24),
+
+    // extra safe positions
+    new Vector3(-28, 1.2, -18),
+    new Vector3(28, 1.2, -18),
+    new Vector3(-28, 1.2, 18),
+    new Vector3(28, 1.2, 18),
+  ];
+
+  public getHubSpawnPoint(): Vector3 {
+    const index = Math.floor(Math.random() * this.hubSpawnPoints.length);
+
+    return this.hubSpawnPoints[index].clone();
+  }
 
   // =========================================================
   // CREATE
@@ -234,10 +258,6 @@ export class Explore3dWorldService {
 
   getCategorySpawnPoint(category: Explore3dCategory): Vector3 {
     return this.getCategoryWorldOffset(category).add(new Vector3(0, 1, 65));
-  }
-
-  getHubSpawnPoint(): Vector3 {
-    return this.hubSpawnPoint.clone();
   }
 
   // =========================================================

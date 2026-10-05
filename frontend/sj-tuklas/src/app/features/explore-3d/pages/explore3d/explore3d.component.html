@@ -10,7 +10,7 @@
   <!-- ===================================================== -->
 
   <header class="explore-topbar">
-    <a class="explore-brand" aria-label="SJ Tuklas 3D Explore">
+    <a class="explore-brand" aria-label="SJ Tuklas — Businesses in San Jose">
       <div class="brand-mark">
         <span>SJ</span>
         <i class="bx bx-plus"></i>
@@ -19,9 +19,13 @@
       <div class="brand-text">
         <strong> SJ <span>TUKLAS</span> </strong>
 
-        <small> Explore San Jose in 3D </small>
+        <small> Businesses in San Jose </small>
       </div>
     </a>
+
+    <!-- ================================================= -->
+    <!-- CONTROLS -->
+    <!-- ================================================= -->
 
     <div class="explore-info">
       <!-- MOVE -->
@@ -65,9 +69,53 @@
       </div>
     </div>
 
-    <div class="topbar-live">
+    <!-- ================================================= -->
+    <!-- LIVE MULTIPLAYER STATUS -->
+    <!-- ================================================= -->
+
+    <div class="topbar-live" [class.offline]="!multiplayer.connected()">
       <span class="live-dot"></span>
-      <span>3D WORLD</span>
+
+      <div class="live-status-copy">
+        <strong>
+          @if (multiplayer.connected()) {
+            BUSINESSES IN SAN JOSE
+          } @else {
+            OFFLINE
+          }
+        </strong>
+
+        <span class="live-metrics">
+          <!-- ONLINE PLAYERS -->
+
+          <span
+            class="live-metric"
+            title="Players currently exploring this world"
+          >
+            <i class="bx bx-group"></i>
+
+            <strong>
+              {{ multiplayer.onlinePlayers() }}
+            </strong>
+
+            <small> online </small>
+          </span>
+
+          <span class="live-divider"></span>
+
+          <!-- PING -->
+
+          <span class="live-metric" title="Connection latency">
+            <i class="bx bx-wifi"></i>
+
+            <strong>
+              {{ multiplayer.latency() }}
+            </strong>
+
+            <small> ms </small>
+          </span>
+        </span>
+      </div>
     </div>
   </header>
 
@@ -85,11 +133,12 @@
 
       @if (isAutoNavigating && destinationBusiness) {
         <strong>
-          Going to
           {{ destinationBusiness.name }}
         </strong>
+      } @else if (isInCategoryWorld && selectedCategory) {
+        <strong> {{ selectedCategory }} Businesses in San Jose </strong>
       } @else {
-        <strong> San Jose, Occidental Mindoro </strong>
+        <strong> Businesses in San Jose </strong>
       }
     </div>
   </div>
@@ -104,7 +153,7 @@
       class="business-discovery-button"
       [class.active]="showBusinessDiscovery"
       (click)="toggleBusinessDiscovery()"
-      aria-label="Discover businesses"
+      aria-label="Discover businesses in San Jose"
       [attr.aria-expanded]="showBusinessDiscovery"
     >
       <span class="discovery-button-icon">
@@ -126,11 +175,11 @@
       <aside class="business-suggestions">
         <div class="suggestions-header">
           <div class="suggestions-heading-copy">
-            <span class="panel-eyebrow"> LOCAL DISCOVERY </span>
+            <span class="panel-eyebrow"> BUSINESSES IN SAN JOSE </span>
 
             <h3>Discover Businesses</h3>
 
-            <p>Explore places around you</p>
+            <p>Explore local businesses around San Jose</p>
           </div>
 
           <button
@@ -150,6 +199,8 @@
               class="business-suggestion"
               (click)="openBusiness(business)"
             >
+              <!-- BUSINESS LOGO -->
+
               <div class="business-suggestion-logo">
                 @if (business.profileImage) {
                   <img
@@ -161,6 +212,8 @@
                   <i class="bx bx-store-alt"></i>
                 }
               </div>
+
+              <!-- BUSINESS INFO -->
 
               <div class="business-suggestion-info">
                 <strong>
@@ -185,6 +238,8 @@
                 }
               </div>
 
+              <!-- ARROW -->
+
               <span class="suggestion-arrow">
                 <i class="bx bx-chevron-right"></i>
               </span>
@@ -195,7 +250,7 @@
         <div class="suggestions-footer">
           <i class="bx bx-map-alt"></i>
 
-          <span> Discover local spots in 3D </span>
+          <span> Discover businesses in San Jose </span>
         </div>
       </aside>
     }
@@ -214,6 +269,8 @@
         aria-label="Business details"
         (click)="$event.stopPropagation()"
       >
+        <!-- BUSINESS COVER -->
+
         <div class="business-cover">
           @if (selectedBusiness.coverImage) {
             <img
@@ -232,7 +289,7 @@
           <span class="cover-label">
             <i class="bx bx-map-pin"></i>
 
-            SJ TUKLAS BUSINESS
+            BUSINESS IN SAN JOSE
           </span>
 
           <button
@@ -256,7 +313,11 @@
           </div>
         </div>
 
+        <!-- BUSINESS CONTENT -->
+
         <div class="business-content">
+          <!-- HEADING -->
+
           <div class="business-heading">
             <div class="business-title-copy">
               <span class="business-category">
@@ -276,6 +337,8 @@
               </span>
             }
           </div>
+
+          <!-- META -->
 
           <div class="business-meta">
             @if (selectedBusiness.rating > 0) {
@@ -302,11 +365,15 @@
             }
           </div>
 
+          <!-- DESCRIPTION -->
+
           @if (selectedBusiness.description) {
             <p class="business-description">
               {{ selectedBusiness.description }}
             </p>
           }
+
+          <!-- SERVICES -->
 
           @if (getBusinessFeatures(selectedBusiness).length > 0) {
             <section class="business-services">
@@ -335,6 +402,8 @@
             </section>
           }
 
+          <!-- LOCATION -->
+
           @if (selectedBusiness.location) {
             <div class="business-location">
               <span class="location-icon">
@@ -351,6 +420,8 @@
             </div>
           }
 
+          <!-- ACTIONS -->
+
           <div class="business-actions">
             <button
               type="button"
@@ -358,7 +429,8 @@
               (click)="chatWithBusiness(selectedBusiness)"
             >
               <i class="bx bx-message-rounded-dots"></i>
-              <span>Chat</span>
+
+              <span> Chat </span>
             </button>
 
             @if (selectedBusiness.phone) {
@@ -368,7 +440,8 @@
                 (click)="callBusiness(selectedBusiness)"
               >
                 <i class="bx bx-phone"></i>
-                <span>Call</span>
+
+                <span> Call </span>
               </button>
             }
 
@@ -378,7 +451,8 @@
               (click)="goToBusiness(selectedBusiness)"
             >
               <i class="bx bx-navigation"></i>
-              <span>Go Here</span>
+
+              <span> Go Here </span>
             </button>
           </div>
         </div>
@@ -399,6 +473,8 @@
         aria-labelledby="category-modal-title"
         (click)="$event.stopPropagation()"
       >
+        <!-- CLOSE -->
+
         <button
           type="button"
           class="category-modal-close"
@@ -407,6 +483,8 @@
         >
           <i class="bx bx-x"></i>
         </button>
+
+        <!-- VISUAL -->
 
         <div class="category-modal-visual">
           <div class="category-visual-orbit orbit-one"></div>
@@ -422,13 +500,17 @@
           <span class="category-visual-spark spark-two"></span>
         </div>
 
+        <!-- EYEBROW -->
+
         <span class="category-modal-eyebrow">
           <span class="eyebrow-line"></span>
 
-          SJ TUKLAS · 3D EXPLORE
+          SJ TUKLAS · BUSINESSES IN SAN JOSE
 
           <span class="eyebrow-line"></span>
         </span>
+
+        <!-- TITLE -->
 
         <h2 id="category-modal-title">
           Explore
@@ -438,16 +520,22 @@
           </span>
         </h2>
 
+        <!-- DESCRIPTION -->
+
         <p>
-          Ready to explore this area? Step inside and discover local businesses,
-          services, and places in this category.
+          Explore businesses, services, shops, restaurants, and places in San
+          Jose through an interactive 3D experience.
         </p>
+
+        <!-- NOTE -->
 
         <div class="category-modal-note">
           <i class="bx bx-info-circle"></i>
 
-          <span> You can always return to the main hub. </span>
+          <span> You can always return to the main business hub. </span>
         </div>
+
+        <!-- ACTIONS -->
 
         <div class="category-modal-actions">
           <button
@@ -485,7 +573,7 @@
       <span class="back-button-copy">
         <strong> Back to Hub </strong>
 
-        <small> Main 3D world </small>
+        <small> Business hub </small>
       </span>
     </button>
   }
@@ -495,6 +583,7 @@
   <!-- ===================================================== -->
 
   <app-global-chat></app-global-chat>
+
   <!-- ================================================= -->
   <!-- FULL CHAT -->
   <!-- ================================================= -->
@@ -609,6 +698,8 @@
       <!-- FOOTER -->
 
       <footer class="global-chat-footer">
+        <!-- USER -->
+
         <div class="chat-user-row">
           <div class="chat-user-icon">
             <i class="bx bx-user"></i>
@@ -628,6 +719,8 @@
             />
           </div>
         </div>
+
+        <!-- MESSAGE -->
 
         <div class="chat-input-row">
           <input
@@ -649,11 +742,13 @@
             [disabled]="
               !chatMessage.trim() || !chatName.trim() || !chatConnected
             "
-            aria-label="Send global message"
+            aria-label="Send global chat message"
           >
             <i class="bx bx-send"></i>
           </button>
         </div>
+
+        <!-- CONNECTION STATUS -->
 
         @if (!chatConnected) {
           <div class="chat-footer-status">
@@ -713,6 +808,8 @@
       </span>
     </div>
 
+    <!-- RECENT MESSAGES -->
+
     @if (recentChatMessages.length > 0) {
       <div class="mini-chat-messages">
         @for (message of recentChatMessages; track message.id) {
@@ -741,14 +838,18 @@
       </div>
     }
 
+    <!-- FOOTER -->
+
     <div class="mini-chat-footer">
       <span>
         <i class="bx bx-group"></i>
+
         Community chat
       </span>
 
       <span>
         Open
+
         <i class="bx bx-right-arrow-alt"></i>
       </span>
     </div>
