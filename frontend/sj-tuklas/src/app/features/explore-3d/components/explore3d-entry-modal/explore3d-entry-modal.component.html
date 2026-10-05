@@ -2,6 +2,7 @@
   <div class="modal-backdrop" (click)="close()">
     <section
       class="explore-modal"
+      [class.character-mode]="mode === 'character'"
       role="dialog"
       aria-modal="true"
       aria-labelledby="explore-modal-title"
@@ -61,77 +62,158 @@
         </div>
       } @else {
         <div class="modal-content character-content">
-          <div class="modal-icon">
-            <i class="bx bx-user-pin"></i>
+          <!-- CHARACTER HEADER -->
+          <div class="character-header">
+            <div class="modal-icon">
+              <i class="bx bx-user-pin"></i>
+            </div>
+
+            <span class="eyebrow">SJ TUKLAS 3D / CHARACTER SETUP</span>
+
+            <h2 id="explore-modal-title">Create your character</h2>
+
+            <p class="modal-description">
+              Customize your identity and choose a character to represent you in
+              the 3D world.
+            </p>
           </div>
 
-          <span class="eyebrow">CHARACTER SETUP</span>
-          <h2 id="explore-modal-title">Create your character</h2>
+          <!-- CHARACTER NAME -->
+          <section class="setup-section name-section">
+            <div class="section-heading">
+              <span class="section-number">01</span>
 
-          <p class="modal-description">
-            Choose a name and character to represent you in the 3D world.
-          </p>
+              <div class="section-heading-text">
+                <h3>Character name</h3>
+                <p>What should other explorers call you?</p>
+              </div>
+            </div>
 
-          <label for="character-name">Character name</label>
-          <input
-            id="character-name"
-            type="text"
-            maxlength="50"
-            [ngModel]="characterName()"
-            (ngModelChange)="characterName.set($event)"
-            placeholder="Enter character name"
-          />
+            <div class="name-input-wrapper">
+              <i class="bx bx-user"></i>
 
-          <label class="model-label">Choose your character</label>
+              <input
+                id="character-name"
+                type="text"
+                maxlength="50"
+                autocomplete="off"
+                [ngModel]="characterName()"
+                (ngModelChange)="characterName.set($event)"
+                placeholder="Enter your character name"
+              />
 
-          <div class="character-grid">
-            @for (model of characterModels; track model.id) {
-              <button
-                type="button"
-                class="character-option"
-                [class.selected]="selectedModel() === model.id"
-                [attr.aria-pressed]="selectedModel() === model.id"
-                (click)="chooseModel(model.id)"
-              >
-                <div class="character-preview">
-                  <appcharacter3dpreview
-                    [modelId]="model.id"
-                  ></appcharacter3dpreview>
+              <span class="character-name-count">
+                {{ characterName().length }}/50
+              </span>
+            </div>
+          </section>
 
-                  @if (selectedModel() === model.id) {
-                    <span class="selected-check">
-                      <i class="bx bx-check"></i>
+          <!-- CHARACTER SELECTION -->
+          <section class="setup-section selection-section">
+            <div class="section-heading selection-heading">
+              <span class="section-number">02</span>
+
+              <div class="section-heading-text">
+                <h3>Choose your character</h3>
+                <p>Select your favorite avatar to start exploring.</p>
+              </div>
+
+              <span class="model-count">
+                {{ characterModels.length }}
+                {{ characterModels.length === 1 ? "character" : "characters" }}
+              </span>
+            </div>
+
+            <div class="character-grid">
+              @for (model of characterModels; track model.id) {
+                <button
+                  type="button"
+                  class="character-option"
+                  [class.selected]="selectedModel() === model.id"
+                  [attr.aria-pressed]="selectedModel() === model.id"
+                  (click)="chooseModel(model.id)"
+                >
+                  <div class="character-preview">
+                    <appcharacter3dpreview
+                      [modelId]="model.id"
+                    ></appcharacter3dpreview>
+
+                    @if (selectedModel() === model.id) {
+                      <span class="selected-check">
+                        <i class="bx bx-check"></i>
+                      </span>
+                    }
+
+                    <span class="preview-hint">
+                      <i class="bx bx-cube"></i>
+                      3D Preview
                     </span>
-                  }
-                </div>
+                  </div>
 
-                <strong>{{ model.name }}</strong>
-                <small>{{ model.description }}</small>
-              </button>
-            }
-          </div>
+                  <div class="character-info">
+                    <strong>{{ model.name }}</strong>
+                    <small>{{ model.description }}</small>
+                  </div>
 
+                  <div class="character-select-indicator">
+                    @if (selectedModel() === model.id) {
+                      <span>
+                        <i class="bx bx-check-circle"></i>
+                        Selected
+                      </span>
+                    } @else {
+                      <span>Select character</span>
+                      <i class="bx bx-right-arrow-alt"></i>
+                    }
+                  </div>
+                </button>
+              }
+            </div>
+          </section>
+
+          <!-- ERROR MESSAGE -->
           @if (errorMessage()) {
             <p class="error-message" role="alert">
+              <i class="bx bx-error-circle"></i>
               {{ errorMessage() }}
             </p>
           }
 
-          <button
-            type="button"
-            class="primary-action create-action"
-            [disabled]="isSaving()"
-            (click)="createCharacter()"
-          >
-            @if (isSaving()) {
-              <span class="button-spinner"></span>
-              Creating character...
-            } @else {
-              <i class="bx bx-joystick"></i>
-              Create character &amp; explore
-              <i class="bx bx-right-arrow-alt action-arrow"></i>
-            }
-          </button>
+          <!-- ACTION FOOTER -->
+          <div class="character-footer">
+            <div class="selected-summary">
+              <span class="summary-icon">
+                <i class="bx bx-cube-alt"></i>
+              </span>
+
+              <div>
+                <small>Your character</small>
+                <strong>
+                  @for (model of characterModels; track model.id) {
+                    @if (selectedModel() === model.id) {
+                      {{ model.name }}
+                    }
+                  }
+                </strong>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="primary-action create-action"
+              [disabled]="isSaving()"
+              (click)="createCharacter()"
+            >
+              @if (isSaving()) {
+                <span class="button-spinner"></span>
+                Creating character...
+              } @else {
+                <i class="bx bx-joystick"></i>
+                Create &amp; explore
+                <i class="bx bx-right-arrow-alt action-arrow"></i>
+              }
+            </button>
+          </div>
 
           <p class="modal-footnote">
             You can use this character whenever you return to 3D Explore.

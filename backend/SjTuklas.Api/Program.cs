@@ -130,42 +130,54 @@ builder.Services
             // ==================================================
             // READ JWT FROM HTTPONLY COOKIE
             // ==================================================
+               OnMessageReceived = context =>
+{
+    var request = context.HttpContext.Request;
 
-            OnMessageReceived = context =>
-            {
-                var hasCookie =
-                    context.Request.Cookies.ContainsKey(
-                        AuthService.AccessTokenCookieName
-                    );
+    // First, try the HttpOnly access-token cookie.
+    if (
+        request.Cookies.TryGetValue(
+            AuthService.AccessTokenCookieName,
+            out var cookieToken
+        )
+        && !string.IsNullOrWhiteSpace(cookieToken)
+    )
+    {
+        context.Token = cookieToken;
 
-                Console.WriteLine(
-                    $"JWT COOKIE PRESENT: {hasCookie}"
-                );
+        Console.WriteLine(
+            "[JWT] Access token loaded from cookie."
+        );
 
-                if (
-                    context.Request.Cookies.TryGetValue(
-                        AuthService.AccessTokenCookieName,
-                        out var accessToken
-                    )
-                    &&
-                    !string.IsNullOrWhiteSpace(accessToken)
-                )
-                {
-                    context.Token = accessToken;
+        return Task.CompletedTask;
+    }
 
-                    Console.WriteLine(
-                        "JWT TOKEN LOADED FROM HTTPONLY COOKIE."
-                    );
-                }
-                else
-                {
-                    Console.WriteLine(
-                        "JWT TOKEN NOT FOUND IN COOKIE."
-                    );
-                }
+    // Fallback for SignalR WebSocket connections.
+    // The Angular client must explicitly provide access_token.
+    if (
+        request.Path.StartsWithSegments("/hubs/explore3d")
+    )
+    {
+        var queryToken = request.Query["access_token"];
 
-                return Task.CompletedTask;
-            },
+        if (!string.IsNullOrWhiteSpace(queryToken))
+        {
+            context.Token = queryToken;
+
+            Console.WriteLine(
+                "[JWT] Access token loaded from SignalR query."
+            );
+        }
+        else
+        {
+            Console.WriteLine(
+                "[JWT] No cookie or SignalR query token found."
+            );
+        }
+    }
+
+    return Task.CompletedTask;
+},
 
             // ==================================================
             // TOKEN VALIDATED

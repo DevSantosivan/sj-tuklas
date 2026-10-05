@@ -25,7 +25,6 @@
 
     <div class="explore-info">
       <!-- MOVE -->
-
       <div class="info-pill">
         <i class="bx bx-walk"></i>
 
@@ -36,7 +35,6 @@
       </div>
 
       <!-- RUN -->
-
       <div class="info-pill">
         <i class="bx bx-run"></i>
 
@@ -47,7 +45,6 @@
       </div>
 
       <!-- JUMP -->
-
       <div class="info-pill">
         <i class="bx bx-up-arrow-alt"></i>
 
@@ -58,7 +55,6 @@
       </div>
 
       <!-- CAMERA -->
-
       <div class="info-pill">
         <i class="bx bx-mouse"></i>
 
@@ -71,13 +67,12 @@
 
     <div class="topbar-live">
       <span class="live-dot"></span>
-
-      <span> 3D WORLD </span>
+      <span>3D WORLD</span>
     </div>
   </header>
 
   <!-- ===================================================== -->
-  <!-- STATUS -->
+  <!-- WORLD STATUS -->
   <!-- ===================================================== -->
 
   <div class="explore-status">
@@ -89,7 +84,10 @@
       <small> YOU ARE EXPLORING </small>
 
       @if (isAutoNavigating && destinationBusiness) {
-        <strong> Going to {{ destinationBusiness.name }} </strong>
+        <strong>
+          Going to
+          {{ destinationBusiness.name }}
+        </strong>
       } @else {
         <strong> San Jose, Occidental Mindoro </strong>
       }
@@ -97,79 +95,110 @@
   </div>
 
   <!-- ===================================================== -->
-  <!-- SUGGESTED BUSINESSES -->
+  <!-- BUSINESS DISCOVERY -->
   <!-- ===================================================== -->
 
   @if (businesses.length > 0) {
-    <aside class="business-suggestions">
-      <div class="suggestions-header">
-        <div class="suggestions-heading-copy">
-          <span class="panel-eyebrow"> LOCAL DISCOVERY </span>
+    <button
+      type="button"
+      class="business-discovery-button"
+      [class.active]="showBusinessDiscovery"
+      (click)="toggleBusinessDiscovery()"
+      aria-label="Discover businesses"
+      [attr.aria-expanded]="showBusinessDiscovery"
+    >
+      <span class="discovery-button-icon">
+        <i class="bx bx-store-alt"></i>
+      </span>
 
-          <h3>Discover Businesses</h3>
+      <span class="discovery-button-copy">
+        <strong> Discover </strong>
 
-          <p>Explore places around you</p>
-        </div>
+        <small> Businesses </small>
+      </span>
 
-        <div class="suggestions-header-icon">
-          <i class="bx bx-store-alt"></i>
-        </div>
-      </div>
+      <span class="discovery-count">
+        {{ businesses.length > 99 ? "99+" : businesses.length }}
+      </span>
+    </button>
 
-      <div class="suggestion-list">
-        @for (business of businesses.slice(0, 5); track business.id) {
+    @if (showBusinessDiscovery) {
+      <aside class="business-suggestions">
+        <div class="suggestions-header">
+          <div class="suggestions-heading-copy">
+            <span class="panel-eyebrow"> LOCAL DISCOVERY </span>
+
+            <h3>Discover Businesses</h3>
+
+            <p>Explore places around you</p>
+          </div>
+
           <button
             type="button"
-            class="business-suggestion"
-            (click)="openBusiness(business)"
+            class="suggestions-close"
+            (click)="closeBusinessDiscovery()"
+            aria-label="Close business discovery"
           >
-            <div class="business-suggestion-logo">
-              @if (business.profileImage) {
-                <img
-                  [src]="business.profileImage"
-                  [alt]="business.name"
-                  loading="lazy"
-                />
-              } @else {
-                <i class="bx bx-store-alt"></i>
-              }
-            </div>
-
-            <div class="business-suggestion-info">
-              <strong>
-                {{ business.name }}
-              </strong>
-
-              <span>
-                {{ business.category }}
-              </span>
-
-              @if (business.rating > 0) {
-                <small>
-                  <i class="bx bxs-star"></i>
-
-                  {{ business.rating }}
-
-                  <span class="suggestion-divider"> · </span>
-
-                  {{ business.reviews }} reviews
-                </small>
-              }
-            </div>
-
-            <span class="suggestion-arrow">
-              <i class="bx bx-chevron-right"></i>
-            </span>
+            <i class="bx bx-x"></i>
           </button>
-        }
-      </div>
+        </div>
 
-      <div class="suggestions-footer">
-        <i class="bx bx-map-alt"></i>
+        <div class="suggestion-list">
+          @for (business of businesses.slice(0, 5); track business.id) {
+            <button
+              type="button"
+              class="business-suggestion"
+              (click)="openBusiness(business)"
+            >
+              <div class="business-suggestion-logo">
+                @if (business.profileImage) {
+                  <img
+                    [src]="business.profileImage"
+                    [alt]="business.name"
+                    loading="lazy"
+                  />
+                } @else {
+                  <i class="bx bx-store-alt"></i>
+                }
+              </div>
 
-        <span> Discover local spots in 3D </span>
-      </div>
-    </aside>
+              <div class="business-suggestion-info">
+                <strong>
+                  {{ business.name }}
+                </strong>
+
+                <span>
+                  {{ business.category }}
+                </span>
+
+                @if (business.rating > 0) {
+                  <small>
+                    <i class="bx bxs-star"></i>
+
+                    {{ business.rating }}
+
+                    <span class="suggestion-divider"> · </span>
+
+                    {{ business.reviews }}
+                    reviews
+                  </small>
+                }
+              </div>
+
+              <span class="suggestion-arrow">
+                <i class="bx bx-chevron-right"></i>
+              </span>
+            </button>
+          }
+        </div>
+
+        <div class="suggestions-footer">
+          <i class="bx bx-map-alt"></i>
+
+          <span> Discover local spots in 3D </span>
+        </div>
+      </aside>
+    }
   }
 
   <!-- ===================================================== -->
@@ -257,7 +286,10 @@
                   {{ selectedBusiness.rating }}
                 </strong>
 
-                <span> ({{ selectedBusiness.reviews }} reviews) </span>
+                <span>
+                  ({{ selectedBusiness.reviews }}
+                  reviews)
+                </span>
               </span>
             }
 
@@ -326,8 +358,7 @@
               (click)="chatWithBusiness(selectedBusiness)"
             >
               <i class="bx bx-message-rounded-dots"></i>
-
-              <span> Chat </span>
+              <span>Chat</span>
             </button>
 
             @if (selectedBusiness.phone) {
@@ -337,8 +368,7 @@
                 (click)="callBusiness(selectedBusiness)"
               >
                 <i class="bx bx-phone"></i>
-
-                <span> Call </span>
+                <span>Call</span>
               </button>
             }
 
@@ -348,8 +378,7 @@
               (click)="goToBusiness(selectedBusiness)"
             >
               <i class="bx bx-navigation"></i>
-
-              <span> Go Here </span>
+              <span>Go Here</span>
             </button>
           </div>
         </div>
@@ -358,7 +387,7 @@
   }
 
   <!-- ===================================================== -->
-  <!-- CATEGORY ENTRY CONFIRMATION -->
+  <!-- CATEGORY ENTRY -->
   <!-- ===================================================== -->
 
   @if (showCategoryModal && selectedCategory) {
@@ -403,6 +432,7 @@
 
         <h2 id="category-modal-title">
           Explore
+
           <span>
             {{ selectedCategory }}
           </span>
@@ -461,49 +491,48 @@
   }
 
   <!-- ===================================================== -->
-  <!-- GLOBAL CHAT BUTTON -->
+  <!-- ALWAYS VISIBLE GLOBAL CHAT -->
   <!-- ===================================================== -->
 
-  <button
-    type="button"
-    class="global-chat-button"
-    [class.chat-active]="chatOpen"
-    (click)="toggleGlobalChat()"
-    aria-label="Open global chat"
-  >
-    <span class="chat-online-dot"></span>
-
-    <span class="global-chat-button-icon">
-      <i class="bx bx-message-rounded-dots"></i>
-    </span>
-
-    <span class="chat-button-label"> Global Chat </span>
-  </button>
-
-  <!-- ===================================================== -->
-  <!-- GLOBAL CHAT PANEL -->
-  <!-- ===================================================== -->
+  <app-global-chat></app-global-chat>
+  <!-- ================================================= -->
+  <!-- FULL CHAT -->
+  <!-- ================================================= -->
 
   @if (chatOpen) {
-    <section class="global-chat-panel">
+    <section
+      class="global-chat-panel"
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby="global-chat-title"
+    >
+      <!-- HEADER -->
+
       <header class="global-chat-header">
         <div class="global-chat-title">
           <div class="global-chat-icon">
             <i class="bx bx-world"></i>
+
+            <span
+              class="global-chat-status"
+              [class.connected]="chatConnected"
+            ></span>
           </div>
 
           <div class="global-chat-heading-copy">
-            <strong> SJ TUKLAS Community </strong>
+            <span class="chat-eyebrow"> SJ TUKLAS COMMUNITY </span>
 
-            <span [class.online]="chatConnected">
+            <strong id="global-chat-title"> Global Chat </strong>
+
+            <span class="chat-connection-status" [class.online]="chatConnected">
               <span class="connection-dot"></span>
 
               @if (chatConnected) {
-                Online
+                Everyone can chat
               } @else if (chatConnecting) {
                 Connecting...
               } @else {
-                Offline
+                Chat unavailable
               }
             </span>
           </div>
@@ -513,27 +542,47 @@
           type="button"
           class="chat-close"
           (click)="toggleGlobalChat()"
-          aria-label="Close chat"
+          aria-label="Close global chat"
         >
           <i class="bx bx-x"></i>
         </button>
       </header>
 
-      <div class="global-chat-messages">
+      <!-- INFO -->
+
+      <div class="global-chat-info">
+        <i class="bx bx-info-circle"></i>
+
+        <span>
+          Messages appear above the sender's character in the 3D world.
+        </span>
+      </div>
+
+      <!-- MESSAGES -->
+
+      <div
+        class="global-chat-messages"
+        role="log"
+        aria-live="polite"
+        aria-label="Global chat messages"
+      >
         @if (chatMessages.length === 0) {
           <div class="chat-empty">
             <div class="chat-empty-icon">
               <i class="bx bx-message-rounded-dots"></i>
             </div>
 
-            <strong> Welcome to the community! </strong>
+            <strong> Welcome to Global Chat </strong>
 
-            <span> Say hello and connect with other explorers. </span>
+            <span> Say hello to other explorers around San Jose. </span>
           </div>
         }
 
         @for (message of chatMessages; track message.id) {
-          <article class="chat-message">
+          <article
+            class="chat-message"
+            [class.own-message]="message.userName === chatName.trim()"
+          >
             <div class="chat-avatar">
               {{ message.userName.charAt(0).toUpperCase() }}
             </div>
@@ -557,23 +606,40 @@
         }
       </div>
 
+      <!-- FOOTER -->
+
       <footer class="global-chat-footer">
-        <input
-          type="text"
-          [(ngModel)]="chatName"
-          placeholder="Your name"
-          maxlength="40"
-          class="chat-name-input"
-        />
+        <div class="chat-user-row">
+          <div class="chat-user-icon">
+            <i class="bx bx-user"></i>
+          </div>
+
+          <div class="chat-user-field">
+            <label for="global-chat-name"> Display name </label>
+
+            <input
+              id="global-chat-name"
+              type="text"
+              [(ngModel)]="chatName"
+              placeholder="Your name"
+              maxlength="40"
+              autocomplete="nickname"
+              class="chat-name-input"
+            />
+          </div>
+        </div>
 
         <div class="chat-input-row">
           <input
             type="text"
             [(ngModel)]="chatMessage"
             (keydown.enter)="sendGlobalMessage()"
-            placeholder="Write a message..."
+            placeholder="Say something..."
             maxlength="500"
+            autocomplete="off"
             class="chat-message-input"
+            [disabled]="!chatConnected"
+            aria-label="Global chat message"
           />
 
           <button
@@ -583,70 +649,150 @@
             [disabled]="
               !chatMessage.trim() || !chatName.trim() || !chatConnected
             "
-            aria-label="Send message"
+            aria-label="Send global message"
           >
             <i class="bx bx-send"></i>
           </button>
         </div>
+
+        @if (!chatConnected) {
+          <div class="chat-footer-status">
+            @if (chatConnecting) {
+              <i class="bx bx-loader-alt bx-spin"></i>
+
+              <span> Connecting to Global Chat... </span>
+            } @else {
+              <i class="bx bx-error-circle"></i>
+
+              <span> Unable to connect to Global Chat. </span>
+            }
+          </div>
+        }
       </footer>
     </section>
   }
 
-  <!-- ===================================================== -->
-  <!-- MOVEMENT JOYSTICK -->
-  <!-- ===================================================== -->
+  <!-- ================================================= -->
+  <!-- ALWAYS VISIBLE MINI FEED -->
+  <!-- ================================================= -->
 
-  <div id="joystick" class="joystick" aria-label="Movement joystick">
-    <div class="joystick-ring">
-      <div id="joystickStick" class="joystick-stick"></div>
-    </div>
-  </div>
+  <button
+    type="button"
+    class="global-chat-mini"
+    [class.chat-active]="chatOpen"
+    (click)="toggleGlobalChat()"
+    aria-label="Open global community chat"
+    [attr.aria-expanded]="chatOpen"
+  >
+    <div class="mini-chat-header">
+      <div class="mini-chat-brand">
+        <span class="mini-chat-icon">
+          <i class="bx bx-world"></i>
 
-  <!-- ===================================================== -->
-  <!-- MOBILE ACTION CONTROLS -->
-  <!-- ===================================================== -->
+          <span
+            class="mini-chat-status"
+            [class.connected]="chatConnected"
+          ></span>
+        </span>
 
-  <div class="mobile-action-controls">
-    <!-- RUN -->
+        <div class="mini-chat-heading">
+          <strong> Global Chat </strong>
 
-    <button
-      type="button"
-      id="runButton"
-      class="mobile-action-button run-button"
-      aria-label="Run"
-    >
-      <i class="bx bx-run"></i>
+          <span>
+            {{ chatOnlineLabel }}
+          </span>
+        </div>
+      </div>
 
-      <span> RUN </span>
-    </button>
-
-    <!-- JUMP -->
-
-    <button
-      type="button"
-      id="jumpButton"
-      class="mobile-action-button jump-button"
-      aria-label="Jump"
-    >
-      <i class="bx bx-up-arrow-alt"></i>
-
-      <span> JUMP </span>
-    </button>
-  </div>
-
-  <!-- ===================================================== -->
-  <!-- HELP -->
-  <!-- ===================================================== -->
-
-  <div class="explore-help">
-    <div class="help-icon">
-      <i class="bx bx-bulb"></i>
+      <span class="mini-chat-action">
+        <i
+          class="bx"
+          [class.bx-chevron-up]="!chatOpen"
+          [class.bx-chevron-down]="chatOpen"
+        ></i>
+      </span>
     </div>
 
-    <div class="help-content">
-      <strong> Explore SJ TUKLAS </strong>
+    @if (recentChatMessages.length > 0) {
+      <div class="mini-chat-messages">
+        @for (message of recentChatMessages; track message.id) {
+          <div class="mini-chat-message">
+            <span class="mini-chat-avatar">
+              {{ message.userName.charAt(0).toUpperCase() }}
+            </span>
 
-      <span> Walk around and discover local businesses. </span>
+            <div class="mini-chat-message-copy">
+              <strong>
+                {{ message.userName }}
+              </strong>
+
+              <span>
+                {{ message.message }}
+              </span>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="mini-chat-empty">
+        <i class="bx bx-message-rounded-dots"></i>
+
+        <span> Say hi to everyone... </span>
+      </div>
+    }
+
+    <div class="mini-chat-footer">
+      <span>
+        <i class="bx bx-group"></i>
+        Community chat
+      </span>
+
+      <span>
+        Open
+        <i class="bx bx-right-arrow-alt"></i>
+      </span>
     </div>
+  </button>
+</div>
+
+<!-- ===================================================== -->
+<!-- MOVEMENT JOYSTICK -->
+<!-- ===================================================== -->
+
+<div id="joystick" class="joystick" aria-label="Movement joystick">
+  <div class="joystick-ring">
+    <div id="joystickStick" class="joystick-stick"></div>
   </div>
+</div>
+
+<!-- ===================================================== -->
+<!-- MOBILE ACTION CONTROLS -->
+<!-- ===================================================== -->
+
+<div class="mobile-action-controls">
+  <!-- RUN -->
+
+  <button
+    type="button"
+    id="runButton"
+    class="mobile-action-button run-button"
+    aria-label="Run"
+  >
+    <i class="bx bx-run"></i>
+
+    <span> RUN </span>
+  </button>
+
+  <!-- JUMP -->
+
+  <button
+    type="button"
+    id="jumpButton"
+    class="mobile-action-button jump-button"
+    aria-label="Jump"
+  >
+    <i class="bx bx-up-arrow-alt"></i>
+
+    <span> JUMP </span>
+  </button>
 </div>

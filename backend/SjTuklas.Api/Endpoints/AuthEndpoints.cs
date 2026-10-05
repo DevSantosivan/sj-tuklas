@@ -1,4 +1,6 @@
+
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Hosting;
 using System.Security.Claims;
 
 using SjTuklas.Api.Dtos.Auth;
@@ -28,105 +30,48 @@ public static class AuthEndpoints
                 AuthService authService,
                 IHubContext<BusinessHub> hubContext) =>
             {
-                // ------------------------------------------------
-                // BASIC VALIDATION
-                // ------------------------------------------------
-
                 if (
-                    string.IsNullOrWhiteSpace(request.Email)
-                    ||
-                    string.IsNullOrWhiteSpace(request.Password)
-                    ||
+                    string.IsNullOrWhiteSpace(request.Email) ||
+                    string.IsNullOrWhiteSpace(request.Password) ||
                     string.IsNullOrWhiteSpace(request.FullName)
                 )
                 {
                     return Results.BadRequest(new
                     {
-                        message =
-                            "Email, password, and full name are required."
+                        message = "Email, password, and full name are required."
                     });
                 }
 
                 if (
-                    request.Role != "visitor"
-                    &&
+                    request.Role != "visitor" &&
                     request.Role != "business_owner"
                 )
                 {
                     return Results.BadRequest(new
                     {
-                        message =
-                            "Invalid account role."
+                        message = "Invalid account role."
                     });
                 }
 
                 try
                 {
-                    // ------------------------------------------------
-                    // CREATE SUPABASE AUTH USER
-                    // ------------------------------------------------
-
-                    var result =
-                        await authService.SignUpAsync(
-                            request
-                        );
-
-                    // ------------------------------------------------
-                    // VALIDATE SUPABASE RESPONSE
-                    // ------------------------------------------------
+                    var result = await authService.SignUpAsync(request);
 
                     if (result.User is null)
                     {
                         return Results.BadRequest(new
                         {
-                            message =
-                                "Registration failed."
+                            message = "Registration failed."
                         });
                     }
 
-                    // ------------------------------------------------
-                    // STORE TOKENS IF AVAILABLE
-                    // ------------------------------------------------
-
                     if (
-                        !string.IsNullOrWhiteSpace(
-                            result.AccessToken
-                        )
-                        &&
-                        !string.IsNullOrWhiteSpace(
-                            result.RefreshToken
-                        )
+                        !string.IsNullOrWhiteSpace(result.AccessToken) &&
+                        !string.IsNullOrWhiteSpace(result.RefreshToken)
                     )
                     {
-                        SetAuthenticationCookies(
-                            context,
-                            result
-                        );
+                        SetAuthenticationCookies(context, result);
                     }
-
-                    // ------------------------------------------------
-                    // REALTIME USER REGISTERED EVENT
-                    // ------------------------------------------------
-
-                    Console.WriteLine(
-                        "=========================================="
-                    );
-
-                    Console.WriteLine(
-                        "USER REGISTERED - BROADCASTING REALTIME EVENT"
-                    );
-
-                    Console.WriteLine(
-                        $"User ID: {result.User.Id}"
-                    );
-
-                    Console.WriteLine(
-                        $"Email: {result.User.Email}"
-                    );
-
-                    Console.WriteLine(
-                        $"Role: {request.Role}"
-                    );
 
                     await hubContext.Clients.All.SendAsync(
                         "UserRegistered",
@@ -136,104 +81,39 @@ public static class AuthEndpoints
                         }
                     );
 
-                    Console.WriteLine(
-                        "USER REGISTERED EVENT SENT"
-                    );
-
-                    Console.WriteLine(
-                        "=========================================="
-                    );
-
-                    // ------------------------------------------------
-                    // RETURN API DTO
-                    // ------------------------------------------------
-
                     return Results.Ok(
                         new AuthResponseDto
                         {
-                            User =
-                                new AuthUserDto
-                                {
-                                    Id =
-                                        result.User.Id,
-
-                                    Email =
-                                        result.User.Email,
-
-                                    FullName =
-                                        GetMetadataValue(
-                                            result.User.UserMetadata,
-                                            "full_name"
-                                        ),
-
-                                    Role =
-                                        GetMetadataValue(
-                                            result.User.UserMetadata,
-                                            "role"
-                                        )
-                                },
-
-                            ExpiresIn =
-                                result.ExpiresIn
+                            User = new AuthUserDto
+                            {
+                                Id = result.User.Id,
+                                Email = result.User.Email,
+                                FullName = GetMetadataValue(
+                                    result.User.UserMetadata,
+                                    "full_name"
+                                ),
+                                Role = GetMetadataValue(
+                                    result.User.UserMetadata,
+                                    "role"
+                                )
+                            },
+                            ExpiresIn = result.ExpiresIn
                         }
                     );
                 }
                 catch (InvalidOperationException ex)
                 {
-                    Console.WriteLine(
-                        "=========================================="
-                    );
-
-                    Console.WriteLine(
-                        "REGISTRATION VALIDATION ERROR"
-                    );
-
-                    Console.WriteLine(
-                        $"Message: {ex.Message}"
-                    );
-
-                    Console.WriteLine(
-                        "=========================================="
-                    );
-
                     return Results.BadRequest(new
                     {
-                        message =
-                            ex.Message
+                        message = ex.Message
                     });
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    Console.WriteLine(
-                        "=========================================="
-                    );
-
-                    Console.WriteLine(
-                        "REGISTRATION ERROR"
-                    );
-
-                    Console.WriteLine(
-                        $"Type: {ex.GetType().Name}"
-                    );
-
-                    Console.WriteLine(
-                        $"Message: {ex.Message}"
-                    );
-
-                    Console.WriteLine(
-                        ex.ToString()
-                    );
-
-                    Console.WriteLine(
-                        "=========================================="
-                    );
-
-                    return Results.Problem(
-                        detail:
-                            "Registration failed.",
-                        statusCode:
-                            StatusCodes.Status500InternalServerError
-                    );
+                   return Results.Problem(
+    detail: "Registration failed.",
+    statusCode: StatusCodes.Status500InternalServerError
+);
                 }
             }
         );
@@ -251,283 +131,66 @@ public static class AuthEndpoints
                 AuthService authService,
                 ProfileService profileService) =>
             {
-                Console.WriteLine(
-                    "=========================================="
-                );
-
-                Console.WriteLine(
-                    "LOGIN REQUEST"
-                );
-
-                Console.WriteLine(
-                    $"Email: {request.Email}"
-                );
-
-                Console.WriteLine(
-                    $"Password supplied: {!string.IsNullOrWhiteSpace(request.Password)}"
-                );
-
-                Console.WriteLine(
-                    "=========================================="
-                );
-
-                // ------------------------------------------------
-                // BASIC VALIDATION
-                // ------------------------------------------------
-
                 if (
-                    string.IsNullOrWhiteSpace(request.Email)
-                    ||
+                    string.IsNullOrWhiteSpace(request.Email) ||
                     string.IsNullOrWhiteSpace(request.Password)
                 )
                 {
-                    Console.WriteLine(
-                        "LOGIN REJECTED: EMAIL OR PASSWORD EMPTY"
-                    );
-
                     return Results.BadRequest(new
                     {
-                        message =
-                            "Email and password are required."
+                        message = "Email and password are required."
                     });
                 }
 
                 try
                 {
-                    // ------------------------------------------------
-                    // SIGN IN WITH SUPABASE
-                    // ------------------------------------------------
-
-                    Console.WriteLine(
-                        "Calling Supabase authentication..."
-                    );
-
-                    var result =
-                        await authService.SignInAsync(
-                            request
-                        );
-
-                    Console.WriteLine(
-                        "Supabase authentication request completed."
-                    );
-
-                    // ------------------------------------------------
-                    // DEBUG SUPABASE RESPONSE
-                    // ------------------------------------------------
-
-                    Console.WriteLine(
-                        "------------------------------------------"
-                    );
-
-                    Console.WriteLine(
-                        $"User returned: {result.User is not null}"
-                    );
-
-                    Console.WriteLine(
-                        $"Access token returned: {!string.IsNullOrWhiteSpace(result.AccessToken)}"
-                    );
-
-                    Console.WriteLine(
-                        $"Refresh token returned: {!string.IsNullOrWhiteSpace(result.RefreshToken)}"
-                    );
-
-                    Console.WriteLine(
-                        $"Expires in: {result.ExpiresIn}"
-                    );
-
-                    if (result.User is not null)
-                    {
-                        Console.WriteLine(
-                            $"Supabase User ID: {result.User.Id}"
-                        );
-
-                        Console.WriteLine(
-                            $"Supabase Email: {result.User.Email}"
-                        );
-                    }
-
-                    Console.WriteLine(
-                        "------------------------------------------"
-                    );
-
-                    // ------------------------------------------------
-                    // VALIDATE SUPABASE RESPONSE
-                    // ------------------------------------------------
+                    var result = await authService.SignInAsync(request);
 
                     if (
-                        string.IsNullOrWhiteSpace(
-                            result.AccessToken
-                        )
-                        ||
-                        string.IsNullOrWhiteSpace(
-                            result.RefreshToken
-                        )
-                        ||
+                        string.IsNullOrWhiteSpace(result.AccessToken) ||
+                        string.IsNullOrWhiteSpace(result.RefreshToken) ||
                         result.User is null
                     )
                     {
-                        Console.WriteLine(
-                            "LOGIN FAILED: INVALID SUPABASE RESPONSE"
-                        );
-
-                        Console.WriteLine(
-                            $"Has Access Token: {!string.IsNullOrWhiteSpace(result.AccessToken)}"
-                        );
-
-                        Console.WriteLine(
-                            $"Has Refresh Token: {!string.IsNullOrWhiteSpace(result.RefreshToken)}"
-                        );
-
-                        Console.WriteLine(
-                            $"Has User: {result.User is not null}"
-                        );
-
-                        Console.WriteLine(
-                            "=========================================="
-                        );
-
                         return Results.Json(
                             new
                             {
-                                message =
-                                    "Supabase login did not return a complete authentication response."
+                                message = "Supabase login did not return a complete authentication response."
                             },
-                            statusCode:
-                                StatusCodes.Status401Unauthorized
+                            statusCode: StatusCodes.Status401Unauthorized
                         );
                     }
 
-                    // ------------------------------------------------
-                    // STORE TOKENS IN HTTP-ONLY COOKIES
-                    // ------------------------------------------------
+                    // Set HttpOnly authentication cookies.
+                    SetAuthenticationCookies(context, result);
 
-                    Console.WriteLine(
-                        "Setting authentication cookies..."
-                    );
-
-                    SetAuthenticationCookies(
-                        context,
-                        result
-                    );
-
-                    Console.WriteLine(
-                        "Authentication cookies set."
-                    );
-
-                    // ------------------------------------------------
-                    // GET PROFILE
-                    // ------------------------------------------------
-
-                    Console.WriteLine(
-                        "Loading user profile..."
-                    );
-
-                    var profile =
-                        await profileService.GetProfileAsync(
-                            result.User.Id
-                        );
-
-                    Console.WriteLine(
-                        $"Profile found: {profile is not null}"
-                    );
-
-                    if (profile is not null)
-                    {
-                        Console.WriteLine(
-                            $"Profile role: {profile.Role}"
-                        );
-
-                        Console.WriteLine(
-                            $"Profile name: {profile.FullName}"
-                        );
-
-                        Console.WriteLine(
-                            $"Profile email: {profile.Email}"
-                        );
-                    }
-
-                    // ------------------------------------------------
-                    // RETURN API DTO
-                    // ------------------------------------------------
-
-                    Console.WriteLine(
-                        "LOGIN SUCCESS"
-                    );
-
-                    Console.WriteLine(
-                        "=========================================="
+                    // Load user profile.
+                    var profile = await profileService.GetProfileAsync(
+                        result.User.Id
                     );
 
                     return Results.Ok(
                         new AuthResponseDto
                         {
-                            User =
-                                new AuthUserDto
-                                {
-                                    Id =
-                                        result.User.Id,
-
-                                    Email =
-                                        result.User.Email,
-
-                                    FullName =
-                                        profile?.FullName,
-
-                                    Role =
-                                        profile?.Role
-                                },
-
-                            ExpiresIn =
-                                result.ExpiresIn
+                            User = new AuthUserDto
+                            {
+                                Id = result.User.Id,
+                                Email = result.User.Email,
+                                FullName = profile?.FullName,
+                                Role = profile?.Role
+                            },
+                            ExpiresIn = result.ExpiresIn
                         }
                     );
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    // ------------------------------------------------
-                    // LOGIN ERROR
-                    // ------------------------------------------------
-
-                    Console.WriteLine(
-                        "=========================================="
-                    );
-
-                    Console.WriteLine(
-                        "LOGIN ERROR"
-                    );
-
-                    Console.WriteLine(
-                        $"Exception Type: {ex.GetType().Name}"
-                    );
-
-                    Console.WriteLine(
-                        $"Message: {ex.Message}"
-                    );
-
-                    Console.WriteLine(
-                        "Full Exception:"
-                    );
-
-                    Console.WriteLine(
-                        ex.ToString()
-                    );
-
-                    Console.WriteLine(
-                        "=========================================="
-                    );
-
-                    // ------------------------------------------------
-                    // DO NOT EXPOSE RAW EXCEPTION IN PRODUCTION
-                    // ------------------------------------------------
-
                     return Results.Json(
                         new
                         {
-                            message =
-                                "Login failed. Please check your email and password."
+                            message = "Login failed. Please check your email and password."
                         },
-                        statusCode:
-                            StatusCodes.Status401Unauthorized
+                        statusCode: StatusCodes.Status401Unauthorized
                     );
                 }
             }
@@ -544,91 +207,43 @@ public static class AuthEndpoints
                 ClaimsPrincipal user,
                 ProfileService profileService) =>
             {
-                // ------------------------------------------------
-                // AUTHENTICATION CHECK
-                // ------------------------------------------------
-
-                if (
-                    user.Identity?.IsAuthenticated != true
-                )
+                if (user.Identity?.IsAuthenticated != true)
                 {
                     return Results.Unauthorized();
                 }
 
-                // ------------------------------------------------
-                // USER ID FROM JWT
-                // ------------------------------------------------
+                var userId = user.FindFirstValue("sub");
 
-                var userId =
-                    user.FindFirstValue("sub");
-
-                if (
-                    !Guid.TryParse(
-                        userId,
-                        out var parsedUserId
-                    )
-                )
+                if (!Guid.TryParse(userId, out var parsedUserId))
                 {
                     return Results.Unauthorized();
                 }
-
-                // ------------------------------------------------
-                // EMAIL FROM JWT
-                // ------------------------------------------------
 
                 var email =
-                    user.FindFirstValue(
-                        ClaimTypes.Email
-                    )
-                    ??
-                    user.FindFirstValue(
-                        "email"
-                    );
+                    user.FindFirstValue(ClaimTypes.Email) ??
+                    user.FindFirstValue("email");
 
-                // ------------------------------------------------
-                // GET PROFILE
-                // ------------------------------------------------
-
-                var profile =
-                    await profileService.GetProfileAsync(
-                        parsedUserId
-                    );
-
-                // ------------------------------------------------
-                // PROFILE NOT FOUND
-                // ------------------------------------------------
+                var profile = await profileService.GetProfileAsync(
+                    parsedUserId
+                );
 
                 if (profile is null)
                 {
                     return Results.Ok(new
                     {
                         id = parsedUserId,
-
                         email,
-
-                        fullName =
-                            (string?)null,
-
-                        role =
-                            (string?)null
+                        fullName = (string?)null,
+                        role = (string?)null
                     });
                 }
-
-                // ------------------------------------------------
-                // RETURN CURRENT USER
-                // ------------------------------------------------
 
                 return Results.Ok(new
                 {
                     id = parsedUserId,
-
                     email,
-
-                    fullName =
-                        profile.FullName,
-
-                    role =
-                        profile.Role
+                    fullName = profile.FullName,
+                    role = profile.Role
                 });
             }
         )
@@ -645,90 +260,23 @@ public static class AuthEndpoints
                 Guid userId,
                 ProfileService profileService) =>
             {
-                Console.WriteLine(
-                    "=========================================="
-                );
-
-                Console.WriteLine(
-                    "GET USER BY ID"
-                );
-
-                Console.WriteLine(
-                    $"Requested User ID: {userId}"
-                );
-
-                // ------------------------------------------------
-                // GET PROFILE
-                // ------------------------------------------------
-
-                var profile =
-                    await profileService.GetProfileAsync(
-                        userId
-                    );
-
-                // ------------------------------------------------
-                // PROFILE NOT FOUND
-                // ------------------------------------------------
+                var profile = await profileService.GetProfileAsync(userId);
 
                 if (profile is null)
                 {
-                    Console.WriteLine(
-                        "USER PROFILE NOT FOUND"
-                    );
-
-                    Console.WriteLine(
-                        "=========================================="
-                    );
-
                     return Results.NotFound(new
                     {
-                        message =
-                            "User profile was not found."
+                        message = "User profile was not found."
                     });
                 }
-
-                // ------------------------------------------------
-                // DEBUG OWNER INFORMATION
-                // ------------------------------------------------
-
-                Console.WriteLine(
-                    $"User ID: {profile.Id}"
-                );
-
-                Console.WriteLine(
-                    $"Email: {profile.Email}"
-                );
-
-                Console.WriteLine(
-                    $"Full Name: {profile.FullName}"
-                );
-
-                Console.WriteLine(
-                    $"Role: {profile.Role}"
-                );
-
-                Console.WriteLine(
-                    "=========================================="
-                );
-
-                // ------------------------------------------------
-                // RETURN USER
-                // ------------------------------------------------
 
                 return Results.Ok(
                     new AuthUserDto
                     {
-                        Id =
-                            profile.Id,
-
-                        Email =
-                            profile.Email,
-
-                        FullName =
-                            profile.FullName,
-
-                        Role =
-                            profile.Role
+                        Id = profile.Id,
+                        Email = profile.Email,
+                        FullName = profile.FullName,
+                        Role = profile.Role
                     }
                 );
             }
@@ -737,7 +285,7 @@ public static class AuthEndpoints
 
 
         // ========================================================
-        // REFRESH
+        // REFRESH TOKEN
         // ========================================================
 
         group.MapPost(
@@ -746,96 +294,45 @@ public static class AuthEndpoints
                 HttpContext context,
                 AuthService authService) =>
             {
-                // ------------------------------------------------
-                // GET REFRESH TOKEN
-                // ------------------------------------------------
-
                 if (
                     !context.Request.Cookies.TryGetValue(
                         AuthService.RefreshTokenCookieName,
                         out var refreshToken
-                    )
-                    ||
-                    string.IsNullOrWhiteSpace(
-                        refreshToken
-                    )
+                    ) ||
+                    string.IsNullOrWhiteSpace(refreshToken)
                 )
                 {
+                    ClearAuthenticationCookies(context);
+
                     return Results.Unauthorized();
                 }
 
                 try
                 {
-                    // ------------------------------------------------
-                    // ASK SUPABASE FOR NEW TOKENS
-                    // ------------------------------------------------
-
-                    var result =
-                        await authService.RefreshTokenAsync(
-                            refreshToken
-                        );
+                    var result = await authService.RefreshTokenAsync(
+                        refreshToken
+                    );
 
                     if (
-                        string.IsNullOrWhiteSpace(
-                            result.AccessToken
-                        )
-                        ||
-                        string.IsNullOrWhiteSpace(
-                            result.RefreshToken
-                        )
+                        string.IsNullOrWhiteSpace(result.AccessToken) ||
+                        string.IsNullOrWhiteSpace(result.RefreshToken)
                     )
                     {
-                        ClearAuthenticationCookies(
-                            context
-                        );
+                        ClearAuthenticationCookies(context);
 
                         return Results.Unauthorized();
                     }
 
-                    // ------------------------------------------------
-                    // REPLACE COOKIES
-                    // ------------------------------------------------
-
-                    SetAuthenticationCookies(
-                        context,
-                        result
-                    );
+                    SetAuthenticationCookies(context, result);
 
                     return Results.Ok(new
                     {
-                        expiresIn =
-                            result.ExpiresIn
+                        expiresIn = result.ExpiresIn
                     });
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    Console.WriteLine(
-                        "=========================================="
-                    );
-
-                    Console.WriteLine(
-                        "TOKEN REFRESH ERROR"
-                    );
-
-                    Console.WriteLine(
-                        $"Type: {ex.GetType().Name}"
-                    );
-
-                    Console.WriteLine(
-                        $"Message: {ex.Message}"
-                    );
-
-                    Console.WriteLine(
-                        ex.ToString()
-                    );
-
-                    Console.WriteLine(
-                        "=========================================="
-                    );
-
-                    ClearAuthenticationCookies(
-                        context
-                    );
+                    ClearAuthenticationCookies(context);
 
                     return Results.Unauthorized();
                 }
@@ -853,48 +350,25 @@ public static class AuthEndpoints
                 HttpContext context,
                 AuthService authService) =>
             {
-                // ------------------------------------------------
-                // GET ACCESS TOKEN
-                // ------------------------------------------------
-
                 if (
                     context.Request.Cookies.TryGetValue(
                         AuthService.AccessTokenCookieName,
                         out var accessToken
-                    )
-                    &&
-                    !string.IsNullOrWhiteSpace(
-                        accessToken
-                    )
+                    ) &&
+                    !string.IsNullOrWhiteSpace(accessToken)
                 )
                 {
                     try
                     {
-                        await authService.SignOutAsync(
-                            accessToken
-                        );
+                        await authService.SignOutAsync(accessToken);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        Console.WriteLine(
-                            "SUPABASE LOGOUT ERROR:"
-                        );
-
-                        Console.WriteLine(
-                            ex.ToString()
-                        );
-
-                        // Continue clearing local cookies.
+                        // Clear local cookies even if Supabase logout fails.
                     }
                 }
 
-                // ------------------------------------------------
-                // CLEAR LOCAL COOKIES
-                // ------------------------------------------------
-
-                ClearAuthenticationCookies(
-                    context
-                );
+                ClearAuthenticationCookies(context);
 
                 return Results.NoContent();
             }
@@ -913,13 +387,8 @@ public static class AuthEndpoints
         string key)
     {
         if (
-            metadata is null
-            ||
-            !metadata.TryGetValue(
-                key,
-                out var value
-            )
-            ||
+            metadata is null ||
+            !metadata.TryGetValue(key, out var value) ||
             value is null
         )
         {
@@ -938,85 +407,63 @@ public static class AuthEndpoints
         HttpContext context,
         SupabaseAuthResponseDto response)
     {
-        var environment =
-            context.RequestServices
-                .GetRequiredService<IHostEnvironment>();
+        var environment = context.RequestServices
+            .GetRequiredService<IHostEnvironment>();
 
-        var isDevelopment =
-            environment.IsDevelopment();
+        var isDevelopment = environment.IsDevelopment();
 
-        // ========================================================
-        // ACCESS TOKEN COOKIE
-        // ========================================================
+        // Localhost:
+        // SameSite=Lax, Secure=false
+        //
+        // Production:
+        // SameSite=None, Secure=true
+        var sameSite = isDevelopment
+            ? SameSiteMode.Lax
+            : SameSiteMode.None;
 
-        var accessCookie =
-            new CookieOptions
-            {
-                // Browser JavaScript cannot read the token.
-                HttpOnly = true,
+        var secure = !isDevelopment;
 
-                // Required for HTTPS production.
-                Secure = !isDevelopment,
+        var accessMaxAge = TimeSpan.FromSeconds(
+            response.ExpiresIn > 0
+                ? response.ExpiresIn
+                : 3600
+        );
 
-                // Required for cross-origin frontend/API.
-                SameSite = SameSiteMode.None,
+        var accessCookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = secure,
+            SameSite = sameSite,
+            Path = "/",
+            MaxAge = accessMaxAge,
+            IsEssential = true
+        };
 
-                Path = "/",
+        var refreshCookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = secure,
+            SameSite = sameSite,
+            Path = "/",
+            MaxAge = TimeSpan.FromDays(30),
+            IsEssential = true
+        };
 
-                MaxAge =
-                    TimeSpan.FromSeconds(
-                        response.ExpiresIn > 0
-                            ? response.ExpiresIn
-                            : 3600
-                    )
-            };
-
-        if (
-            !string.IsNullOrWhiteSpace(
-                response.AccessToken
-            )
-        )
+        if (!string.IsNullOrWhiteSpace(response.AccessToken))
         {
             context.Response.Cookies.Append(
                 AuthService.AccessTokenCookieName,
                 response.AccessToken,
-                accessCookie
+                accessCookieOptions
             );
         }
 
-
-        // ========================================================
-        // REFRESH TOKEN COOKIE
-        // ========================================================
-
-        var refreshCookie =
-            new CookieOptions
-            {
-                // Browser JavaScript cannot read the token.
-                HttpOnly = true,
-
-                // Required for HTTPS production.
-                Secure = !isDevelopment,
-
-                // Required for cross-origin frontend/API.
-                SameSite = SameSiteMode.None,
-
-                Path = "/",
-
-                MaxAge =
-                    TimeSpan.FromDays(30)
-            };
-
-        if (
-            !string.IsNullOrWhiteSpace(
-                response.RefreshToken
-            )
-        )
+        if (!string.IsNullOrWhiteSpace(response.RefreshToken))
         {
             context.Response.Cookies.Append(
                 AuthService.RefreshTokenCookieName,
                 response.RefreshToken,
-                refreshCookie
+                refreshCookieOptions
             );
         }
     }
@@ -1029,25 +476,23 @@ public static class AuthEndpoints
     private static void ClearAuthenticationCookies(
         HttpContext context)
     {
-        var environment =
-            context.RequestServices
-                .GetRequiredService<IHostEnvironment>();
+        var environment = context.RequestServices
+            .GetRequiredService<IHostEnvironment>();
 
-        var isDevelopment =
-            environment.IsDevelopment();
+        var isDevelopment = environment.IsDevelopment();
 
-        var options =
-            new CookieOptions
-            {
-                HttpOnly = true,
-
-                Secure = !isDevelopment,
-
-                // Must match the original cookie.
-                SameSite = SameSiteMode.None,
-
-                Path = "/"
-            };
+        var options = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = !isDevelopment,
+            SameSite = isDevelopment
+                ? SameSiteMode.Lax
+                : SameSiteMode.None,
+            Path = "/",
+            MaxAge = TimeSpan.Zero,
+            Expires = DateTimeOffset.UnixEpoch,
+            IsEssential = true
+        };
 
         context.Response.Cookies.Delete(
             AuthService.AccessTokenCookieName,
