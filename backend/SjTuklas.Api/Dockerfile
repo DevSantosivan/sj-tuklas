@@ -38,6 +38,12 @@ RUN dotnet publish "SjTuklas.Api.csproj" \
 # =========================================================
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 
+# Install required native runtime libraries
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libgssapi-krb5-2 \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # ASP.NET Core listens on port 8080 inside the container

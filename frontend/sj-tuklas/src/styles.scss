@@ -33,25 +33,10 @@
   box-sizing: border-box;
 }
 
-html,
-body {
-  width: 100%;
-  height: 100%;
-
-  margin: 0;
-  padding: 0;
-
-  background: #080808;
-}
-
 html {
-  overflow: hidden;
+  scroll-behavior: smooth;
 }
 
-body {
-  overflow: hidden;
-  min-width: 0;
-}
 body {
   font-family: "DM Sans", sans-serif;
   background: var(--background);
