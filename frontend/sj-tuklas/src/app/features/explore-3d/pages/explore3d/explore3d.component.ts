@@ -42,6 +42,7 @@ import {
 
 import { Explore3dCharacterService } from '../../../../core/services/explore3d-character.service';
 import { GlobalChatComponent } from '../../components/global-chat/global-chat.component';
+import { Explore3dLoadingComponent } from '../../components/explore-3d-loading/explore-3d-loading.component';
 
 /* =========================================================
    INTERFACES
@@ -65,7 +66,7 @@ interface CharacterModelResponse {
 @Component({
   selector: 'app-explore3d',
   standalone: true,
-  imports: [FormsModule, GlobalChatComponent],
+  imports: [FormsModule, GlobalChatComponent, Explore3dLoadingComponent],
   templateUrl: './explore3d.component.html',
   styleUrl: './explore3d.component.scss',
   providers: [

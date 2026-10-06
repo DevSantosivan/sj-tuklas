@@ -1,5 +1,4 @@
-import { Injectable } from '@angular/core';
-
+import { Injectable, signal } from '@angular/core';
 import {
   AbstractMesh,
   Color3,
@@ -26,6 +25,8 @@ import { Explore3dCategory } from './explore3d-category.service';
 import { CategoryWorldBuilder } from '../worlds/categories/category-world.builder';
 import { getServicesWorldConfig } from '../worlds/categories/services/services-world.config';
 import type { Explore3dBuildingSelection } from '../models/explore3d-world.types';
+import { Explore3dBusinessBillboardService } from './explore3d-business-billboard.service';
+import { BusinessService } from '../../../core/services/business.service';
 
 interface HubModelConfig {
   category: Explore3dCategory;
@@ -54,6 +55,13 @@ export class Explore3dWorldService {
   private hemiLight?: HemisphericLight;
   private directionalLight?: DirectionalLight;
 
+  // Real-time sun / moon
+  private sunMesh?: Mesh;
+  private moonMesh?: Mesh;
+  private sunMaterial?: StandardMaterial;
+  private moonMaterial?: StandardMaterial;
+  private timeOfDayTimer?: ReturnType<typeof setInterval>;
+
   private isNight = false;
   private isCreated = false;
   private isDisposed = false;
@@ -78,6 +86,10 @@ export class Explore3dWorldService {
 
   private readonly hubEnvironmentBuilder = new HubEnvironmentBuilder();
 
+  private readonly businessService = new BusinessService();
+
+  private readonly businessBillboardService =
+    new Explore3dBusinessBillboardService(this.businessService);
   private readonly hubModels: HubModelConfig[] = [
     {
       category: 'Foods & Drinks',
@@ -93,7 +105,7 @@ export class Explore3dWorldService {
       targetSize: 22,
       x: 58,
       z: -28,
-      rotationY: -Math.PI / 2,
+      rotationY: 0,
     },
     {
       category: 'Boarding House',
@@ -156,37 +168,177 @@ export class Explore3dWorldService {
   }
 
   // =========================================================
-  // CREATE
+  // CREATE WORLD
   // =========================================================
 
   async create(scene: Scene): Promise<void> {
-    if (this.isCreated || this.isCreating) return;
+    if (this.isCreated || this.isCreating) {
+      return;
+    }
 
     this.isCreating = true;
     this.isDisposed = false;
     this.scene = scene;
 
+    // =========================================================
+    // SHOW LOADING IMMEDIATELY
+    // =========================================================
+
+    this.setLoading(true, 'Loading SJ Tuklas...', 5);
+
+    // =========================================================
+    // IMPORTANT
+    // Give Angular one browser frame to render
+    // the loading screen BEFORE Babylon starts
+    // creating the heavy world.
+    // =========================================================
+
+    await this.waitForFrame();
+
     try {
+      // =======================================================
+      // SCENE
+      // =======================================================
+
+      this.setLoading(true, 'Preparing 3D environment...', 12);
+
+      await this.waitForFrame();
+
       this.scene.collisionsEnabled = true;
 
       this.configureScene();
+
+      // =======================================================
+      // MATERIALS
+      // =======================================================
+
+      this.setLoading(true, 'Preparing environment...', 20);
+
+      await this.waitForFrame();
+
       this.createMaterials();
+
+      // =======================================================
+      // LIGHTING
+      // =======================================================
+
+      this.setLoading(true, 'Setting up lighting...', 28);
+
+      await this.waitForFrame();
+
       this.createLighting();
+
+      // =======================================================
+      // CATEGORY HUB
+      // =======================================================
+
+      this.setLoading(true, 'Building SJ Tuklas plaza...', 36);
+
+      await this.waitForFrame();
+
       this.createCategoryHub();
+
+      // =======================================================
+      // ENVIRONMENT
+      // =======================================================
+
+      this.setLoading(true, 'Creating world environment...', 45);
+
+      await this.waitForFrame();
 
       this.hubEnvironmentBuilder.build(this.scene);
 
+      if (this.isDisposed) {
+        return;
+      }
+
+      // =======================================================
+      // CATEGORY BUILDING GLBs
+      // =======================================================
+
+      this.setLoading(true, 'Loading category buildings...', 55);
+
+      await this.waitForFrame();
+
       await this.createHubModelPreviews();
 
-      if (this.isDisposed) return;
+      if (this.isDisposed) {
+        return;
+      }
+
+      // =======================================================
+      // BUSINESS BILLBOARDS
+      // =======================================================
+
+      this.setLoading(true, 'Loading local businesses...', 75);
+
+      await this.waitForFrame();
+
+      await this.businessBillboardService.create(this.scene);
+
+      if (this.isDisposed) {
+        return;
+      }
+
+      // =======================================================
+      // TIME OF DAY
+      // =======================================================
+
+      this.setLoading(true, 'Finalizing world...', 90);
+
+      await this.waitForFrame();
 
       this.updateTimeOfDay();
+
+      // =======================================================
+      // WORLD CREATED
+      // =======================================================
+
       this.isCreated = true;
+
+      // =======================================================
+      // FINAL
+      // =======================================================
+
+      this.setLoading(true, 'Entering SJ Tuklas...', 97);
+
+      await this.waitForFrame();
+
+      this.setLoading(true, 'World ready', 100);
+
+      await new Promise<void>((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, 350);
+      });
+
+      // =======================================================
+      // HIDE LOADING
+      // =======================================================
+
+      this.setLoading(false, '', 100);
+    } catch (error) {
+      console.error('[Explore3dWorldService] Failed to create world:', error);
+
+      // =======================================================
+      // ERROR STATE
+      // =======================================================
+
+      this.setLoading(true, 'Unable to load 3D world', 100);
+
+      await new Promise<void>((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, 1200);
+      });
+
+      this.setLoading(false, '', 100);
+
+      throw error;
     } finally {
       this.isCreating = false;
     }
   }
-
   // =========================================================
   // PUBLIC STATE
   // =========================================================
@@ -390,6 +542,48 @@ export class Explore3dWorldService {
 
     this.directionalLight.position = new Vector3(35, 65, 30);
     this.directionalLight.intensity = 0.65;
+
+    // Visible sun
+    this.sunMaterial = new StandardMaterial('worldSunMaterial', this.scene);
+    this.sunMaterial.diffuseColor = new Color3(1, 0.78, 0.32);
+    this.sunMaterial.emissiveColor = new Color3(1, 0.55, 0.08);
+    this.sunMaterial.disableLighting = true;
+
+    this.sunMesh = MeshBuilder.CreateSphere(
+      'worldSun',
+      {
+        diameter: 5.5,
+        segments: 16,
+      },
+      this.scene,
+    );
+
+    this.sunMesh.material = this.sunMaterial;
+    this.sunMesh.isPickable = false;
+    this.sunMesh.checkCollisions = false;
+    this.sunMesh.isVisible = false;
+
+    // Visible moon
+    this.moonMaterial = new StandardMaterial('worldMoonMaterial', this.scene);
+    this.moonMaterial.diffuseColor = new Color3(0.82, 0.86, 1);
+    this.moonMaterial.emissiveColor = new Color3(0.28, 0.34, 0.52);
+    this.moonMaterial.disableLighting = true;
+
+    this.moonMesh = MeshBuilder.CreateSphere(
+      'worldMoon',
+      {
+        diameter: 4.2,
+        segments: 16,
+      },
+      this.scene,
+    );
+
+    this.moonMesh.material = this.moonMaterial;
+    this.moonMesh.isPickable = false;
+    this.moonMesh.checkCollisions = false;
+    this.moonMesh.isVisible = false;
+
+    this.startTimeOfDayClock();
   }
 
   // =========================================================
@@ -403,6 +597,16 @@ export class Explore3dWorldService {
     this.createCentralHubDecoration();
     this.createHubCorners();
     this.createHubWalkwayTiles();
+
+    // Social / hangout areas
+    // this.createHubHangoutAreas();
+
+    // Lightweight decorative street lights
+    this.createHubStreetLights();
+
+    // Solid safety perimeter so players cannot walk/fall outside the hub
+    this.createHubPerimeter();
+
     this.createHubProceduralPreviews();
   }
 
@@ -765,6 +969,399 @@ export class Explore3dWorldService {
     });
   }
 
+  // // =========================================================
+  // // HUB HANGOUT AREAS
+  // // =========================================================
+
+  // private createHubHangoutAreas(): void {
+  //   const areas: Array<[number, number, number, number]> = [
+  //     [-31, -12, 13, 9],
+  //     [31, -12, 13, 9],
+  //     [-31, 14, 13, 9],
+  //     [31, 14, 13, 9],
+  //   ];
+
+  //   areas.forEach(([x, z, width, depth], index) => {
+  //     const pad = MeshBuilder.CreateBox(
+  //       `hubHangoutPad_${index}`,
+  //       {
+  //         width,
+  //         depth,
+  //         height: 0.16,
+  //       },
+  //       this.scene,
+  //     );
+
+  //     pad.position.set(x, 0.12, z);
+  //     pad.material = this.concreteDarkMaterial!;
+  //     this.addWorldMesh(pad, false);
+
+  //     // Two benches facing each other.
+  //     this.createHubBench(
+  //       `hubHangoutBenchA_${index}`,
+  //       x,
+  //       z - depth * 0.27,
+  //       width * 0.65,
+  //       0,
+  //     );
+
+  //     this.createHubBench(
+  //       `hubHangoutBenchB_${index}`,
+  //       x,
+  //       z + depth * 0.27,
+  //       width * 0.65,
+  //       Math.PI,
+  //     );
+
+  //     // Small center table / social point.
+  //     const tableTop = MeshBuilder.CreateCylinder(
+  //       `hubHangoutTable_${index}`,
+  //       {
+  //         diameter: 1.7,
+  //         height: 0.18,
+  //         tessellation: 20,
+  //       },
+  //       this.scene,
+  //     );
+
+  //     tableTop.position.set(x, 1.05, z);
+  //     tableTop.material = this.metalMaterial!;
+  //     this.addWorldMesh(tableTop, false);
+
+  //     const tableStem = MeshBuilder.CreateCylinder(
+  //       `hubHangoutTableStem_${index}`,
+  //       {
+  //         diameter: 0.22,
+  //         height: 0.85,
+  //         tessellation: 12,
+  //       },
+  //       this.scene,
+  //     );
+
+  //     tableStem.position.set(x, 0.57, z);
+  //     tableStem.material = this.metalMaterial!;
+  //     this.addWorldMesh(tableStem, false);
+
+  //     // Small accent strip to visually separate the hangout zone.
+  //     const accent = MeshBuilder.CreateBox(
+  //       `hubHangoutAccent_${index}`,
+  //       {
+  //         width: width * 0.72,
+  //         depth: 0.12,
+  //         height: 0.04,
+  //       },
+  //       this.scene,
+  //     );
+
+  //     accent.position.set(x, 0.23, z - depth / 2 + 0.25);
+  //     accent.material = this.accentMaterial!;
+  //     this.addWorldMesh(accent, false);
+  //   });
+  // }
+
+  private createHubBench(
+    name: string,
+    x: number,
+    z: number,
+    width: number,
+    rotationY: number,
+  ): void {
+    const seat = MeshBuilder.CreateBox(
+      `${name}_seat`,
+      {
+        width,
+        depth: 0.72,
+        height: 0.28,
+      },
+      this.scene,
+    );
+
+    seat.position.set(x, 0.92, z);
+    seat.rotation.y = rotationY;
+    seat.material = this.blackMaterial!;
+    this.addWorldMesh(seat, false);
+
+    const back = MeshBuilder.CreateBox(
+      `${name}_back`,
+      {
+        width,
+        depth: 0.2,
+        height: 1.15,
+      },
+      this.scene,
+    );
+
+    // Backrest is offset along the bench's local Z axis.
+    const backOffset = 0.42;
+
+    back.position.set(
+      x + Math.sin(rotationY) * backOffset,
+      1.25,
+      z + Math.cos(rotationY) * backOffset,
+    );
+    back.rotation.y = rotationY;
+    back.material = this.blackMaterial!;
+    this.addWorldMesh(back, false);
+
+    const legHeight = 0.78;
+
+    for (const side of [-1, 1]) {
+      const leg = MeshBuilder.CreateBox(
+        `${name}_leg_${side}`,
+        {
+          width: 0.18,
+          depth: 0.48,
+          height: legHeight,
+        },
+        this.scene,
+      );
+
+      const localX = side * (width / 2 - 0.45);
+      const localZ = 0;
+      const rotatedX =
+        localX * Math.cos(rotationY) - localZ * Math.sin(rotationY);
+      const rotatedZ =
+        localX * Math.sin(rotationY) + localZ * Math.cos(rotationY);
+
+      leg.position.set(x + rotatedX, legHeight / 2, z + rotatedZ);
+
+      leg.rotation.y = rotationY;
+      leg.material = this.metalMaterial!;
+      this.addWorldMesh(leg, false);
+    }
+  }
+
+  // =========================================================
+  // HUB STREET LIGHTS
+  // =========================================================
+
+  private createHubStreetLights(): void {
+    const positions: Array<[number, number]> = [
+      [-21, -21],
+      [21, -21],
+      [-21, 21],
+      [21, 21],
+      [-39, 0],
+      [39, 0],
+      [0, -36],
+      [0, 36],
+    ];
+
+    positions.forEach(([x, z], index) => {
+      const pole = MeshBuilder.CreateCylinder(
+        `hubStreetLightPole_${index}`,
+        {
+          diameter: 0.16,
+          height: 5.5,
+          tessellation: 12,
+        },
+        this.scene,
+      );
+
+      pole.position.set(x, 2.75, z);
+      pole.material = this.metalMaterial!;
+      this.addWorldMesh(pole, false);
+
+      const arm = MeshBuilder.CreateBox(
+        `hubStreetLightArm_${index}`,
+        {
+          width: 1.15,
+          depth: 0.14,
+          height: 0.14,
+        },
+        this.scene,
+      );
+
+      arm.position.set(x, 5.35, z);
+      arm.material = this.metalMaterial!;
+      this.addWorldMesh(arm, false);
+
+      const lamp = MeshBuilder.CreateSphere(
+        `hubStreetLightLamp_${index}`,
+        {
+          diameter: 0.42,
+          segments: 12,
+        },
+        this.scene,
+      );
+
+      lamp.position.set(x, 5.05, z);
+      lamp.material = this.accentMaterial!;
+      this.addWorldMesh(lamp, false);
+    });
+  }
+
+  // =========================================================
+  // HUB SAFETY PERIMETER
+  // =========================================================
+
+  private createHubPerimeter(): void {
+    const limit = this.hubSize / 2 - 1.0;
+
+    const wallHeight = 2.8;
+    const wallThickness = 0.65;
+
+    const walls = [
+      {
+        name: 'north',
+        width: this.hubSize - 2,
+        depth: wallThickness,
+        x: 0,
+        z: -limit,
+      },
+      {
+        name: 'south',
+        width: this.hubSize - 2,
+        depth: wallThickness,
+        x: 0,
+        z: limit,
+      },
+      {
+        name: 'west',
+        width: wallThickness,
+        depth: this.hubSize - 2,
+        x: -limit,
+        z: 0,
+      },
+      {
+        name: 'east',
+        width: wallThickness,
+        depth: this.hubSize - 2,
+        x: limit,
+        z: 0,
+      },
+    ];
+
+    walls.forEach((wall) => {
+      // =====================================================
+      // MAIN WALL
+      // =====================================================
+
+      const barrier = MeshBuilder.CreateBox(
+        `hubPerimeter_${wall.name}`,
+        {
+          width: wall.width,
+          depth: wall.depth,
+          height: wallHeight,
+        },
+        this.scene,
+      );
+
+      barrier.position.set(wall.x, wallHeight / 2, wall.z);
+
+      // Dark gray wall
+      barrier.material = this.concreteDarkMaterial!;
+
+      // IMPORTANT:
+      // Player cannot pass through the perimeter.
+      this.addWorldMesh(barrier, true);
+
+      // =====================================================
+      // BLACK TOP LINING
+      // =====================================================
+
+      const topRail = MeshBuilder.CreateBox(
+        `hubPerimeterBlackTop_${wall.name}`,
+        {
+          width:
+            wall.width +
+            (wall.name === 'north' || wall.name === 'south' ? 0.18 : 0),
+
+          depth:
+            wall.depth +
+            (wall.name === 'east' || wall.name === 'west' ? 0.18 : 0),
+
+          height: 0.16,
+        },
+        this.scene,
+      );
+
+      topRail.position.set(wall.x, wallHeight + 0.08, wall.z);
+
+      // BLACK LINE
+      topRail.material = this.blackMaterial!;
+
+      // Visual only
+      this.addWorldMesh(topRail, false);
+
+      // =====================================================
+      // BLACK BASE LINE
+      // =====================================================
+
+      const baseLine = MeshBuilder.CreateBox(
+        `hubPerimeterBlackBase_${wall.name}`,
+        {
+          width:
+            wall.width +
+            (wall.name === 'north' || wall.name === 'south' ? 0.08 : 0),
+
+          depth:
+            wall.depth +
+            (wall.name === 'east' || wall.name === 'west' ? 0.08 : 0),
+
+          height: 0.12,
+        },
+        this.scene,
+      );
+
+      baseLine.position.set(wall.x, 0.06, wall.z);
+
+      baseLine.material = this.blackMaterial!;
+
+      this.addWorldMesh(baseLine, false);
+    });
+
+    // =========================================================
+    // BLACK CORNER POSTS
+    // =========================================================
+
+    const corners: Array<[number, number]> = [
+      [-limit, -limit],
+      [limit, -limit],
+      [-limit, limit],
+      [limit, limit],
+    ];
+
+    corners.forEach(([x, z], index) => {
+      const post = MeshBuilder.CreateBox(
+        `hubPerimeterCorner_${index}`,
+        {
+          width: 1.1,
+          depth: 1.1,
+          height: 3.5,
+        },
+        this.scene,
+      );
+
+      post.position.set(x, 1.75, z);
+
+      // Solid black corner
+      post.material = this.blackMaterial!;
+
+      // Corner posts also block the player.
+      this.addWorldMesh(post, true);
+
+      // =====================================================
+      // SMALL BLACK CAP
+      // =====================================================
+
+      const cap = MeshBuilder.CreateBox(
+        `hubPerimeterCornerCap_${index}`,
+        {
+          width: 1.28,
+          depth: 1.28,
+          height: 0.16,
+        },
+        this.scene,
+      );
+
+      cap.position.set(x, 3.58, z);
+
+      cap.material = this.blackMaterial!;
+
+      this.addWorldMesh(cap, false);
+    });
+  }
   // =========================================================
   // HUB PROCEDURAL PREVIEW BUILDINGS
   // =========================================================
@@ -2023,38 +2620,313 @@ export class Explore3dWorldService {
   }
 
   // =========================================================
-  // NIGHT MODE
+  // REAL-TIME DAY / NIGHT
   // =========================================================
 
-  setNightMode(isNight: boolean): void {
-    this.isNight = isNight;
+  /**
+   * Kept for compatibility with existing callers.
+   *
+   * Day/night is NOT manually controlled anymore.
+   * The real Philippine time is always the source of truth.
+   */
+  setNightMode(_isNight: boolean): void {
     this.updateTimeOfDay();
   }
 
+  /**
+   * Kept for compatibility with existing callers.
+   *
+   * The real Philippine time remains the source of truth.
+   */
   toggleNightMode(): void {
-    this.isNight = !this.isNight;
     this.updateTimeOfDay();
+  }
+
+  private getPhilippineTimeDecimal(): number {
+    const parts = new Intl.DateTimeFormat('en-PH', {
+      timeZone: 'Asia/Manila',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).formatToParts(new Date());
+
+    const hour = Number(parts.find((part) => part.type === 'hour')?.value ?? 0);
+
+    const minute = Number(
+      parts.find((part) => part.type === 'minute')?.value ?? 0,
+    );
+
+    const second = Number(
+      parts.find((part) => part.type === 'second')?.value ?? 0,
+    );
+
+    return hour + minute / 60 + second / 3600;
   }
 
   private updateTimeOfDay(): void {
-    if (!this.hemiLight || !this.scene) return;
+    if (!this.scene || this.isDisposed) {
+      return;
+    }
 
-    if (this.isNight) {
-      this.scene.clearColor = new Color4(0.018, 0.022, 0.028, 1);
-      this.scene.fogColor = new Color3(0.018, 0.022, 0.028);
-      this.hemiLight.intensity = 0.38;
+    const time = this.getPhilippineTimeDecimal();
 
-      if (this.directionalLight) {
-        this.directionalLight.intensity = 0.25;
-      }
+    // Philippine local schedule.
+    const sunrise = 6;
+    const sunset = 18;
+
+    const automaticNight = time < sunrise || time >= sunset;
+
+    this.isNight = automaticNight;
+
+    if (automaticNight) {
+      this.applyNightLighting(time, sunrise, sunset);
     } else {
-      this.scene.clearColor = new Color4(0.035, 0.04, 0.05, 1);
-      this.scene.fogColor = new Color3(0.035, 0.04, 0.05);
-      this.hemiLight.intensity = 0.72;
+      this.applyDayLighting(time, sunrise, sunset);
+    }
+  }
+  private applyDayLighting(
+    time: number,
+    sunrise: number,
+    sunset: number,
+  ): void {
+    const dayProgress = Math.max(
+      0,
+      Math.min(1, (time - sunrise) / (sunset - sunrise)),
+    );
 
-      if (this.directionalLight) {
-        this.directionalLight.intensity = 0.65;
+    /*
+     * 06:00 = sunrise
+     * 12:00 = strongest daylight
+     * 18:00 = sunset
+     */
+
+    const sunHeight = Math.sin(Math.PI * dayProgress);
+
+    /*
+     * Make daytime clearly visible.
+     *
+     * 06:00 -> ~0.45
+     * 09:00 -> ~0.85
+     * 12:00 -> 1.00
+     * 15:00 -> ~0.85
+     * 18:00 -> ~0.45
+     */
+    const sunStrength = 0.45 + sunHeight * 0.55;
+
+    // =========================================================
+    // SKY / BACKGROUND
+    // =========================================================
+
+    /*
+     * Much brighter than the previous values.
+     *
+     * Previous:
+     * ~0.05 RGB -> visually almost night.
+     *
+     * Daytime:
+     * blue/gray sky with enough brightness to read as daytime.
+     */
+
+    const skyR = 0.2 + sunStrength * 0.22;
+    const skyG = 0.32 + sunStrength * 0.28;
+    const skyB = 0.48 + sunStrength * 0.3;
+
+    this.scene.clearColor = new Color4(skyR, skyG, skyB, 1);
+
+    this.scene.fogColor = new Color3(skyR, skyG, skyB);
+
+    // Keep fog lighter during daytime.
+    this.scene.fogDensity = 0.0014;
+
+    // =========================================================
+    // HEMISPHERIC LIGHT
+    // =========================================================
+
+    if (this.hemiLight) {
+      /*
+       * Strong global daylight.
+       *
+       * 06:00 -> around 0.95
+       * noon -> around 1.35
+       */
+      this.hemiLight.intensity = 0.92 + sunStrength * 0.43;
+
+      this.hemiLight.diffuse = new Color3(
+        0.92 + sunStrength * 0.08,
+        0.94 + sunStrength * 0.06,
+        1.0,
+      );
+
+      /*
+       * Ground receives neutral daylight instead
+       * of almost-black night lighting.
+       */
+      this.hemiLight.groundColor = new Color3(
+        0.18 + sunStrength * 0.1,
+        0.2 + sunStrength * 0.1,
+        0.18 + sunStrength * 0.09,
+      );
+    }
+
+    // =========================================================
+    // SUN POSITION
+    // =========================================================
+
+    const angle = dayProgress * Math.PI;
+
+    const sunPosition = new Vector3(
+      Math.cos(angle) * 90,
+      12 + Math.sin(angle) * 92,
+      25,
+    );
+
+    // =========================================================
+    // DIRECTIONAL SUN LIGHT
+    // =========================================================
+
+    if (this.directionalLight) {
+      /*
+       * Strong actual sunlight.
+       *
+       * Previous:
+       * 0.42 -> 0.74
+       *
+       * New:
+       * ~0.70 -> ~1.15
+       */
+      this.directionalLight.intensity = 0.7 + sunStrength * 0.45;
+
+      this.directionalLight.position.copyFrom(sunPosition);
+
+      this.directionalLight.direction = sunPosition.scale(-1).normalize();
+    }
+
+    // =========================================================
+    // VISIBLE SUN
+    // =========================================================
+
+    if (this.sunMesh) {
+      this.sunMesh.position.copyFrom(sunPosition);
+
+      this.sunMesh.isVisible = true;
+    }
+
+    // =========================================================
+    // HIDE MOON
+    // =========================================================
+
+    if (this.moonMesh) {
+      this.moonMesh.isVisible = false;
+    }
+  }
+
+  private applyNightLighting(
+    time: number,
+    sunrise: number,
+    sunset: number,
+  ): void {
+    // =========================================================
+    // NIGHT SKY
+    // =========================================================
+
+    this.scene.clearColor = new Color4(0.012, 0.016, 0.028, 1);
+
+    this.scene.fogColor = new Color3(0.012, 0.016, 0.028);
+
+    this.scene.fogDensity = 0.0032;
+
+    // =========================================================
+    // NIGHT HEMISPHERIC LIGHT
+    // =========================================================
+
+    if (this.hemiLight) {
+      this.hemiLight.intensity = 0.24;
+
+      this.hemiLight.diffuse = new Color3(0.32, 0.38, 0.52);
+
+      this.hemiLight.groundColor = new Color3(0.018, 0.022, 0.035);
+    }
+
+    const nightDuration = 24 - sunset + sunrise;
+
+    let nightElapsed: number;
+
+    if (time >= sunset) {
+      nightElapsed = time - sunset;
+    } else {
+      nightElapsed = time + (24 - sunset);
+    }
+
+    const nightProgress = Math.max(
+      0,
+      Math.min(1, nightElapsed / nightDuration),
+    );
+
+    const moonAngle = nightProgress * Math.PI;
+
+    const moonPosition = new Vector3(
+      Math.cos(moonAngle) * 80,
+      16 + Math.sin(moonAngle) * 82,
+      -25,
+    );
+
+    // =========================================================
+    // MOON LIGHT
+    // =========================================================
+
+    if (this.directionalLight) {
+      this.directionalLight.intensity = 0.16;
+
+      this.directionalLight.position.copyFrom(moonPosition);
+
+      this.directionalLight.direction = moonPosition.scale(-1).normalize();
+    }
+
+    // =========================================================
+    // SUN
+    // =========================================================
+
+    if (this.sunMesh) {
+      this.sunMesh.isVisible = false;
+    }
+
+    // =========================================================
+    // MOON
+    // =========================================================
+
+    if (this.moonMesh) {
+      this.moonMesh.position.copyFrom(moonPosition);
+
+      this.moonMesh.isVisible = true;
+    }
+  }
+  private startTimeOfDayClock(): void {
+    this.stopTimeOfDayClock();
+
+    // Apply immediately.
+    this.updateTimeOfDay();
+
+    /*
+     * Refresh every minute.
+     *
+     * Since the actual clock is queried every time,
+     * the server/browser timezone does not control
+     * the world. Asia/Manila does.
+     */
+    this.timeOfDayTimer = setInterval(() => {
+      if (this.isDisposed || !this.scene) {
+        return;
       }
+
+      this.updateTimeOfDay();
+    }, 60_000);
+  }
+
+  private stopTimeOfDayClock(): void {
+    if (this.timeOfDayTimer) {
+      clearInterval(this.timeOfDayTimer);
+
+      this.timeOfDayTimer = undefined;
     }
   }
 
@@ -2124,11 +2996,23 @@ export class Explore3dWorldService {
       }
     }
 
+    this.stopTimeOfDayClock();
+
     this.hemiLight?.dispose();
     this.directionalLight?.dispose();
 
+    this.sunMesh?.dispose(false, true);
+    this.moonMesh?.dispose(false, true);
+
+    this.sunMaterial?.dispose();
+    this.moonMaterial?.dispose();
+
     this.hemiLight = undefined;
     this.directionalLight = undefined;
+    this.sunMesh = undefined;
+    this.moonMesh = undefined;
+    this.sunMaterial = undefined;
+    this.moonMaterial = undefined;
 
     this.floorMaterial?.dispose();
     this.floorDarkMaterial?.dispose();
@@ -2141,6 +3025,7 @@ export class Explore3dWorldService {
     this.metalMaterial?.dispose();
     this.accentMaterial?.dispose();
     this.accentSoftMaterial?.dispose();
+    this.businessBillboardService.dispose();
 
     this.floorMaterial = undefined;
     this.floorDarkMaterial = undefined;
@@ -2171,5 +3056,33 @@ export class Explore3dWorldService {
     const portalPosition = portal.getAbsolutePosition();
 
     return Vector3.Distance(playerPosition, portalPosition) <= maxDistance;
+  }
+
+  // =========================================================
+  // LOADING STATE
+  // =========================================================
+
+  private readonly loadingState = signal({
+    active: true,
+    text: 'Loading SJ Tuklas...',
+    progress: 0,
+  });
+
+  readonly worldLoading = this.loadingState.asReadonly();
+
+  private setLoading(active: boolean, text = '', progress = 0): void {
+    this.loadingState.set({
+      active,
+      text,
+      progress: Math.max(0, Math.min(100, Math.round(progress))),
+    });
+  }
+
+  private waitForFrame(): Promise<void> {
+    return new Promise<void>((resolve) => {
+      requestAnimationFrame(() => {
+        resolve();
+      });
+    });
   }
 }

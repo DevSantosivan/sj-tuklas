@@ -1,0 +1,84 @@
+<div
+  class="explore-loading"
+  [class.explore-loading--hidden]="!worldService.worldLoading().active"
+>
+  <div class="explore-loading__background"></div>
+
+  <div class="explore-loading__overlay"></div>
+
+  <div class="explore-loading__brand">
+    <div class="explore-loading__brand-icon">SJ</div>
+
+    <div class="explore-loading__brand-text">
+      <strong>SJ TUKLAS</strong>
+      <span>Explore · Discover · Grow</span>
+    </div>
+  </div>
+
+  <div class="explore-loading__center">
+    <div class="explore-loading__loader">
+      <div class="explore-loading__loader-ring"></div>
+
+      <div class="explore-loading__loader-core">
+        <span>SJ</span>
+      </div>
+    </div>
+
+    <div class="explore-loading__title">
+      {{ worldService.worldLoading().text }}
+    </div>
+
+    <div class="explore-loading__subtitle">Preparing your SJ Tuklas world</div>
+
+    <div class="explore-loading__progress-wrapper">
+      <div class="explore-loading__progress-header">
+        <span>LOADING WORLD</span>
+
+        <strong> {{ worldService.worldLoading().progress }}% </strong>
+      </div>
+
+      <div class="explore-loading__progress">
+        <div
+          class="explore-loading__progress-fill"
+          [style.width.%]="worldService.worldLoading().progress"
+        ></div>
+      </div>
+    </div>
+
+    <div class="explore-loading__categories">
+      <div class="explore-loading__category">
+        <span>🍴</span>
+        <span>Foods & Drinks</span>
+      </div>
+
+      <div class="explore-loading__category">
+        <span>⌂</span>
+        <span>Hotels</span>
+      </div>
+
+      <div class="explore-loading__category">
+        <span>□</span>
+        <span>Shops</span>
+      </div>
+
+      <div class="explore-loading__category">
+        <span>⚙</span>
+        <span>Services</span>
+      </div>
+
+      <div class="explore-loading__category">
+        <span>⌂</span>
+        <span>Boarding House</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="explore-loading__bottom">
+    <div class="explore-loading__tip">
+      <span class="tip-dot"></span>
+      <span>Discover local businesses in San Jose</span>
+    </div>
+
+    <div class="explore-loading__version">SJ TUKLAS · 3D EXPLORE</div>
+  </div>
+</div>

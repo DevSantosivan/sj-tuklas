@@ -54,19 +54,37 @@ export class BusinessService {
       features: input.features,
     };
 
-    console.log('================================================');
-
-    console.log('CREATE BUSINESS PAYLOAD:', payload);
-
-    console.log('CREATE BUSINESS URL:', this.apiUrl);
-
-    console.log('================================================');
-
     return await firstValueFrom(
       this.http.post<Business>(this.apiUrl, payload, {
         withCredentials: true,
       }),
     );
+  }
+
+  // =========================================================
+  // GET POPULAR BUSINESSES
+  // PUBLIC
+  // =========================================================
+
+  async getPopularBusinesses(limit = 5): Promise<Business[]> {
+    const businesses = await this.getApprovedBusinesses();
+
+    return businesses
+      .filter((business) => business.status === 'approved')
+      .sort((a, b) => {
+        const ratingA = Number(a.rating ?? 0);
+        const ratingB = Number(b.rating ?? 0);
+
+        if (ratingB !== ratingA) {
+          return ratingB - ratingA;
+        }
+
+        const reviewsA = Number(a.reviews ?? 0);
+        const reviewsB = Number(b.reviews ?? 0);
+
+        return reviewsB - reviewsA;
+      })
+      .slice(0, limit);
   }
 
   // =========================================================
