@@ -1,3 +1,4 @@
+
 using SjTuklas.Api.DTOs.Explore3d;
 using SjTuklas.Api.Models.Explore3d;
 
@@ -27,4 +28,19 @@ public interface IExplore3dCharacterService
         UpdateCharacterDto request,
         CancellationToken cancellationToken = default
     );
+
+    // =========================================================
+    // GLOBAL CHAT MODERATION
+    // Backend-only update.
+    // These fields are NOT client editable.
+    // =========================================================
+    Task<Explore3dCharacter?> UpdateModerationAsync(
+        Guid userId,
+        int warningCount,
+        int restrictionCount,
+        DateTime? restrictedUntil,
+        bool isChatBlocked,
+        CancellationToken cancellationToken = default
+    );
 }
+

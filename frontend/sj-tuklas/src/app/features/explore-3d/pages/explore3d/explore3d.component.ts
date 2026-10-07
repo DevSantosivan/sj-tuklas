@@ -19,28 +19,26 @@ import {
 import { firstValueFrom } from 'rxjs';
 
 import { Business } from '../../../../core/models/business';
+import { GlobalChatMessage } from '../../../../core/models/global-chat-message.model';
+import { GlobalChatModeration } from '../../../../core/models/global-chat-moderation.model';
+
 import { BusinessService } from '../../../../core/services/business.service';
+import { Explore3dCharacterService } from '../../../../core/services/explore3d-character.service';
+import { Explore3dMultiplayerService } from '../../../../core/services/explore3d-multiplayer.service';
+import { GlobalChatService } from '../../../../core/services/global-chat.service';
 
 import { Explore3dEngineService } from '../../services/explore3d-engine.service';
 import { Explore3dPlayerService } from '../../services/explore3d-player.service';
 import { Explore3dWorldService } from '../../services/explore3d-world.service';
 import { Explore3dBusiness3dService } from '../../services/explore3d-business-3d.service';
 import { Explore3dInputService } from '../../services/explore3d-input.service';
-
-import {
-  Explore3dChatService,
-  GlobalChatMessage,
-} from '../../services/explore3d-chat.service';
-
 import { Explore3dCategory } from '../../services/explore3d-category.service';
 
 import {
-  Explore3dMultiplayerService,
   Explore3dPlayerPosition,
   Explore3dRemotePlayer,
 } from '../../../../core/services/explore3d-multiplayer.service';
 
-import { Explore3dCharacterService } from '../../../../core/services/explore3d-character.service';
 import { GlobalChatComponent } from '../../components/global-chat/global-chat.component';
 import { Explore3dLoadingComponent } from '../../components/explore-3d-loading/explore-3d-loading.component';
 
@@ -55,6 +53,7 @@ interface ExploreCategoryOption {
 }
 
 interface CharacterModelResponse {
+  username?: string;
   characterModel?: string;
   model?: string;
 }
@@ -75,7 +74,6 @@ interface CharacterModelResponse {
     Explore3dWorldService,
     Explore3dBusiness3dService,
     Explore3dInputService,
-    Explore3dChatService,
   ],
 })
 export class Explore3dComponent implements AfterViewInit, OnDestroy {
@@ -119,7 +117,9 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
   ========================================================= */
 
   businesses: Business[] = [];
+
   visibleBusinesses: Business[] = [];
+
   selectedBusiness: Business | null = null;
 
   private readonly businessesByCategory = new Map<string, Business[]>();
@@ -131,7 +131,9 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
   ========================================================= */
 
   isInCategoryWorld = false;
+
   isLoadingCategory = false;
+
   categoryError = '';
 
   /* =========================================================
@@ -139,6 +141,7 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
   ========================================================= */
 
   selectedCategory: Explore3dCategory | null = null;
+
   showCategoryModal = false;
 
   /* =========================================================
@@ -149,8 +152,12 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
 
   private characterModel = 'aj';
 
+  private characterUsername = 'Explorer';
+
   private multiplayerJoining = false;
+
   private multiplayerJoined = false;
+
   private multiplayerDestroyed = false;
 
   private multiplayerSyncTimer: ReturnType<typeof setInterval> | null = null;
@@ -158,9 +165,35 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
   private readonly remoteSyncInterval = 150;
 
   private readonly remotePlayerIds = new Set<string>();
+
   private readonly pendingRemotePlayerIds = new Set<string>();
 
   remotePlayerList: Explore3dRemotePlayer[] = [];
+
+  constructor(
+    private readonly businessService: BusinessService,
+
+    private readonly engine3d: Explore3dEngineService,
+
+    private readonly player: Explore3dPlayerService,
+
+    @Inject(Explore3dWorldService)
+    private readonly world: Explore3dWorldService,
+
+    private readonly business3d: Explore3dBusiness3dService,
+
+    private readonly input: Explore3dInputService,
+
+    private readonly globalChat: GlobalChatService,
+
+    readonly multiplayer: Explore3dMultiplayerService,
+
+    private readonly characterService: Explore3dCharacterService,
+  ) {}
+
+  /* =========================================================
+     MULTIPLAYER GETTERS
+  ========================================================= */
 
   get remotePlayers(): Explore3dRemotePlayer[] {
     return this.multiplayer.players();
@@ -179,7 +212,9 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
   ========================================================= */
 
   private destroyed = false;
+
   private initialized = false;
+
   private initializing = false;
 
   private pointerObserver: Observer<PointerInfo> | null = null;
@@ -187,23 +222,40 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
   private transitionVersion = 0;
 
   /* =========================================================
-     CONSTRUCTOR
+     GLOBAL CHAT STATE
   ========================================================= */
 
-  constructor(
-    private readonly businessService: BusinessService,
-    private readonly engine3d: Explore3dEngineService,
-    private readonly player: Explore3dPlayerService,
+  globalChatMessages: GlobalChatMessage[] = [];
 
-    @Inject(Explore3dWorldService)
-    private readonly world: Explore3dWorldService,
+  globalChatModeration: GlobalChatModeration | null = null;
 
-    private readonly business3d: Explore3dBusiness3dService,
-    private readonly input: Explore3dInputService,
-    private readonly chat: Explore3dChatService,
-    readonly multiplayer: Explore3dMultiplayerService,
-    private readonly characterService: Explore3dCharacterService,
-  ) {}
+  globalChatOnline = false;
+
+  globalChatUnreadCount = 0;
+
+  globalChatOpen = false;
+
+  private removeGlobalChatMessageListener: (() => void) | null = null;
+
+  private removeGlobalChatModerationListener: (() => void) | null = null;
+
+  private removeGlobalChatConnectionListener: (() => void) | null = null;
+
+  /* =========================================================
+     GLOBAL CHAT GETTERS
+  ========================================================= */
+
+  get globalChatConnected(): boolean {
+    return this.globalChatOnline;
+  }
+
+  get globalChatUnread(): number {
+    return this.globalChatUnreadCount;
+  }
+
+  get globalChatCurrentUsername(): string {
+    return this.characterUsername;
+  }
 
   /* =========================================================
      TEMPLATE GETTERS
@@ -218,62 +270,8 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
   }
 
   /* =========================================================
-     GLOBAL CHAT STATE
+     WORLD GETTERS
   ========================================================= */
-
-  get chatOpen(): boolean {
-    return this.chat.chatOpen;
-  }
-
-  get chatConnected(): boolean {
-    return this.chat.chatConnected;
-  }
-
-  get chatConnecting(): boolean {
-    return this.chat.chatConnecting;
-  }
-
-  get chatMessage(): string {
-    return this.chat.chatMessage;
-  }
-
-  set chatMessage(value: string) {
-    this.chat.chatMessage = value;
-  }
-
-  get chatName(): string {
-    return this.chat.chatName;
-  }
-
-  set chatName(value: string) {
-    this.chat.chatName = value;
-  }
-
-  get chatMessages(): GlobalChatMessage[] {
-    return this.chat.chatMessages;
-  }
-
-  /**
-   * Latest messages shown in the always-visible mini chat.
-   */
-  get recentChatMessages(): GlobalChatMessage[] {
-    return this.chatMessages.slice(-3);
-  }
-
-  /**
-   * Small status used by the mini chat.
-   */
-  get chatOnlineLabel(): string {
-    if (this.chatConnected) {
-      return 'Online';
-    }
-
-    if (this.chatConnecting) {
-      return 'Connecting';
-    }
-
-    return 'Offline';
-  }
 
   get isInMainHub(): boolean {
     return !this.isInCategoryWorld;
@@ -321,8 +319,27 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
         return;
       }
 
-      this.chat.initialize();
+      /*
+       * Load authenticated character information.
+       *
+       * This gives us:
+       * - username
+       * - character model
+       */
+      await this.loadCharacterModel();
 
+      if (this.destroyed) {
+        return;
+      }
+
+      /*
+       * NEW GLOBAL CHAT
+       */
+      this.initializeGlobalChat();
+
+      /*
+       * MULTIPLAYER
+       */
       void this.initializeMultiplayer();
     } catch (error) {
       console.error('Unable to initialize 3D Explore:', error);
@@ -333,6 +350,139 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
     } finally {
       this.initializing = false;
     }
+  }
+
+  /* =========================================================
+     GLOBAL CHAT INITIALIZATION
+  ========================================================= */
+
+  private initializeGlobalChat(): void {
+    if (this.destroyed) {
+      return;
+    }
+
+    /*
+     * NORMAL GLOBAL CHAT MESSAGES
+     */
+    this.removeGlobalChatMessageListener = this.globalChat.onMessage(
+      (message: GlobalChatMessage) => {
+        if (this.destroyed) {
+          return;
+        }
+
+        this.globalChatMessages = [...this.globalChatMessages, message];
+
+        /*
+         * Keep browser-side history limited.
+         *
+         * Backend chat remains intentionally
+         * in-memory and has no database table.
+         */
+        if (this.globalChatMessages.length > 100) {
+          this.globalChatMessages = this.globalChatMessages.slice(-100);
+        }
+
+        /*
+         * Count messages received while
+         * the panel is closed.
+         */
+        if (!this.globalChatOpen) {
+          this.globalChatUnreadCount++;
+        }
+      },
+    );
+
+    /*
+     * MODERATION EVENTS
+     */
+    this.removeGlobalChatModerationListener = this.globalChat.onModeration(
+      (moderation: GlobalChatModeration) => {
+        if (this.destroyed) {
+          return;
+        }
+
+        this.globalChatModeration = moderation;
+
+        /*
+         * Automatically open the chat so
+         * the user immediately sees the warning.
+         */
+        this.globalChatOpen = true;
+
+        this.globalChatUnreadCount = 0;
+      },
+    );
+
+    /*
+     * CONNECTION STATE
+     */
+    this.removeGlobalChatConnectionListener =
+      this.globalChat.onConnectionChange((connected: boolean) => {
+        if (this.destroyed) {
+          return;
+        }
+
+        this.globalChatOnline = connected;
+      });
+
+    /*
+     * START SIGNALR
+     */
+    void this.globalChat.connect().catch((error) => {
+      if (this.destroyed) {
+        return;
+      }
+
+      console.error('[Explore3D] Global Chat connection failed:', error);
+
+      this.globalChatOnline = false;
+    });
+  }
+
+  /* =========================================================
+     GLOBAL CHAT ACTIONS
+  ========================================================= */
+
+  toggleGlobalChat(): void {
+    if (this.destroyed) {
+      return;
+    }
+
+    this.globalChatOpen = !this.globalChatOpen;
+
+    if (this.globalChatOpen) {
+      this.globalChatUnreadCount = 0;
+    }
+  }
+
+  closeGlobalChat(): void {
+    if (this.destroyed) {
+      return;
+    }
+
+    this.globalChatOpen = false;
+  }
+
+  async sendGlobalMessage(message: string): Promise<void> {
+    if (this.destroyed || !message.trim()) {
+      return;
+    }
+
+    try {
+      await this.globalChat.sendMessage(message);
+    } catch (error) {
+      console.error('[Explore3D] Failed to send Global Chat message:', error);
+    }
+  }
+
+  onGlobalChatOpened(): void {
+    if (this.destroyed) {
+      return;
+    }
+
+    this.globalChatOpen = true;
+
+    this.globalChatUnreadCount = 0;
   }
 
   /* =========================================================
@@ -417,6 +567,11 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
     this.multiplayerJoining = true;
 
     try {
+      /*
+       * Character model and username should already
+       * be loaded, but loading again here is harmless
+       * and keeps multiplayer initialization safe.
+       */
       await this.loadCharacterModel();
 
       if (this.destroyed || this.multiplayerDestroyed) {
@@ -440,12 +595,14 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
 
       if (this.destroyed || this.multiplayerDestroyed) {
         await this.multiplayer.leaveWorld();
+
         return;
       }
 
       this.multiplayerJoined = true;
 
       this.startMultiplayerSync();
+
       this.syncRemotePlayers();
     } catch (error) {
       console.error('[Explore3D] Multiplayer initialization failed:', error);
@@ -468,6 +625,16 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
 
       const data = character as CharacterModelResponse;
 
+      /*
+       * Character username
+       */
+      if (typeof data.username === 'string' && data.username.trim()) {
+        this.characterUsername = data.username.trim();
+      }
+
+      /*
+       * Character model
+       */
       const model = data.characterModel ?? data.model;
 
       if (typeof model === 'string' && model.trim()) {
@@ -475,16 +642,18 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
       }
     } catch (error) {
       console.warn(
-        '[Explore3D] Character profile unavailable; using default model.',
+        '[Explore3D] Character profile unavailable; using defaults.',
         error,
       );
+
+      this.characterUsername = 'Explorer';
 
       this.characterModel = 'aj';
     }
   }
 
   private getPlayerDisplayName(): string {
-    return this.chatName?.trim() || 'Explorer';
+    return this.characterUsername.trim() || 'Explorer';
   }
 
   /* =========================================================
@@ -649,7 +818,9 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
     }
 
     this.selectedBusiness = null;
+
     this.selectedCategory = category;
+
     this.showCategoryModal = true;
 
     this.player.cancelNavigation();
@@ -661,6 +832,7 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
     }
 
     this.showCategoryModal = false;
+
     this.selectedCategory = null;
   }
 
@@ -672,6 +844,7 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
     const category = this.selectedCategory;
 
     this.showCategoryModal = false;
+
     this.selectedCategory = null;
 
     await this.enterCategory(category);
@@ -710,8 +883,11 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
 
       if (!this.destroyed) {
         this.businesses = [];
+
         this.visibleBusinesses = [];
+
         this.businessesByCategory.clear();
+
         this.categoryError = 'Unable to load businesses.';
       }
     }
@@ -760,7 +936,9 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
     }
 
     this.isLoadingCategory = true;
+
     this.categoryError = '';
+
     this.selectedBusiness = null;
 
     const version = ++this.transitionVersion;
@@ -812,7 +990,9 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
       this.categoryError = 'Unable to load this category. Please try again.';
 
       this.currentCategory = null;
+
       this.visibleBusinesses = [];
+
       this.isInCategoryWorld = false;
 
       this.business3d.clearBusinesses();
@@ -835,9 +1015,11 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
     }
 
     this.showCategoryModal = false;
+
     this.selectedCategory = null;
 
     this.isLoadingCategory = true;
+
     this.selectedBusiness = null;
 
     const version = ++this.transitionVersion;
@@ -860,8 +1042,11 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
       this.engine3d.camera.target = this.player.getCameraTarget();
 
       this.currentCategory = null;
+
       this.visibleBusinesses = [];
+
       this.isInCategoryWorld = false;
+
       this.categoryError = '';
     } catch (error) {
       console.error('Unable to return to Hub:', error);
@@ -999,20 +1184,6 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
   }
 
   /* =========================================================
-     BUSINESS CHAT
-  ========================================================= */
-
-  chatWithBusiness(business: Business): void {
-    if (this.destroyed) {
-      return;
-    }
-
-    this.selectedBusiness = business;
-
-    this.chat.chatOpen = true;
-  }
-
-  /* =========================================================
      CALL BUSINESS
   ========================================================= */
 
@@ -1047,26 +1218,6 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
     this.player.goToBusiness(business, position);
 
     this.closeBusiness();
-  }
-
-  /* =========================================================
-     GLOBAL CHAT
-  ========================================================= */
-
-  toggleGlobalChat(): void {
-    if (this.destroyed) {
-      return;
-    }
-
-    this.chat.toggle();
-  }
-
-  async sendGlobalMessage(): Promise<void> {
-    if (this.destroyed) {
-      return;
-    }
-
-    await this.chat.send();
   }
 
   /* =========================================================
@@ -1127,12 +1278,15 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
     }
 
     this.multiplayerDestroyed = true;
+
     this.multiplayerJoined = false;
 
     this.stopMultiplayerSync();
 
     this.remotePlayerIds.clear();
+
     this.pendingRemotePlayerIds.clear();
+
     this.remotePlayerList = [];
 
     try {
@@ -1140,6 +1294,44 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
     } catch (error) {
       console.warn('[Explore3D] Error leaving multiplayer world:', error);
     }
+  }
+
+  /* =========================================================
+     GLOBAL CHAT CLEANUP
+  ========================================================= */
+
+  private disposeGlobalChatListeners(): void {
+    this.removeGlobalChatMessageListener?.();
+
+    this.removeGlobalChatModerationListener?.();
+
+    this.removeGlobalChatConnectionListener?.();
+
+    this.removeGlobalChatMessageListener = null;
+
+    this.removeGlobalChatModerationListener = null;
+
+    this.removeGlobalChatConnectionListener = null;
+  }
+
+  private async disposeGlobalChat(): Promise<void> {
+    this.disposeGlobalChatListeners();
+
+    try {
+      await this.globalChat.disconnect();
+    } catch (error) {
+      console.warn('[Explore3D] Error disconnecting Global Chat:', error);
+    }
+
+    this.globalChatMessages = [];
+
+    this.globalChatModeration = null;
+
+    this.globalChatOnline = false;
+
+    this.globalChatUnreadCount = 0;
+
+    this.globalChatOpen = false;
   }
 
   /* =========================================================
@@ -1157,14 +1349,17 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
     }
 
     this.destroyed = true;
+
     this.initialized = false;
 
     this.transitionVersion++;
 
     this.showCategoryModal = false;
+
     this.selectedCategory = null;
 
     this.visibleBusinesses = [];
+
     this.businesses = [];
 
     this.businessesByCategory.clear();
@@ -1177,14 +1372,30 @@ export class Explore3dComponent implements AfterViewInit, OnDestroy {
 
     const multiplayerCleanup = this.disposeMultiplayer();
 
-    this.input.dispose();
-    this.player.dispose();
-    this.business3d.dispose();
+    const globalChatCleanup = this.disposeGlobalChat();
 
-    await this.chat.dispose();
+    this.input.dispose();
+
+    this.player.dispose();
+
+    this.business3d.dispose();
 
     this.engine3d.dispose();
 
     await multiplayerCleanup;
+
+    await globalChatCleanup;
+  }
+
+  getGlobalChatSenderColor(name: string): string {
+    const colors = ['#ffffff', '#d4d4d4', '#b8b8b8', '#a3a3a3', '#e5e5e5'];
+
+    let hash = 0;
+
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    return colors[Math.abs(hash) % colors.length];
   }
 }

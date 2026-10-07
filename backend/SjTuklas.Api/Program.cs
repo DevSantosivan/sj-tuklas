@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Tokens;
@@ -54,6 +53,12 @@ builder.Services.AddHttpClient<
     IExplore3dCharacterService,
     Explore3dCharacterService
 >();
+
+// ============================================================
+// GLOBAL CHAT MODERATION
+// ============================================================
+
+builder.Services.AddScoped<GlobalChatModerationService>();
 
 // ============================================================
 // SIGNALR USER ID PROVIDER
@@ -130,54 +135,76 @@ builder.Services
             // ==================================================
             // READ JWT FROM HTTPONLY COOKIE
             // ==================================================
-               OnMessageReceived = context =>
-{
-    var request = context.HttpContext.Request;
 
-    // First, try the HttpOnly access-token cookie.
-    if (
-        request.Cookies.TryGetValue(
-            AuthService.AccessTokenCookieName,
-            out var cookieToken
-        )
-        && !string.IsNullOrWhiteSpace(cookieToken)
-    )
-    {
-        context.Token = cookieToken;
+            OnMessageReceived = context =>
+            {
+                var request = context.HttpContext.Request;
 
-        Console.WriteLine(
-            "[JWT] Access token loaded from cookie."
-        );
+                // ------------------------------------------------
+                // FIRST:
+                // Try the HttpOnly access-token cookie.
+                // ------------------------------------------------
 
-        return Task.CompletedTask;
-    }
+                if (
+                    request.Cookies.TryGetValue(
+                        AuthService.AccessTokenCookieName,
+                        out var cookieToken
+                    )
+                    && !string.IsNullOrWhiteSpace(cookieToken)
+                )
+                {
+                    context.Token = cookieToken;
 
-    // Fallback for SignalR WebSocket connections.
-    // The Angular client must explicitly provide access_token.
-    if (
-        request.Path.StartsWithSegments("/hubs/explore3d")
-    )
-    {
-        var queryToken = request.Query["access_token"];
+                    Console.WriteLine(
+                        "[JWT] Access token loaded from cookie."
+                    );
 
-        if (!string.IsNullOrWhiteSpace(queryToken))
-        {
-            context.Token = queryToken;
+                    return Task.CompletedTask;
+                }
 
-            Console.WriteLine(
-                "[JWT] Access token loaded from SignalR query."
-            );
-        }
-        else
-        {
-            Console.WriteLine(
-                "[JWT] No cookie or SignalR query token found."
-            );
-        }
-    }
+                // ------------------------------------------------
+                // FALLBACK:
+                // SignalR WebSocket connections.
+                //
+                // Both Explore3D and Global Chat are allowed
+                // to receive access_token from the query string.
+                // ------------------------------------------------
 
-    return Task.CompletedTask;
-},
+                if (
+                    request.Path.StartsWithSegments(
+                        "/hubs/explore3d"
+                    )
+                    ||
+                    request.Path.StartsWithSegments(
+                        "/hubs/global-chat"
+                    )
+                )
+                {
+                    var queryToken =
+                        request.Query["access_token"];
+
+                    if (
+                        !string.IsNullOrWhiteSpace(
+                            queryToken
+                        )
+                    )
+                    {
+                        context.Token = queryToken;
+
+                        Console.WriteLine(
+                            "[JWT] Access token loaded from SignalR query."
+                        );
+                    }
+                    else
+                    {
+                        Console.WriteLine(
+                            "[JWT] No cookie or SignalR query token found."
+                        );
+                    }
+                }
+
+                return Task.CompletedTask;
+            },
 
             // ==================================================
             // TOKEN VALIDATED
@@ -402,6 +429,10 @@ app.MapHub<Explore3dHub>(
 
 app.MapHub<BusinessHub>(
     "/hubs/business"
+);
+
+app.MapHub<GlobalChatHub>(
+    "/hubs/global-chat"
 );
 
 // ============================================================

@@ -1,3 +1,4 @@
+
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using SjTuklas.Api.DTOs.Explore3d;
@@ -160,8 +161,16 @@ public static class Explore3dCharacterEndpoints
             character.UserId,
             character.Username,
             character.CharacterModel,
+
+            // Global Chat moderation status
+            character.WarningCount,
+            character.RestrictionCount,
+            character.RestrictedUntil,
+            character.IsChatBlocked,
+
             character.CreatedAt,
             character.UpdatedAt
         );
     }
 }
+

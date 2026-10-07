@@ -1,115 +1,96 @@
 <div class="global-chat">
-  @if (isOpen) {
-    <section class="global-chat-panel" role="dialog" aria-label="Global Chat">
-      <!-- HEADER -->
-      <header class="global-chat-header">
-        <div class="global-chat-heading">
-          <div class="global-chat-icon">
-            <i class="bx bx-globe"></i>
-          </div>
+  <!-- ===================================================== -->
+  <!-- FLOATING CHAT MESSAGES -->
+  <!-- ===================================================== -->
 
-          <div class="global-chat-title">
-            <strong>Global Chat</strong>
+  <div #messagesContainer class="global-chat-messages" aria-live="polite">
+    @if (messages.length === 0) {
+      <div class="global-chat-empty">
+        <span class="empty-label">GLOBAL CHAT</span>
+        <span>Say hello to everyone exploring San Jose.</span>
+      </div>
+    }
 
-            <span class="global-chat-status">
-              <span class="status-dot" [class.online]="isOnline"></span>
+    @for (message of messages; track message.id) {
+      <article class="chat-message" [class.mine]="isMyMessage(message)">
+        <div class="message-meta">
+          <strong [style.color]="getSenderColor(message.userName)">
+            {{ message.userName }}
+          </strong>
 
-              @if (isOnline) {
-                {{ onlineCount > 0 ? onlineCount + " online" : "Online" }}
-              } @else {
-                Connecting...
-              }
-            </span>
-          </div>
+          <time>
+            {{ formatTime(message.createdAt) }}
+          </time>
         </div>
 
-        <button
-          type="button"
-          class="global-chat-close"
-          aria-label="Close Global Chat"
-          (click)="close()"
-        >
-          <i class="bx bx-x"></i>
-        </button>
-      </header>
+        <p>{{ message.message }}</p>
+      </article>
+    }
+  </div>
 
-      <!-- MESSAGES -->
-      <div #messagesContainer class="global-chat-messages">
-        @if (messages.length === 0) {
-          <div class="global-chat-empty">
-            <div class="empty-icon">
-              <i class="bx bx-message-rounded-dots"></i>
-            </div>
+  <!-- ===================================================== -->
+  <!-- MODERATION NOTICE -->
+  <!-- ===================================================== -->
 
-            <strong>No messages yet</strong>
+  @if (isChatBlocked) {
+    <div class="global-chat-notice blocked">
+      <i class="bx bx-block"></i>
 
-            <span> Say hello to everyone exploring San Jose. </span>
-          </div>
-        }
-
-        @for (message of messages; track message.id ?? $index) {
-          <article class="chat-message" [class.mine]="message.isMine">
-            <div class="message-meta">
-              <strong [style.color]="getSenderColor(message.senderName)">
-                {{ message.senderName }}
-              </strong>
-
-              @if (message.timestamp) {
-                <time>
-                  {{ formatTime(message.timestamp) }}
-                </time>
-              }
-            </div>
-
-            <p>{{ message.message }}</p>
-          </article>
-        }
+      <div>
+        <strong>Global Chat blocked</strong>
+        <span> Your Global Chat access has been permanently blocked. </span>
       </div>
+    </div>
+  } @else if (isRestricted) {
+    <div class="global-chat-notice restricted">
+      <i class="bx bx-time-five"></i>
 
-      <!-- INPUT -->
-      <form class="global-chat-input" (ngSubmit)="submitMessage()">
-        <input
-          type="text"
-          name="globalChatMessage"
-          [(ngModel)]="draftMessage"
-          [disabled]="!isOnline"
-          maxlength="300"
-          autocomplete="off"
-          placeholder="Message everyone..."
-          aria-label="Message everyone"
-          (keydown)="handleKeydown($event)"
-        />
+      <div>
+        <strong>Global Chat restricted</strong>
+        <span>
+          Restricted until
+          {{ formatRestrictionDate(moderation?.restrictedUntil ?? null) }}.
+        </span>
+      </div>
+    </div>
+  } @else if (moderation?.message) {
+    <div class="global-chat-notice warning">
+      <i class="bx bx-error-circle"></i>
 
-        <button
-          type="submit"
-          aria-label="Send message"
-          [disabled]="!draftMessage.trim() || !isOnline"
-        >
-          <i class="bx bx-send"></i>
-        </button>
-      </form>
-    </section>
+      <div>
+        <strong>Message blocked</strong>
+        <span>{{ moderationMessage }}</span>
+      </div>
+    </div>
   }
 
-  <!-- CENTERED LAUNCHER -->
-  <button
-    type="button"
-    class="global-chat-launcher"
-    [class.active]="isOpen"
-    [attr.aria-label]="isOpen ? 'Close Global Chat' : 'Open Global Chat'"
-    [attr.aria-expanded]="isOpen"
-    (click)="toggle()"
-  >
-    <i
-      class="bx"
-      [class.bx-message-rounded]="!isOpen"
-      [class.bx-x]="isOpen"
-    ></i>
+  <!-- ===================================================== -->
+  <!-- CHAT INPUT -->
+  <!-- ===================================================== -->
 
-    @if (unreadCount > 0 && !isOpen) {
-      <span class="chat-unread">
-        {{ unreadCount > 99 ? "99+" : unreadCount }}
-      </span>
-    }
-  </button>
+  <form class="global-chat-input" (ngSubmit)="submitMessage()">
+    <div class="chat-input-status">
+      <span class="status-dot" [class.online]="isOnline"></span>
+    </div>
+
+    <input
+      type="text"
+      name="globalChatMessage"
+      [(ngModel)]="draftMessage"
+      [disabled]="!canSend"
+      maxlength="500"
+      autocomplete="off"
+      [placeholder]="inputPlaceholder"
+      aria-label="Message everyone"
+      (keydown)="handleKeydown($event)"
+    />
+
+    <button
+      type="submit"
+      aria-label="Send message"
+      [disabled]="!draftMessage.trim() || !canSend"
+    >
+      <i class="bx bx-send"></i>
+    </button>
+  </form>
 </div>

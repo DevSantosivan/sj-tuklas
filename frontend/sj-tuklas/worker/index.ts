@@ -32,10 +32,23 @@ export default {
       url.pathname.startsWith('/hubs/explore3d/');
 
     // ============================================================
+    // GLOBAL CHAT SIGNALR
+    // ============================================================
+
+    const isGlobalChatSignalR =
+      url.pathname === '/hubs/global-chat' ||
+      url.pathname.startsWith('/hubs/global-chat/');
+
+    // ============================================================
     // PROXY TO BACKEND
     // ============================================================
 
-    if (isApiRequest || isBusinessSignalR || isExplore3dSignalR) {
+    if (
+      isApiRequest ||
+      isBusinessSignalR ||
+      isExplore3dSignalR ||
+      isGlobalChatSignalR
+    ) {
       const backendUrl = new URL(`${BACKEND_URL}${url.pathname}${url.search}`);
 
       const headers = new Headers(request.headers);

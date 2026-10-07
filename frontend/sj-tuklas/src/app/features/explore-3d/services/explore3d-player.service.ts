@@ -25,10 +25,6 @@ import {
   Explore3dRemotePlayer,
 } from '../../../core/services/explore3d-multiplayer.service';
 
-/* =========================================================
-   CHARACTER TYPES
-========================================================= */
-
 type CharacterModelId = 'aj' | 'suit' | 'brian';
 
 type PlayerAnimationType = 'idle' | 'walk' | 'run' | 'jump';
@@ -41,10 +37,6 @@ interface CharacterModelConfig {
   rotationY: number;
   animationNames: Record<PlayerAnimationType, string[]>;
 }
-
-/* =========================================================
-   CHARACTER CONFIG
-========================================================= */
 
 const CHARACTER_MODELS: Record<CharacterModelId, CharacterModelConfig> = {
   aj: {
@@ -90,10 +82,6 @@ const CHARACTER_MODELS: Record<CharacterModelId, CharacterModelConfig> = {
   },
 };
 
-/* =========================================================
-   REMOTE PLAYER RENDER STATE
-========================================================= */
-
 interface RemotePlayerVisual {
   connectionId: string;
   userId: string;
@@ -103,10 +91,6 @@ interface RemotePlayerVisual {
   root: TransformNode;
   visualRoot?: TransformNode;
 
-  /*
-   * Corrects different GLB origins so the character's
-   * feet stay aligned with the remote player's ground.
-   */
   visualGroundOffset: number;
 
   animationGroups: AnimationGroup[];
@@ -118,34 +102,14 @@ interface RemotePlayerVisual {
 
   currentAnimation: PlayerAnimationType | null;
 
-  /*
-   * Last network position received.
-   *
-   * This is NOT necessarily the current rendered position.
-   */
   lastPosition: Vector3;
 
-  /*
-   * Target position used by the renderer.
-   */
   targetPosition: Vector3;
 
-  /*
-   * Stable Y position while the player is on the ground.
-   *
-   * This prevents tiny gravity/collision differences from
-   * making remote players float/bounce.
-   */
   groundY: number;
 
-  /*
-   * True only when a real vertical movement is detected.
-   */
   isRemoteJumping: boolean;
 
-  /*
-   * Horizontal movement speed calculated from network updates.
-   */
   movementSpeed: number;
 
   lastUpdateTime: number;
@@ -153,24 +117,20 @@ interface RemotePlayerVisual {
   isLoading: boolean;
   isDisposed: boolean;
 
-  /*
-   * Username / nameplate.
-   */
   namePlate?: Mesh;
   nameTexture?: DynamicTexture;
   nameMaterial?: StandardMaterial;
-}
 
-/* =========================================================
-   SERVICE
-========================================================= */
+  chatBubble?: Mesh;
+  chatBubbleTexture?: DynamicTexture;
+  chatBubbleMaterial?: StandardMaterial;
+  chatBubbleText: string;
+  chatBubbleUntil: number;
+  chatBubbleFadeStart: number;
+}
 
 @Injectable()
 export class Explore3dPlayerService {
-  // =========================================================
-  // LOCAL PLAYER
-  // =========================================================
-
   player!: Mesh;
 
   private playerVisual?: TransformNode;
@@ -187,10 +147,6 @@ export class Explore3dPlayerService {
 
   private selectedCharacter: CharacterModelConfig = CHARACTER_MODELS.aj;
 
-  // =========================================================
-  // LOCAL ANIMATIONS
-  // =========================================================
-
   private playerAnimations: AnimationGroup[] = [];
 
   private idleAnimation?: AnimationGroup;
@@ -202,42 +158,37 @@ export class Explore3dPlayerService {
 
   private warnedAnimations = new Set<string>();
 
-  // =========================================================
-  // REMOTE PLAYERS
-  // =========================================================
-
   private readonly remotePlayers = new Map<string, RemotePlayerVisual>();
+  private readonly remoteDisplayNames = new Map<string, string>();
 
   private readonly remotePlayerLoadPromises = new Map<string, Promise<void>>();
 
   private remoteSyncRunning = false;
+  private remoteSyncTimer = 0;
+  private readonly remoteSyncInterval = 0.066;
 
-  // =========================================================
-  // REMOTE PLAYER SETTINGS
-  // =========================================================
-
-  /*
-   * A remote player must move upward at least this much
-   * before we consider it a real jump.
-   */
   private readonly remoteJumpHeightThreshold = 0.45;
 
-  /*
-   * Once the player comes close to its stable ground Y,
-   * return to ground mode.
-   */
   private readonly remoteGroundSnapThreshold = 0.15;
 
-  /*
-   * Remote visual movement smoothing.
-   */
-  private readonly remotePositionSmoothSpeed = 22;
+  private readonly remoteGroundRebaseThreshold = 0.25;
 
-  private readonly remoteRotationSmoothSpeed = 18;
+  private readonly remotePositionSmoothSpeed = 20;
 
-  // =========================================================
-  // MOVEMENT
-  // =========================================================
+  private readonly remoteRotationSmoothSpeed = 15;
+
+  private readonly remoteChatDuration = 5000;
+  private readonly remoteChatFadeDuration = 500;
+  private readonly remoteChatMaxLines = 3;
+  private readonly remoteChatMaxCharacters = 180;
+
+  private readonly pendingRemoteChats = new Map<
+    string,
+    {
+      message: string;
+      until: number;
+    }
+  >();
 
   private readonly playerSpeed = 3.2;
   private readonly playerRunSpeed = 6.0;
@@ -252,35 +203,21 @@ export class Explore3dPlayerService {
   private isActuallyMoving = false;
   private hasMovementInput = false;
 
-  // =========================================================
-  // NETWORK MOVEMENT
-  // =========================================================
   private lastNetworkPosition = Vector3.Zero();
 
   private lastNetworkRotationY = 0;
 
   private networkMoveTimer = 0;
 
-  /**
-   * Approximately 15 network updates per second.
-   *
-   * 0.066 seconds ≈ 15 updates/sec.
-   *
-   * The local player still moves at the normal
-   * Babylon render rate. This only controls how
-   * often movement is sent over SignalR.
-   */
+  private networkInitialSyncPending = true;
+
   private readonly networkUpdateInterval = 0.066;
 
-  // =========================================================
-  // JUMP
-  // =========================================================
+  private networkMoveInFlight = false;
+
+  private networkMovePending = false;
 
   private readonly jumpVelocity = 7.0;
-
-  // =========================================================
-  // COLLISION
-  // =========================================================
 
   private readonly playerColliderHeight = 2;
 
@@ -289,10 +226,6 @@ export class Explore3dPlayerService {
   private readonly playerEllipsoid = new Vector3(0.4, 0.95, 0.4);
 
   private readonly playerEllipsoidOffset = new Vector3(0, 0.95, 0);
-
-  // =========================================================
-  // GRAVITY
-  // =========================================================
 
   private readonly gravity = -18;
 
@@ -304,25 +237,13 @@ export class Explore3dPlayerService {
 
   private readonly groundCheckDistance = 0.3;
 
-  // =========================================================
-  // AUTO NAVIGATION
-  // =========================================================
-
   destinationBusiness: Business | null = null;
 
   private destinationPosition: Vector3 | null = null;
 
   isAutoNavigating = false;
 
-  // =========================================================
-  // MULTIPLAYER
-  // =========================================================
-
   constructor(private readonly multiplayer: Explore3dMultiplayerService) {}
-
-  // =========================================================
-  // CHARACTER ACCESS
-  // =========================================================
 
   get characterModelId(): CharacterModelId {
     return this.selectedCharacter.id;
@@ -331,10 +252,6 @@ export class Explore3dPlayerService {
   get availableCharacterModels(): CharacterModelConfig[] {
     return Object.values(CHARACTER_MODELS);
   }
-
-  // =========================================================
-  // INITIALIZE
-  // =========================================================
 
   async initialize(
     scene: Scene,
@@ -367,16 +284,13 @@ export class Explore3dPlayerService {
         this.lastNetworkPosition = this.player.position.clone();
 
         this.lastNetworkRotationY = this.player.rotation.y;
+        this.networkInitialSyncPending = true;
       }
     } catch (error) {
     } finally {
       this.isLoading = false;
     }
   }
-
-  // =========================================================
-  // CREATE LOCAL PLAYER
-  // =========================================================
 
   private async createPlayer(model: CharacterModelConfig): Promise<void> {
     try {
@@ -403,19 +317,11 @@ export class Explore3dPlayerService {
 
       this.logImportedSkeletons(result.meshes);
 
-      // =====================================================
-      // COLLIDER
-      // =====================================================
-
       const collider = this.createCollider();
 
       collider.name = `${model.id}PlayerCollider`;
 
       this.player = collider;
-
-      // =====================================================
-      // VISUAL ROOT
-      // =====================================================
 
       const visualRoot = new TransformNode(`${model.id}VisualRoot`, this.scene);
 
@@ -426,10 +332,6 @@ export class Explore3dPlayerService {
       visualRoot.rotation = Vector3.Zero();
 
       visualRoot.scaling = Vector3.One();
-
-      // =====================================================
-      // IMPORTED MODEL ROOT
-      // =====================================================
 
       const character =
         result.meshes.find((mesh) => mesh.name === '__root__') ??
@@ -450,25 +352,13 @@ export class Explore3dPlayerService {
 
       this.playerVisual = visualRoot;
 
-      // =====================================================
-      // MODEL SETUP
-      // =====================================================
-
       this.configureImportedModel(result.meshes);
-
-      // =====================================================
-      // SKELETON
-      // =====================================================
 
       const playerSkeleton = this.findPlayerSkeleton(result.meshes);
 
       if (playerSkeleton) {
       } else {
       }
-
-      // =====================================================
-      // ANIMATIONS
-      // =====================================================
 
       this.playerAnimations = result.animationGroups;
 
@@ -495,10 +385,6 @@ export class Explore3dPlayerService {
     }
   }
 
-  // =========================================================
-  // REMOTE PLAYER SYNC
-  // =========================================================
-
   private syncRemotePlayers(): void {
     if (!this.scene || this.isDisposed || !this.isInitialized) {
       return;
@@ -515,19 +401,11 @@ export class Explore3dPlayerService {
 
       const activeIds = new Set(players.map((player) => player.connectionId));
 
-      // =====================================================
-      // REMOVE PLAYERS THAT NO LONGER EXIST
-      // =====================================================
-
       for (const [connectionId, remote] of this.remotePlayers) {
         if (!activeIds.has(connectionId)) {
           this.disposeRemotePlayer(connectionId);
         }
       }
-
-      // =====================================================
-      // CREATE / UPDATE PLAYERS
-      // =====================================================
 
       for (const remotePlayer of players) {
         if (!remotePlayer.connectionId) {
@@ -542,10 +420,6 @@ export class Explore3dPlayerService {
           continue;
         }
 
-        // ===================================================
-        // CHARACTER CHANGED
-        // ===================================================
-
         if (existing.characterModel !== remotePlayer.characterModel) {
           this.replaceRemotePlayer(remotePlayer);
 
@@ -558,10 +432,6 @@ export class Explore3dPlayerService {
       this.remoteSyncRunning = false;
     }
   }
-
-  // =========================================================
-  // CREATE REMOTE PLAYER
-  // =========================================================
 
   private createRemotePlayer(remotePlayer: Explore3dRemotePlayer): void {
     if (this.remotePlayers.has(remotePlayer.connectionId)) {
@@ -586,7 +456,10 @@ export class Explore3dPlayerService {
 
       userId: remotePlayer.userId,
 
-      displayName: remotePlayer.displayName || 'Player',
+      displayName:
+        remotePlayer.displayName?.trim() ||
+        this.remoteDisplayNames.get(remotePlayer.userId) ||
+        'Player',
 
       characterModel: model.id,
 
@@ -595,9 +468,6 @@ export class Explore3dPlayerService {
         this.scene,
       ),
 
-      /*
-       * Will be calculated after the GLB loads.
-       */
       visualGroundOffset: 0,
 
       animationGroups: [],
@@ -608,9 +478,6 @@ export class Explore3dPlayerService {
 
       targetPosition: position.clone(),
 
-      /*
-       * The first Y value becomes our stable ground Y.
-       */
       groundY: position.y,
 
       isRemoteJumping: false,
@@ -622,6 +489,10 @@ export class Explore3dPlayerService {
       isLoading: true,
 
       isDisposed: false,
+
+      chatBubbleText: '',
+      chatBubbleUntil: 0,
+      chatBubbleFadeStart: 0,
     };
 
     remoteState.root.position = position.clone();
@@ -630,13 +501,33 @@ export class Explore3dPlayerService {
 
     remoteState.root.isVisible = true;
 
+    const incomingName = remotePlayer.displayName?.trim();
+    if (incomingName) {
+      this.remoteDisplayNames.set(remotePlayer.userId, incomingName);
+      remoteState.displayName = incomingName;
+    }
+
     this.remotePlayers.set(remotePlayer.connectionId, remoteState);
 
-    // =====================================================
-    // CREATE USERNAME IMMEDIATELY
-    // =====================================================
-
     this.createRemoteNamePlate(remoteState);
+    this.createRemoteChatBubble(remoteState);
+
+    const pendingChat = this.pendingRemoteChats.get(remoteState.userId);
+
+    if (pendingChat) {
+      const remaining = pendingChat.until - performance.now();
+
+      this.pendingRemoteChats.delete(remoteState.userId);
+
+      if (remaining > 0) {
+        this.showRemoteChatMessage(
+          remoteState.userId,
+          pendingChat.message,
+          remaining,
+          remoteState.connectionId,
+        );
+      }
+    }
 
     const loadPromise = this.loadRemotePlayerModel(remoteState, model);
 
@@ -651,10 +542,6 @@ export class Explore3dPlayerService {
       },
     );
   }
-
-  // =========================================================
-  // DRAW ROUNDED USERNAME BOX
-  // =========================================================
 
   private drawRoundedRect(
     ctx: CanvasRenderingContext2D,
@@ -679,10 +566,6 @@ export class Explore3dPlayerService {
     ctx.closePath();
   }
 
-  // =========================================================
-  // RENDER REMOTE USERNAME
-  // =========================================================
-
   private renderRemoteNamePlate(remote: RemotePlayerVisual): void {
     if (remote.isDisposed || !remote.namePlate || !remote.nameTexture) {
       return;
@@ -699,7 +582,6 @@ export class Explore3dPlayerService {
 
     const name = (remote.displayName || 'Player').trim() || 'Player';
 
-    // Compact username styling.
     context.font = '600 30px Arial, sans-serif';
 
     const textWidth = context.measureText(name).width;
@@ -719,13 +601,11 @@ export class Explore3dPlayerService {
     const boxY = (textureHeight - boxHeight) / 2;
     const radius = 18;
 
-    // Black rounded background.
     this.drawRoundedRect(context, boxX, boxY, boxWidth, boxHeight, radius);
 
     context.fillStyle = 'rgba(0, 0, 0, 0.92)';
     context.fill();
 
-    // Very subtle border so the rounded shape remains visible.
     this.drawRoundedRect(
       context,
       boxX + 1,
@@ -739,7 +619,6 @@ export class Explore3dPlayerService {
     context.lineWidth = 2;
     context.stroke();
 
-    // Online indicator: white outer ring + green center.
     const centerY = textureHeight / 2;
     const dotX = boxX + leftPadding + dotRadius;
 
@@ -753,8 +632,7 @@ export class Explore3dPlayerService {
     context.fillStyle = '#22C55E';
     context.fill();
 
-    // Username.
-    context.font = '600 30px Arial, sans-serif';
+    context.font = '600 40px Arial, sans-serif';
     context.fillStyle = '#FFFFFF';
     context.textAlign = 'left';
     context.textBaseline = 'middle';
@@ -765,14 +643,9 @@ export class Explore3dPlayerService {
 
     texture.update(true);
 
-    // Compact 3D size.
     const worldWidth = Math.min(2.45, Math.max(1.35, boxWidth / 185));
     remote.namePlate.scaling.set(worldWidth / 2.15, 0.44, 1);
   }
-
-  // =========================================================
-  // CREATE REMOTE USERNAME
-  // =========================================================
 
   private createRemoteNamePlate(remote: RemotePlayerVisual): void {
     if (remote.isDisposed || remote.root.isDisposed()) {
@@ -815,7 +688,7 @@ export class Explore3dPlayerService {
     );
 
     namePlate.parent = remote.root;
-    namePlate.position.set(0, 2.8, 0);
+    namePlate.position.set(0, 1.85, 0);
     namePlate.billboardMode = Mesh.BILLBOARDMODE_ALL;
     namePlate.material = material;
     namePlate.isPickable = false;
@@ -829,10 +702,6 @@ export class Explore3dPlayerService {
     this.renderRemoteNamePlate(remote);
   }
 
-  // =========================================================
-  // UPDATE REMOTE USERNAME
-  // =========================================================
-
   private updateRemoteNamePlate(remote: RemotePlayerVisual): void {
     if (remote.isDisposed || !remote.namePlate || !remote.nameTexture) {
       return;
@@ -840,10 +709,6 @@ export class Explore3dPlayerService {
 
     this.renderRemoteNamePlate(remote);
   }
-
-  // =========================================================
-  // POSITION NAME ABOVE ACTUAL CHARACTER
-  // =========================================================
 
   private positionRemoteNamePlate(
     remote: RemotePlayerVisual,
@@ -857,26 +722,20 @@ export class Explore3dPlayerService {
       character.computeWorldMatrix(true);
 
       const bounds = character.getHierarchyBoundingVectors(true);
-
-      /*
-       * bounds.max.y is in world space.
-       *
-       * remote.root.getAbsolutePosition().y
-       * gives the world-space Y of the remote player root.
-       */
       const rootWorldY = remote.root.getAbsolutePosition().y;
-
       const topRelativeToRoot = bounds.max.y - rootWorldY;
 
-      remote.namePlate.position.y = Math.max(2.3, topRelativeToRoot + 0.45);
-    } catch (error) {
-      remote.namePlate.position.y = 2.8;
+      remote.namePlate.position.y = Math.max(
+        1.7,
+        Math.min(2.15, topRelativeToRoot + 0.02),
+      );
+
+      this.positionRemoteChatBubble(remote);
+    } catch {
+      remote.namePlate.position.y = 1.85;
+      this.positionRemoteChatBubble(remote);
     }
   }
-
-  // =========================================================
-  // DISPOSE REMOTE USERNAME
-  // =========================================================
 
   private disposeRemoteNamePlate(remote: RemotePlayerVisual): void {
     if (remote.namePlate) {
@@ -888,9 +747,7 @@ export class Explore3dPlayerService {
     if (remote.nameMaterial) {
       try {
         remote.nameMaterial.dispose();
-      } catch {
-        // Ignore already disposed material.
-      }
+      } catch {}
 
       remote.nameMaterial = undefined;
     }
@@ -898,37 +755,387 @@ export class Explore3dPlayerService {
     if (remote.nameTexture) {
       try {
         remote.nameTexture.dispose();
-      } catch {
-        // Ignore already disposed texture.
-      }
+      } catch {}
 
       remote.nameTexture = undefined;
     }
   }
 
-  // =========================================================
-  // REMOVE REMOTE ROOT MOTION
-  // =========================================================
+  showRemoteChatMessageByName(
+    displayName: string,
+    message: string,
+    duration = this.remoteChatDuration,
+  ): void {
+    const normalizedName = displayName?.trim().toLowerCase();
 
-  /**
-   * Some GLB animations contain actual POSITION animation
-   * on the model root.
-   *
-   * Example:
-   *
-   * Walk
-   *   -> root.position.y moves
-   *   -> character visually bounces
-   *
-   * Because multiplayer already controls the character's
-   * position, we don't want the Walk/Run animation to also
-   * move the whole model.
-   *
-   * We therefore remove POSITION animation only from the
-   * imported model root / visual root.
-   *
-   * Skeleton bone animations are NOT touched here.
-   */
+    if (!normalizedName || !message?.trim()) {
+      return;
+    }
+
+    for (const remote of this.remotePlayers.values()) {
+      if (remote.isDisposed) {
+        continue;
+      }
+
+      const remoteName = remote.displayName?.trim().toLowerCase();
+
+      if (remoteName !== normalizedName) {
+        continue;
+      }
+
+      this.showRemoteChatMessage(
+        remote.userId,
+        message,
+        duration,
+        remote.connectionId,
+      );
+
+      return;
+    }
+  }
+
+  showRemoteChatMessage(
+    userId: string,
+    message: string,
+    duration = this.remoteChatDuration,
+    connectionId?: string,
+  ): void {
+    if (!message?.trim()) {
+      return;
+    }
+
+    const cleanMessage = message
+      .trim()
+      .replace(/\s+/g, ' ')
+      .slice(0, this.remoteChatMaxCharacters);
+
+    let remote: RemotePlayerVisual | undefined;
+
+    if (connectionId) {
+      remote = this.remotePlayers.get(connectionId);
+    }
+
+    if (!remote) {
+      for (const candidate of this.remotePlayers.values()) {
+        if (candidate.userId === userId && !candidate.isDisposed) {
+          remote = candidate;
+          break;
+        }
+      }
+    }
+
+    if (!remote) {
+      this.pendingRemoteChats.set(userId, {
+        message: cleanMessage,
+        until: performance.now() + duration,
+      });
+      return;
+    }
+
+    if (!remote.chatBubble || remote.chatBubble.isDisposed()) {
+      this.createRemoteChatBubble(remote);
+    }
+
+    remote.chatBubbleText = cleanMessage;
+    remote.chatBubbleUntil = performance.now() + duration;
+    remote.chatBubbleFadeStart =
+      remote.chatBubbleUntil - this.remoteChatFadeDuration;
+
+    this.renderRemoteChatBubble(remote);
+
+    if (remote.chatBubbleMaterial) {
+      remote.chatBubbleMaterial.alpha = 1;
+    }
+
+    if (remote.chatBubble) {
+      remote.chatBubble.visibility = 1;
+    }
+
+    this.positionRemoteChatBubble(remote);
+  }
+
+  private createRemoteChatBubble(remote: RemotePlayerVisual): void {
+    if (remote.isDisposed || remote.root.isDisposed()) {
+      return;
+    }
+
+    if (remote.chatBubble && !remote.chatBubble.isDisposed()) {
+      return;
+    }
+
+    const texture = new DynamicTexture(
+      `remoteChatTexture_${remote.connectionId}`,
+      { width: 768, height: 260 },
+      this.scene,
+      true,
+    );
+
+    texture.hasAlpha = true;
+
+    const material = new StandardMaterial(
+      `remoteChatMaterial_${remote.connectionId}`,
+      this.scene,
+    );
+
+    material.diffuseTexture = texture;
+    material.emissiveColor = Color3.White();
+    material.disableLighting = true;
+    material.backFaceCulling = false;
+    material.useAlphaFromDiffuseTexture = true;
+    material.transparencyMode = 2;
+    material.alpha = 0;
+
+    const bubble = MeshBuilder.CreatePlane(
+      `remoteChatBubble_${remote.connectionId}`,
+      { width: 1, height: 1 },
+      this.scene,
+    );
+
+    bubble.parent = remote.root;
+    bubble.position.set(0, 2.8, 0);
+    bubble.billboardMode = Mesh.BILLBOARDMODE_ALL;
+    bubble.material = material;
+    bubble.isPickable = false;
+    bubble.checkCollisions = false;
+    bubble.visibility = 0;
+
+    remote.chatBubble = bubble;
+    remote.chatBubbleTexture = texture;
+    remote.chatBubbleMaterial = material;
+  }
+
+  private wrapRemoteChatText(
+    texture: DynamicTexture,
+    text: string,
+    maxWidth: number,
+  ): string[] {
+    const context = texture.getContext() as unknown as CanvasRenderingContext2D;
+
+    context.font = '600 30px Arial, sans-serif';
+
+    const words = text.split(' ');
+    const lines: string[] = [];
+    let currentLine = '';
+
+    for (const word of words) {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+
+      if (context.measureText(testLine).width <= maxWidth || !currentLine) {
+        currentLine = testLine;
+      } else {
+        lines.push(currentLine);
+        currentLine = word;
+
+        if (lines.length === this.remoteChatMaxLines) {
+          break;
+        }
+      }
+    }
+
+    if (currentLine && lines.length < this.remoteChatMaxLines) {
+      lines.push(currentLine);
+    }
+
+    if (lines.length === this.remoteChatMaxLines) {
+      const consumedWords = lines.join(' ').split(' ').length;
+
+      if (consumedWords < words.length) {
+        let last = lines[lines.length - 1];
+
+        while (
+          context.measureText(`${last}...`).width > maxWidth &&
+          last.length > 1
+        ) {
+          last = last.slice(0, -1);
+        }
+
+        lines[lines.length - 1] = `${last}...`;
+      }
+    }
+
+    return lines;
+  }
+
+  private renderRemoteChatBubble(remote: RemotePlayerVisual): void {
+    if (
+      remote.isDisposed ||
+      !remote.chatBubble ||
+      !remote.chatBubbleTexture ||
+      !remote.chatBubbleMaterial
+    ) {
+      return;
+    }
+
+    const texture = remote.chatBubbleTexture;
+    const context = texture.getContext() as unknown as CanvasRenderingContext2D;
+
+    const textureWidth = 768;
+    const textureHeight = 260;
+
+    texture.clear();
+    context.clearRect(0, 0, textureWidth, textureHeight);
+
+    context.font = '600 40px Arial, sans-serif';
+
+    const maxTextWidth = 650;
+    const lines = this.wrapRemoteChatText(
+      texture,
+      remote.chatBubbleText,
+      maxTextWidth,
+    );
+
+    const lineHeight = 50;
+    let textWidth = 0;
+
+    for (const line of lines) {
+      textWidth = Math.max(textWidth, context.measureText(line).width);
+    }
+
+    const bubbleWidth = Math.min(700, Math.max(260, textWidth + 86));
+    const bubbleHeight = Math.min(
+      190,
+      Math.max(82, lines.length * lineHeight + 46),
+    );
+    const x = (textureWidth - bubbleWidth) / 2;
+    const y = 18;
+    const radius = 24;
+
+    context.save();
+    context.shadowColor = 'rgba(0,0,0,0.35)';
+    context.shadowBlur = 18;
+    context.shadowOffsetY = 8;
+
+    this.drawRoundedRect(context, x, y, bubbleWidth, bubbleHeight, radius);
+    context.fillStyle = 'rgba(15, 15, 18, 0.96)';
+    context.fill();
+    context.restore();
+
+    this.drawRoundedRect(context, x, y, bubbleWidth, bubbleHeight, radius);
+    context.strokeStyle = 'rgba(255,255,255,0.14)';
+    context.lineWidth = 3;
+    context.stroke();
+
+    const tailCenter = textureWidth / 2;
+    context.beginPath();
+    context.moveTo(tailCenter - 18, y + bubbleHeight);
+    context.lineTo(tailCenter, y + bubbleHeight + 22);
+    context.lineTo(tailCenter + 18, y + bubbleHeight);
+    context.closePath();
+    context.fillStyle = 'rgba(15, 15, 18, 0.96)';
+    context.fill();
+
+    context.font = '600 34px Arial, sans-serif';
+    context.fillStyle = '#FFFFFF';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+
+    const textStartY =
+      y + bubbleHeight / 2 - ((lines.length - 1) * lineHeight) / 2;
+
+    lines.forEach((line, index) => {
+      context.fillText(line, textureWidth / 2, textStartY + index * lineHeight);
+    });
+
+    texture.update(true);
+
+    const planeWidth = Math.min(5.0, Math.max(3.2, bubbleWidth / 150));
+    const planeHeight = Math.min(
+      1.85,
+      Math.max(1.0, (bubbleHeight + 25) / 115),
+    );
+
+    remote.chatBubble.scaling.set(planeWidth, planeHeight, 1);
+
+    this.positionRemoteChatBubble(remote);
+  }
+
+  private positionRemoteChatBubble(remote: RemotePlayerVisual): void {
+    if (
+      remote.isDisposed ||
+      !remote.chatBubble ||
+      remote.chatBubble.isDisposed() ||
+      remote.root.isDisposed()
+    ) {
+      return;
+    }
+
+    const nameY =
+      remote.namePlate && !remote.namePlate.isDisposed()
+        ? remote.namePlate.position.y
+        : 2.05;
+
+    const bubbleHeight = remote.chatBubble.scaling.y;
+
+    remote.chatBubble.position.x = 0;
+    remote.chatBubble.position.z = 0;
+    remote.chatBubble.position.y = nameY + 0.18 + bubbleHeight / 2;
+
+    remote.chatBubble.computeWorldMatrix(true);
+  }
+
+  private updateRemoteChatBubble(
+    remote: RemotePlayerVisual,
+    now: number,
+  ): void {
+    if (remote.isDisposed || !remote.chatBubble || !remote.chatBubbleMaterial) {
+      return;
+    }
+
+    if (remote.chatBubbleUntil <= 0) {
+      return;
+    }
+
+    if (now >= remote.chatBubbleUntil) {
+      remote.chatBubble.visibility = 0;
+      remote.chatBubbleMaterial.alpha = 0;
+      remote.chatBubbleUntil = 0;
+      remote.chatBubbleFadeStart = 0;
+      remote.chatBubbleText = '';
+      return;
+    }
+
+    if (now >= remote.chatBubbleFadeStart) {
+      const progress =
+        (now - remote.chatBubbleFadeStart) / this.remoteChatFadeDuration;
+
+      remote.chatBubbleMaterial.alpha = Math.max(0, 1 - progress);
+    } else {
+      remote.chatBubbleMaterial.alpha = 1;
+    }
+
+    remote.chatBubble.visibility = remote.chatBubbleMaterial.alpha > 0 ? 1 : 0;
+
+    remote.chatBubble.position.x = 0;
+    remote.chatBubble.position.z = 0;
+
+    this.positionRemoteChatBubble(remote);
+  }
+
+  private disposeRemoteChatBubble(remote: RemotePlayerVisual): void {
+    if (remote.chatBubble) {
+      remote.chatBubble.dispose();
+      remote.chatBubble = undefined;
+    }
+
+    if (remote.chatBubbleMaterial) {
+      try {
+        remote.chatBubbleMaterial.dispose();
+      } catch {}
+      remote.chatBubbleMaterial = undefined;
+    }
+
+    if (remote.chatBubbleTexture) {
+      try {
+        remote.chatBubbleTexture.dispose();
+      } catch {}
+      remote.chatBubbleTexture = undefined;
+    }
+
+    remote.chatBubbleText = '';
+    remote.chatBubbleUntil = 0;
+    remote.chatBubbleFadeStart = 0;
+  }
+
   private removeRemoteRootMotion(
     animationGroups: AnimationGroup[],
     character: AbstractMesh,
@@ -940,11 +1147,6 @@ export class Explore3dPlayerService {
 
     rootTargets.add(visualRoot);
 
-    /*
-     * The imported GLB root can have a parent chain.
-     * Include direct parents too, but don't touch skeleton
-     * bones or arbitrary child meshes.
-     */
     let currentParent = character.parent;
 
     let parentDepth = 0;
@@ -972,13 +1174,6 @@ export class Explore3dPlayerService {
           continue;
         }
 
-        /*
-         * Only remove POSITION animation
-         * from the root objects.
-         *
-         * Rotation remains untouched.
-         * Scaling remains untouched.
-         */
         if (
           rootTargets.has(target as AbstractMesh | TransformNode) &&
           targeted.animation.targetProperty === 'position'
@@ -989,28 +1184,6 @@ export class Explore3dPlayerService {
     }
   }
 
-  // =========================================================
-  // ALIGN REMOTE CHARACTER TO GROUND
-  // =========================================================
-
-  /**
-   * Different GLB files can have different origins.
-   *
-   * Example:
-   *
-   * AJ feet:
-   *   origin = near feet
-   *
-   * Brian:
-   *   origin = slightly below/above feet
-   *
-   * Suit:
-   *   origin = different position
-   *
-   * This calculates the actual model bottom and creates
-   * a visual offset so all characters stand on the same
-   * multiplayer root.
-   */
   private alignRemoteCharacterToGround(
     remote: RemotePlayerVisual,
     character: AbstractMesh,
@@ -1023,35 +1196,16 @@ export class Explore3dPlayerService {
       character.computeWorldMatrix(true);
 
       const bounds = character.getHierarchyBoundingVectors(true);
-
-      /*
-       * Character bounds are world-space.
-       */
       const rootWorldY = remote.root.getAbsolutePosition().y;
-
-      /*
-       * Convert model bottom to a position
-       * relative to the remote root.
-       */
       const minRelativeY = bounds.min.y - rootWorldY;
 
-      /*
-       * Move visual model so its feet line up
-       * with the remote root's ground.
-       */
       remote.visualGroundOffset = -minRelativeY;
-
       remote.visualRoot.position.y = remote.visualGroundOffset;
-    } catch (error) {
+    } catch {
       remote.visualGroundOffset = 0;
-
       remote.visualRoot.position.y = 0;
     }
   }
-
-  // =========================================================
-  // LOAD REMOTE PLAYER MODEL
-  // =========================================================
 
   private async loadRemotePlayerModel(
     remote: RemotePlayerVisual,
@@ -1078,10 +1232,6 @@ export class Explore3dPlayerService {
       if (!result.meshes.length) {
         throw new Error(`Remote ${model.fileName} loaded without meshes.`);
       }
-
-      // =====================================================
-      // REMOTE VISUAL ROOT
-      // =====================================================
 
       const visualRoot = new TransformNode(
         `remoteVisual_${remote.connectionId}`,
@@ -1115,52 +1265,23 @@ export class Explore3dPlayerService {
 
       remote.visualRoot = visualRoot;
 
-      // =====================================================
-      // REMOTE MODEL SETUP
-      // =====================================================
-
       for (const mesh of result.meshes) {
         mesh.isPickable = false;
 
         mesh.checkCollisions = false;
       }
 
-      // =====================================================
-      // ANIMATIONS
-      // =====================================================
-
       remote.animationGroups = result.animationGroups;
 
-      /*
-       * IMPORTANT:
-       *
-       * Remove root position animation BEFORE
-       * playing Walk / Run.
-       *
-       * This prevents animation root motion from
-       * fighting with multiplayer movement.
-       */
       this.removeRemoteRootMotion(
         remote.animationGroups,
         character,
         visualRoot,
       );
 
-      // =====================================================
-      // GROUND ALIGNMENT
-      // =====================================================
-
       this.alignRemoteCharacterToGround(remote, character);
 
-      // =====================================================
-      // POSITION USERNAME
-      // =====================================================
-
       this.positionRemoteNamePlate(remote, character);
-
-      // =====================================================
-      // FIND ANIMATIONS
-      // =====================================================
 
       this.findRemoteAnimations(remote, model);
 
@@ -1173,10 +1294,6 @@ export class Explore3dPlayerService {
       remote.isLoading = false;
     }
   }
-
-  // =========================================================
-  // FIND REMOTE ANIMATIONS
-  // =========================================================
 
   private findRemoteAnimations(
     remote: RemotePlayerVisual,
@@ -1192,7 +1309,6 @@ export class Explore3dPlayerService {
     );
 
     const findAnimation = (aliases: string[]): AnimationGroup | undefined => {
-      // Exact
       for (const alias of aliases) {
         const normalizedAlias = normalize(alias);
 
@@ -1205,7 +1321,6 @@ export class Explore3dPlayerService {
         }
       }
 
-      // Partial
       for (const alias of aliases) {
         const normalizedAlias = normalize(alias);
 
@@ -1229,17 +1344,9 @@ export class Explore3dPlayerService {
 
     remote.jumpAnimation = findAnimation(model.animationNames.jump);
 
-    // =====================================================
-    // RUN FALLBACK
-    // =====================================================
-
     if (!remote.walkAnimation && remote.runAnimation) {
       remote.walkAnimation = remote.runAnimation;
     }
-
-    // =====================================================
-    // AVOID DUPLICATE STATES
-    // =====================================================
 
     if (remote.walkAnimation === remote.idleAnimation) {
       remote.walkAnimation = undefined;
@@ -1258,10 +1365,6 @@ export class Explore3dPlayerService {
     }
   }
 
-  // =========================================================
-  // STOP REMOTE ANIMATIONS
-  // =========================================================
-
   private stopRemoteAnimations(remote: RemotePlayerVisual): void {
     for (const group of remote.animationGroups) {
       group.stop();
@@ -1273,10 +1376,6 @@ export class Explore3dPlayerService {
 
     remote.currentAnimation = null;
   }
-
-  // =========================================================
-  // PLAY REMOTE ANIMATION
-  // =========================================================
 
   private playRemoteAnimation(
     remote: RemotePlayerVisual,
@@ -1297,10 +1396,6 @@ export class Explore3dPlayerService {
 
     let next = animationMap[type];
 
-    // =====================================================
-    // FALLBACK
-    // =====================================================
-
     if (!next && type === 'run') {
       next = remote.walkAnimation;
     }
@@ -1317,10 +1412,6 @@ export class Explore3dPlayerService {
       return;
     }
 
-    // =====================================================
-    // STOP OTHER ANIMATIONS
-    // =====================================================
-
     for (const group of remote.animationGroups) {
       if (group === next) {
         continue;
@@ -1330,10 +1421,6 @@ export class Explore3dPlayerService {
 
       group.setWeightForAllAnimatables(0);
     }
-
-    // =====================================================
-    // PLAY NEXT
-    // =====================================================
 
     next.stop();
 
@@ -1348,10 +1435,6 @@ export class Explore3dPlayerService {
     remote.currentAnimation = type;
   }
 
-  // =========================================================
-  // UPDATE REMOTE PLAYER
-  // =========================================================
-
   private updateRemotePlayer(
     remote: RemotePlayerVisual,
     player: Explore3dRemotePlayer,
@@ -1362,22 +1445,8 @@ export class Explore3dPlayerService {
 
     const now = performance.now();
 
-    /*
-     * Incoming network position.
-     */
     const incomingPosition = new Vector3(player.x, player.y, player.z);
 
-    // =====================================================
-    // HORIZONTAL MOVEMENT
-    // =====================================================
-
-    /*
-     * IMPORTANT:
-     *
-     * Movement speed is calculated ONLY from X/Z.
-     *
-     * Y is not involved in walking detection.
-     */
     const horizontalDistance = Math.sqrt(
       Math.pow(incomingPosition.x - remote.lastPosition.x, 2) +
         Math.pow(incomingPosition.z - remote.lastPosition.z, 2),
@@ -1388,11 +1457,6 @@ export class Explore3dPlayerService {
     if (horizontalDistance > 0.0001) {
       remote.movementSpeed = horizontalDistance / deltaSeconds;
 
-      /*
-       * Update X/Z only here.
-       *
-       * Y is intentionally handled separately.
-       */
       remote.lastPosition.x = incomingPosition.x;
 
       remote.lastPosition.z = incomingPosition.z;
@@ -1406,80 +1470,35 @@ export class Explore3dPlayerService {
       }
     }
 
-    // =====================================================
-    // REMOTE Y / GROUND STABILIZATION
-    // =====================================================
-
     const verticalDifference = incomingPosition.y - remote.groundY;
 
-    /*
-     * IMPORTANT:
-     *
-     * Only a POSITIVE Y movement above the threshold
-     * is treated as a jump.
-     *
-     * This fixes the previous problem where:
-     *
-     * Y difference = -0.5
-     *
-     * could also trigger jump mode.
-     */
-    if (
-      !remote.isRemoteJumping &&
-      verticalDifference > this.remoteJumpHeightThreshold
-    ) {
-      remote.isRemoteJumping = true;
+    if (!remote.isRemoteJumping) {
+      if (verticalDifference > this.remoteJumpHeightThreshold) {
+        remote.isRemoteJumping = true;
+      } else if (verticalDifference < -this.remoteGroundRebaseThreshold) {
+        remote.groundY = incomingPosition.y;
+        remote.targetPosition.y = remote.groundY;
+      } else {
+        remote.targetPosition.y = remote.groundY;
+      }
     }
 
-    // =====================================================
-    // AIRBORNE
-    // =====================================================
-
     if (remote.isRemoteJumping) {
-      /*
-       * While actually airborne,
-       * follow network Y.
-       */
       remote.targetPosition.y = incomingPosition.y;
 
-      /*
-       * When the player returns to
-       * the ground, lock it again.
-       */
       if (
         incomingPosition.y <= remote.groundY + this.remoteGroundSnapThreshold &&
         incomingPosition.y >= remote.groundY - this.remoteGroundSnapThreshold
       ) {
         remote.isRemoteJumping = false;
-
         remote.groundY = incomingPosition.y;
-
         remote.targetPosition.y = remote.groundY;
       }
-    } else {
-      /*
-       * NORMAL WALKING
-       *
-       * Ignore incoming Y completely.
-       *
-       * This is the main fix for:
-       *
-       * "walking character looks like jumping"
-       */
-      remote.targetPosition.y = remote.groundY;
     }
-
-    // =====================================================
-    // TARGET X / Z
-    // =====================================================
 
     remote.targetPosition.x = incomingPosition.x;
 
     remote.targetPosition.z = incomingPosition.z;
-
-    // =====================================================
-    // ROTATION
-    // =====================================================
 
     const currentRotation = remote.root.rotation.y;
 
@@ -1497,16 +1516,6 @@ export class Explore3dPlayerService {
     remote.root.rotation.y =
       currentRotation + rotationDifference * rotationSmooth;
 
-    // =====================================================
-    // ANIMATION
-    // =====================================================
-
-    /*
-     * Jump has priority.
-     *
-     * Otherwise movement is determined ONLY from
-     * horizontal speed.
-     */
     if (remote.isRemoteJumping) {
       if (remote.jumpAnimation) {
         this.playRemoteAnimation(remote, 'jump');
@@ -1519,20 +1528,22 @@ export class Explore3dPlayerService {
       this.playRemoteAnimation(remote, 'idle');
     }
 
-    // =====================================================
-    // DISPLAY NAME UPDATE
-    // =====================================================
+    const incomingDisplayName = player.displayName?.trim();
+    const stableDisplayName =
+      incomingDisplayName ||
+      (player.userId && this.remoteDisplayNames.get(player.userId)) ||
+      remote.displayName ||
+      'Player';
 
-    if (remote.displayName !== player.displayName) {
-      remote.displayName = player.displayName || 'Player';
+    if (incomingDisplayName && player.userId) {
+      this.remoteDisplayNames.set(player.userId, incomingDisplayName);
+    }
 
+    if (remote.displayName !== stableDisplayName) {
+      remote.displayName = stableDisplayName;
       this.updateRemoteNamePlate(remote);
     }
   }
-
-  // =========================================================
-  // UPDATE REMOTE VISUALS
-  // =========================================================
 
   private updateRemoteVisuals(delta: number): void {
     if (this.remotePlayers.size === 0) {
@@ -1547,28 +1558,12 @@ export class Explore3dPlayerService {
         continue;
       }
 
-      // ===================================================
-      // ROOT INTERPOLATION
-      // ===================================================
-
       remote.root.position = Vector3.Lerp(
         remote.root.position,
         remote.targetPosition,
         smoothFactor,
       );
 
-      // ===================================================
-      // STABLE VISUAL GROUND
-      // ===================================================
-
-      /*
-       * The visual model itself must remain at its
-       * calculated GLB feet offset.
-       *
-       * The remote.root handles multiplayer position.
-       *
-       * The visualRoot handles model origin correction.
-       */
       if (
         remote.visualRoot &&
         !remote.visualRoot.isDisposed() &&
@@ -1577,21 +1572,20 @@ export class Explore3dPlayerService {
         remote.visualRoot.position.y = remote.visualGroundOffset;
       }
 
-      // ===================================================
-      // USERNAME
-      // ===================================================
-
       if (remote.namePlate && !remote.namePlate.isDisposed()) {
         remote.namePlate.position.x = 0;
 
         remote.namePlate.position.z = 0;
       }
+
+      if (remote.chatBubble && !remote.chatBubble.isDisposed()) {
+        remote.chatBubble.position.x = 0;
+        remote.chatBubble.position.z = 0;
+
+        this.updateRemoteChatBubble(remote, performance.now());
+      }
     }
   }
-
-  // =========================================================
-  // REPLACE REMOTE PLAYER
-  // =========================================================
 
   private replaceRemotePlayer(player: Explore3dRemotePlayer): void {
     const connectionId = player.connectionId;
@@ -1600,10 +1594,6 @@ export class Explore3dPlayerService {
 
     this.createRemotePlayer(player);
   }
-
-  // =========================================================
-  // DISPOSE REMOTE PLAYER
-  // =========================================================
 
   private disposeRemotePlayer(connectionId: string): void {
     const remote = this.remotePlayers.get(connectionId);
@@ -1614,31 +1604,18 @@ export class Explore3dPlayerService {
 
     remote.isDisposed = true;
 
-    // =====================================================
-    // ANIMATIONS
-    // =====================================================
-
     for (const animation of remote.animationGroups) {
       try {
         animation.stop();
 
         animation.dispose();
-      } catch {
-        // Ignore already disposed animation.
-      }
+      } catch {}
     }
 
     remote.animationGroups = [];
 
-    // =====================================================
-    // USERNAME
-    // =====================================================
-
     this.disposeRemoteNamePlate(remote);
-
-    // =====================================================
-    // VISUAL ROOT
-    // =====================================================
+    this.disposeRemoteChatBubble(remote);
 
     if (!remote.root.isDisposed()) {
       remote.root.dispose(false, false);
@@ -1666,7 +1643,6 @@ export class Explore3dPlayerService {
 
     this.networkMoveTimer += delta;
 
-    // Send movement approximately 15 times per second.
     if (this.networkMoveTimer < this.networkUpdateInterval) {
       return;
     }
@@ -1683,30 +1659,67 @@ export class Explore3dPlayerService {
 
     const rotationDifference = Math.abs(rotationY - this.lastNetworkRotationY);
 
-    // Don't send unnecessary packets when the player is basically still.
-    if (positionDifference < 0.005 && rotationDifference < 0.01) {
+    if (
+      !this.networkInitialSyncPending &&
+      positionDifference < 0.005 &&
+      rotationDifference < 0.01
+    ) {
       return;
     }
+
+    this.networkInitialSyncPending = false;
 
     this.lastNetworkPosition = position.clone();
     this.lastNetworkRotationY = rotationY;
 
-    // IMPORTANT:
-    // Do not await this.
-    // Network latency must not block the local movement loop.
-    void this.multiplayer
-      .movePlayer({
-        x: position.x,
-        y: position.y,
-        z: position.z,
-        rotationY,
-      })
-      .catch((error) => {});
+    // Coalesce network updates. If SignalR is busy, only the newest
+    // transform is kept and sent when the current packet finishes.
+    this.networkMovePending = true;
+    void this.flushNetworkMovement();
   }
 
-  // =========================================================
-  // FIND PLAYER SKELETON
-  // =========================================================
+  private async flushNetworkMovement(): Promise<void> {
+    if (this.networkMoveInFlight) {
+      return;
+    }
+
+    if (!this.networkMovePending) {
+      return;
+    }
+
+    if (!this.player || this.player.isDisposed()) {
+      return;
+    }
+
+    if (!this.multiplayer.connected()) {
+      return;
+    }
+
+    if (!this.multiplayer.getCurrentWorld()) {
+      return;
+    }
+
+    this.networkMovePending = false;
+
+    this.networkMoveInFlight = true;
+
+    try {
+      await this.multiplayer.movePlayer({
+        x: this.player.position.x,
+        y: this.player.position.y,
+        z: this.player.position.z,
+        rotationY: this.player.rotation.y,
+      });
+    } catch {
+      // Movement packets are best-effort; the next update will recover.
+    } finally {
+      this.networkMoveInFlight = false;
+
+      if (this.networkMovePending) {
+        void this.flushNetworkMovement();
+      }
+    }
+  }
 
   private findPlayerSkeleton(meshes: AbstractMesh[]): Skeleton | undefined {
     const skeletons: Skeleton[] = [];
@@ -1730,10 +1743,6 @@ export class Explore3dPlayerService {
     return skeletons[0];
   }
 
-  // =========================================================
-  // IMPORTED SKELETON DEBUG
-  // =========================================================
-
   private logImportedSkeletons(meshes: AbstractMesh[]): void {
     const skeletons = [
       ...new Set(
@@ -1747,21 +1756,9 @@ export class Explore3dPlayerService {
     }
   }
 
-  // =========================================================
-  // ANIMATION DIAGNOSTICS
-  // =========================================================
-
   private logFinalAnimations(): void {}
 
-  // =========================================================
-  // ANIMATION TARGET DEBUG
-  // =========================================================
-
   private logAnimationTargets(): void {}
-
-  // =========================================================
-  // SKELETON BONE DEBUG
-  // =========================================================
 
   private logSkeletonBones(meshes: AbstractMesh[]): void {
     const skeletons = [
@@ -1775,10 +1772,6 @@ export class Explore3dPlayerService {
     for (const skeleton of skeletons) {
     }
   }
-
-  // =========================================================
-  // CONFIGURE MODEL
-  // =========================================================
 
   private configureImportedModel(meshes: AbstractMesh[]): void {
     const textures = meshes.flatMap(
@@ -1810,10 +1803,6 @@ export class Explore3dPlayerService {
       mesh.checkCollisions = false;
     }
   }
-
-  // =========================================================
-  // CREATE COLLIDER
-  // =========================================================
 
   private createCollider(): Mesh {
     const collider = MeshBuilder.CreateCapsule(
@@ -1847,10 +1836,6 @@ export class Explore3dPlayerService {
     return collider;
   }
 
-  // =========================================================
-  // FALLBACK PLAYER
-  // =========================================================
-
   private createFallbackPlayer(): void {
     const collider = this.createCollider();
 
@@ -1867,10 +1852,6 @@ export class Explore3dPlayerService {
     this.currentPlayerAnimation = null;
   }
 
-  // =========================================================
-  // FIND CHARACTER ANIMATIONS
-  // =========================================================
-
   private findCharacterAnimations(model: CharacterModelConfig): void {
     const groups = this.playerAnimations;
 
@@ -1882,7 +1863,6 @@ export class Explore3dPlayerService {
     );
 
     const findAnimation = (aliases: string[]): AnimationGroup | undefined => {
-      // Exact
       for (const alias of aliases) {
         const normalizedAlias = normalize(alias);
 
@@ -1895,7 +1875,6 @@ export class Explore3dPlayerService {
         }
       }
 
-      // Partial
       for (const alias of aliases) {
         const normalizedAlias = normalize(alias);
 
@@ -1940,10 +1919,6 @@ export class Explore3dPlayerService {
     }
   }
 
-  // =========================================================
-  // STOP LOCAL ANIMATIONS
-  // =========================================================
-
   private stopAllAnimations(): void {
     for (const group of this.playerAnimations) {
       group.stop();
@@ -1955,10 +1930,6 @@ export class Explore3dPlayerService {
 
     this.currentPlayerAnimation = null;
   }
-
-  // =========================================================
-  // PLAY LOCAL ANIMATION
-  // =========================================================
 
   private playPlayerAnimation(type: PlayerAnimationType): void {
     const animationMap: Record<
@@ -2021,17 +1992,9 @@ export class Explore3dPlayerService {
     this.currentPlayerAnimation = type;
   }
 
-  // =========================================================
-  // RUN CONTROL
-  // =========================================================
-
   setRunning(running: boolean): void {
     this.isRunning = running;
   }
-
-  // =========================================================
-  // JUMP
-  // =========================================================
 
   jump(): void {
     if (!this.player || this.player.isDisposed() || this.isDisposed) {
@@ -2052,10 +2015,6 @@ export class Explore3dPlayerService {
       this.playPlayerAnimation('jump');
     }
   }
-
-  // =========================================================
-  // UPDATE
-  // =========================================================
 
   update(
     camera: ArcRotateCamera,
@@ -2101,27 +2060,19 @@ export class Explore3dPlayerService {
 
     this.updateCameraTarget(camera, delta);
 
-    // =======================================================
-    // MULTIPLAYER
-    // =======================================================
-
     this.updateNetworkPosition(delta);
 
-    this.syncRemotePlayers();
+    this.remoteSyncTimer += delta;
 
-    /*
-     * Remote target interpolation happens EVERY frame.
-     */
+    if (this.remoteSyncTimer >= this.remoteSyncInterval) {
+      this.remoteSyncTimer = 0;
+      this.syncRemotePlayers();
+    }
+
     this.updateRemoteVisuals(delta);
 
-    // Keep nearby idle players visually facing each other.
-    // This is calculated locally on every client and does not touch the camera.
     this.updateMutualPlayerFacing(delta);
   }
-
-  // =========================================================
-  // MUTUAL PLAYER FACING
-  // =========================================================
 
   private readonly mutualFacingDistance = 5.0;
   private readonly mutualFacingIdleSpeed = 0.08;
@@ -2138,7 +2089,6 @@ export class Explore3dPlayerService {
     let nearestRemote: RemotePlayerVisual | null = null;
     let nearestDistanceSquared = Number.POSITIVE_INFINITY;
 
-    // Find the nearest loaded remote player.
     for (const remote of this.remotePlayers.values()) {
       if (remote.isDisposed || remote.root.isDisposed() || remote.isLoading) {
         continue;
@@ -2161,12 +2111,6 @@ export class Explore3dPlayerService {
       return;
     }
 
-    // ---------------------------------------------------------
-    // LOCAL PLAYER
-    // ---------------------------------------------------------
-    // Movement direction remains the source of rotation while
-    // walking/running. Only an idle local player turns to face
-    // the nearby remote player.
     if (!this.isActuallyMoving && !this.isJumping) {
       const localTargetAngle = this.getHorizontalLookAngle(
         this.player.position,
@@ -2181,12 +2125,6 @@ export class Explore3dPlayerService {
       );
     }
 
-    // ---------------------------------------------------------
-    // REMOTE PLAYER
-    // ---------------------------------------------------------
-    // If the remote player is idle, it independently faces this
-    // local player too. This makes the result reciprocal on both
-    // browser screens without synchronizing camera rotation.
     if (
       !nearestRemote.isRemoteJumping &&
       nearestRemote.movementSpeed <= this.mutualFacingIdleSpeed
@@ -2231,10 +2169,6 @@ export class Explore3dPlayerService {
 
     return current + difference * factor;
   }
-
-  // =========================================================
-  // MANUAL MOVEMENT
-  // =========================================================
 
   private updateManualMovement(movement: Vector3, delta: number): void {
     const direction = movement.clone();
@@ -2294,10 +2228,6 @@ export class Explore3dPlayerService {
     this.playPlayerAnimation('walk');
   }
 
-  // =========================================================
-  // COLLISION MOVEMENT
-  // =========================================================
-
   private moveWithCollision(movement: Vector3): boolean {
     if (!this.player || this.player.isDisposed()) {
       return false;
@@ -2322,10 +2252,6 @@ export class Explore3dPlayerService {
     return horizontalMovement > 0.0001;
   }
 
-  // =========================================================
-  // AUTO NAVIGATION
-  // =========================================================
-
   goToBusiness(business: Business, position: Vector3): void {
     if (!this.player || this.player.isDisposed() || this.isDisposed) {
       return;
@@ -2341,10 +2267,6 @@ export class Explore3dPlayerService {
 
     this.playPlayerAnimation('walk');
   }
-
-  // =========================================================
-  // AUTO NAVIGATION UPDATE
-  // =========================================================
 
   private updateAutoNavigation(delta: number): void {
     if (
@@ -2400,10 +2322,6 @@ export class Explore3dPlayerService {
     }
   }
 
-  // =========================================================
-  // FINISH NAVIGATION
-  // =========================================================
-
   private finishNavigation(): void {
     this.isAutoNavigating = false;
 
@@ -2420,10 +2338,6 @@ export class Explore3dPlayerService {
     }
   }
 
-  // =========================================================
-  // CANCEL NAVIGATION
-  // =========================================================
-
   cancelNavigation(): void {
     this.destinationBusiness = null;
 
@@ -2431,10 +2345,6 @@ export class Explore3dPlayerService {
 
     this.isAutoNavigating = false;
   }
-
-  // =========================================================
-  // GRAVITY
-  // =========================================================
 
   private applyGravity(delta: number): void {
     if (!this.player || this.player.isDisposed()) {
@@ -2477,10 +2387,6 @@ export class Explore3dPlayerService {
     }
   }
 
-  // =========================================================
-  // LANDING ANIMATION
-  // =========================================================
-
   private updateMovementAnimationAfterLanding(): void {
     if (this.isAutoNavigating) {
       this.playPlayerAnimation('walk');
@@ -2504,10 +2410,6 @@ export class Explore3dPlayerService {
 
     this.playPlayerAnimation('walk');
   }
-
-  // =========================================================
-  // GROUND CHECK
-  // =========================================================
 
   private checkGround(): boolean {
     if (!this.player || this.player.isDisposed() || !this.scene) {
@@ -2533,10 +2435,6 @@ export class Explore3dPlayerService {
 
     return !!hit?.hit && !!hit.pickedMesh;
   }
-
-  // =========================================================
-  // ROTATE PLAYER
-  // =========================================================
 
   private rotatePlayerToDirection(direction: Vector3, delta: number): void {
     if (!this.player || this.player.isDisposed()) {
@@ -2567,10 +2465,6 @@ export class Explore3dPlayerService {
     this.player.rotation.y = currentAngle + difference * smoothFactor;
   }
 
-  // =========================================================
-  // CAMERA TARGET
-  // =========================================================
-
   private updateCameraTarget(camera: ArcRotateCamera, delta: number): void {
     if (!this.player || this.player.isDisposed()) {
       return;
@@ -2591,10 +2485,6 @@ export class Explore3dPlayerService {
     camera.target = Vector3.Lerp(camera.target, target, smoothFactor);
   }
 
-  // =========================================================
-  // CAMERA TARGET POSITION
-  // =========================================================
-
   getCameraTarget(): Vector3 {
     if (!this.player || this.player.isDisposed()) {
       return Vector3.Zero();
@@ -2602,10 +2492,6 @@ export class Explore3dPlayerService {
 
     return this.player.position.add(new Vector3(0, 1.2, 0));
   }
-
-  // =========================================================
-  // PLAYER POSITION
-  // =========================================================
 
   getPlayerPosition(): Vector3 {
     if (!this.player || this.player.isDisposed()) {
@@ -2615,46 +2501,14 @@ export class Explore3dPlayerService {
     return this.player.position.clone();
   }
 
-  // =========================================================
-  // RESET POSITION
-  // =========================================================
-
-  // =========================================================
-  // RESET POSITION
-  // =========================================================
-
-  resetPosition(position?: Vector3): void {
+  resetPosition(position: Vector3 = Vector3.Zero()): void {
     if (!this.player || this.player.isDisposed() || this.isDisposed) {
       return;
     }
 
     this.cancelNavigation();
 
-    // =======================================================
-    // SAFE HUB SPAWN
-    // =======================================================
-
-    const spawnPoints = [
-      new Vector3(-24, 1.2, -24),
-      new Vector3(24, 1.2, -24),
-      new Vector3(-24, 1.2, 24),
-      new Vector3(24, 1.2, 24),
-
-      new Vector3(-28, 1.2, -18),
-      new Vector3(28, 1.2, -18),
-      new Vector3(-28, 1.2, 18),
-      new Vector3(28, 1.2, 18),
-    ];
-
-    const spawn =
-      position?.clone() ??
-      spawnPoints[Math.floor(Math.random() * spawnPoints.length)].clone();
-
-    // =======================================================
-    // APPLY POSITION
-    // =======================================================
-
-    this.player.position.copyFrom(spawn);
+    this.player.position.copyFrom(position);
 
     this.player.rotation.y = 0;
 
@@ -2670,50 +2524,27 @@ export class Explore3dPlayerService {
 
     this.isActuallyMoving = false;
 
-    // =======================================================
-    // NETWORK BASELINE
-    // =======================================================
-
-    this.lastNetworkPosition = spawn.clone();
+    this.lastNetworkPosition = position.clone();
 
     this.lastNetworkRotationY = 0;
 
     this.networkMoveTimer = 0;
 
-    // =======================================================
-    // ANIMATION
-    // =======================================================
+    this.networkInitialSyncPending = false;
 
     this.stopAllAnimations();
 
     this.playPlayerAnimation('idle');
 
-    // =======================================================
-    // SYNC MULTIPLAYER
-    // =======================================================
-
     if (this.multiplayer.connected() && this.multiplayer.getCurrentWorld()) {
-      void this.multiplayer
-        .movePlayer({
-          x: spawn.x,
-          y: spawn.y,
-          z: spawn.z,
-          rotationY: 0,
-        })
-        .catch((error) => {});
+      this.networkMovePending = true;
+      void this.flushNetworkMovement();
     }
   }
-  // =========================================================
-  // REMOTE PLAYER COUNT
-  // =========================================================
 
   getRemotePlayerCount(): number {
     return this.remotePlayers.size;
   }
-
-  // =========================================================
-  // DISPOSE
-  // =========================================================
 
   dispose(): void {
     this.isDisposed = true;
@@ -2721,10 +2552,6 @@ export class Explore3dPlayerService {
     this.isInitialized = false;
 
     this.cancelNavigation();
-
-    // =======================================================
-    // LOCAL ANIMATIONS
-    // =======================================================
 
     for (const animation of this.playerAnimations) {
       animation.stop();
@@ -2746,10 +2573,6 @@ export class Explore3dPlayerService {
 
     this.warnedAnimations.clear();
 
-    // =======================================================
-    // REMOTE PLAYERS
-    // =======================================================
-
     const remoteIds = Array.from(this.remotePlayers.keys());
 
     for (const connectionId of remoteIds) {
@@ -2759,10 +2582,8 @@ export class Explore3dPlayerService {
     this.remotePlayers.clear();
 
     this.remotePlayerLoadPromises.clear();
-
-    // =======================================================
-    // STATE
-    // =======================================================
+    this.remoteDisplayNames.clear();
+    this.pendingRemoteChats.clear();
 
     this.isJumping = false;
 
@@ -2773,10 +2594,10 @@ export class Explore3dPlayerService {
     this.isActuallyMoving = false;
 
     this.networkMoveTimer = 0;
+    this.networkMoveInFlight = false;
+    this.networkMovePending = false;
 
-    // =======================================================
-    // LOCAL VISUAL
-    // =======================================================
+    this.networkInitialSyncPending = true;
 
     if (this.playerVisual && !this.playerVisual.isDisposed()) {
       this.playerVisual.dispose(false, false);

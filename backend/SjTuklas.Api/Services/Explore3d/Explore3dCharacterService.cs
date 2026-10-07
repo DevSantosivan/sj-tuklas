@@ -256,4 +256,69 @@ public sealed class Explore3dCharacterService : IExplore3dCharacterService
 
         return username.Trim();
     }
+
+
+
+public async Task<Explore3dCharacter?> UpdateModerationAsync(
+    Guid userId,
+    int warningCount,
+    int restrictionCount,
+    DateTime? restrictedUntil,
+    bool isChatBlocked,
+    CancellationToken cancellationToken = default
+)
+{
+    var payload = new
+    {
+        warning_count = warningCount,
+        restriction_count = restrictionCount,
+        restricted_until = restrictedUntil,
+        is_chat_blocked = isChatBlocked,
+        updated_at = DateTime.UtcNow
+    };
+
+    var url = $"{TableName}?user_id=eq.{userId}";
+
+    using var httpRequest = new HttpRequestMessage(
+        HttpMethod.Patch,
+        url
+    );
+
+    httpRequest.Headers.Add("Prefer", "return=representation");
+    httpRequest.Content = JsonContent.Create(
+        payload,
+        options: JsonOptions
+    );
+
+    using var response = await _httpClient.SendAsync(
+        httpRequest,
+        cancellationToken
+    );
+
+    if (!response.IsSuccessStatusCode)
+    {
+        var error = await response.Content.ReadAsStringAsync(
+            cancellationToken
+        );
+
+        _logger.LogError(
+            "Failed to update Global Chat moderation for user {UserId}. Status: {Status}. Error: {Error}",
+            userId,
+            response.StatusCode,
+            error
+        );
+
+        response.EnsureSuccessStatusCode();
+    }
+
+    var updated =
+        await response.Content.ReadFromJsonAsync<List<Explore3dCharacter>>(
+            JsonOptions,
+            cancellationToken
+        );
+
+    return updated?.FirstOrDefault();
+}
+
+
 }

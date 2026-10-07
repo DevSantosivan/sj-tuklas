@@ -146,7 +146,10 @@
           {{ destinationBusiness.name }}
         </strong>
       } @else if (isInCategoryWorld && selectedCategory) {
-        <strong> {{ selectedCategory }} Businesses in San Jose </strong>
+        <strong>
+          {{ selectedCategory }}
+          Businesses in San Jose
+        </strong>
       } @else {
         <strong> Businesses in San Jose </strong>
       }
@@ -433,16 +436,6 @@
           <!-- ACTIONS -->
 
           <div class="business-actions">
-            <button
-              type="button"
-              class="primary-action"
-              (click)="chatWithBusiness(selectedBusiness)"
-            >
-              <i class="bx bx-message-rounded-dots"></i>
-
-              <span> Chat </span>
-            </button>
-
             @if (selectedBusiness.phone) {
               <button
                 type="button"
@@ -589,281 +582,19 @@
   }
 
   <!-- ===================================================== -->
-  <!-- ALWAYS VISIBLE GLOBAL CHAT -->
+  <!-- GLOBAL CHAT -->
   <!-- ===================================================== -->
 
-  <app-global-chat></app-global-chat>
-
-  <!-- ================================================= -->
-  <!-- FULL CHAT -->
-  <!-- ================================================= -->
-
-  @if (chatOpen) {
-    <section
-      class="global-chat-panel"
-      role="dialog"
-      aria-modal="false"
-      aria-labelledby="global-chat-title"
-    >
-      <!-- HEADER -->
-
-      <header class="global-chat-header">
-        <div class="global-chat-title">
-          <div class="global-chat-icon">
-            <i class="bx bx-world"></i>
-
-            <span
-              class="global-chat-status"
-              [class.connected]="chatConnected"
-            ></span>
-          </div>
-
-          <div class="global-chat-heading-copy">
-            <span class="chat-eyebrow"> SJ TUKLAS COMMUNITY </span>
-
-            <strong id="global-chat-title"> Global Chat </strong>
-
-            <span class="chat-connection-status" [class.online]="chatConnected">
-              <span class="connection-dot"></span>
-
-              @if (chatConnected) {
-                Everyone can chat
-              } @else if (chatConnecting) {
-                Connecting...
-              } @else {
-                Chat unavailable
-              }
-            </span>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          class="chat-close"
-          (click)="toggleGlobalChat()"
-          aria-label="Close global chat"
-        >
-          <i class="bx bx-x"></i>
-        </button>
-      </header>
-
-      <!-- INFO -->
-
-      <div class="global-chat-info">
-        <i class="bx bx-info-circle"></i>
-
-        <span>
-          Messages appear above the sender's character in the 3D world.
-        </span>
-      </div>
-
-      <!-- MESSAGES -->
-
-      <div
-        class="global-chat-messages"
-        role="log"
-        aria-live="polite"
-        aria-label="Global chat messages"
-      >
-        @if (chatMessages.length === 0) {
-          <div class="chat-empty">
-            <div class="chat-empty-icon">
-              <i class="bx bx-message-rounded-dots"></i>
-            </div>
-
-            <strong> Welcome to Global Chat </strong>
-
-            <span> Say hello to other explorers around San Jose. </span>
-          </div>
-        }
-
-        @for (message of chatMessages; track message.id) {
-          <article
-            class="chat-message"
-            [class.own-message]="message.userName === chatName.trim()"
-          >
-            <div class="chat-avatar">
-              {{ message.userName.charAt(0).toUpperCase() }}
-            </div>
-
-            <div class="chat-message-body">
-              <div class="chat-message-meta">
-                <strong>
-                  {{ message.userName }}
-                </strong>
-
-                <span>
-                  {{ message.createdAt }}
-                </span>
-              </div>
-
-              <p>
-                {{ message.message }}
-              </p>
-            </div>
-          </article>
-        }
-      </div>
-
-      <!-- FOOTER -->
-
-      <footer class="global-chat-footer">
-        <!-- USER -->
-
-        <div class="chat-user-row">
-          <div class="chat-user-icon">
-            <i class="bx bx-user"></i>
-          </div>
-
-          <div class="chat-user-field">
-            <label for="global-chat-name"> Display name </label>
-
-            <input
-              id="global-chat-name"
-              type="text"
-              [(ngModel)]="chatName"
-              placeholder="Your name"
-              maxlength="40"
-              autocomplete="nickname"
-              class="chat-name-input"
-            />
-          </div>
-        </div>
-
-        <!-- MESSAGE -->
-
-        <div class="chat-input-row">
-          <input
-            type="text"
-            [(ngModel)]="chatMessage"
-            (keydown.enter)="sendGlobalMessage()"
-            placeholder="Say something..."
-            maxlength="500"
-            autocomplete="off"
-            class="chat-message-input"
-            [disabled]="!chatConnected"
-            aria-label="Global chat message"
-          />
-
-          <button
-            type="button"
-            class="chat-send"
-            (click)="sendGlobalMessage()"
-            [disabled]="
-              !chatMessage.trim() || !chatName.trim() || !chatConnected
-            "
-            aria-label="Send global chat message"
-          >
-            <i class="bx bx-send"></i>
-          </button>
-        </div>
-
-        <!-- CONNECTION STATUS -->
-
-        @if (!chatConnected) {
-          <div class="chat-footer-status">
-            @if (chatConnecting) {
-              <i class="bx bx-loader-alt bx-spin"></i>
-
-              <span> Connecting to Global Chat... </span>
-            } @else {
-              <i class="bx bx-error-circle"></i>
-
-              <span> Unable to connect to Global Chat. </span>
-            }
-          </div>
-        }
-      </footer>
-    </section>
-  }
-
-  <!-- ================================================= -->
-  <!-- ALWAYS VISIBLE MINI FEED -->
-  <!-- ================================================= -->
-
-  <button
-    type="button"
-    class="global-chat-mini"
-    [class.chat-active]="chatOpen"
-    (click)="toggleGlobalChat()"
-    aria-label="Open global community chat"
-    [attr.aria-expanded]="chatOpen"
-  >
-    <div class="mini-chat-header">
-      <div class="mini-chat-brand">
-        <span class="mini-chat-icon">
-          <i class="bx bx-world"></i>
-
-          <span
-            class="mini-chat-status"
-            [class.connected]="chatConnected"
-          ></span>
-        </span>
-
-        <div class="mini-chat-heading">
-          <strong> Global Chat </strong>
-
-          <span>
-            {{ chatOnlineLabel }}
-          </span>
-        </div>
-      </div>
-
-      <span class="mini-chat-action">
-        <i
-          class="bx"
-          [class.bx-chevron-up]="!chatOpen"
-          [class.bx-chevron-down]="chatOpen"
-        ></i>
-      </span>
-    </div>
-
-    <!-- RECENT MESSAGES -->
-
-    @if (recentChatMessages.length > 0) {
-      <div class="mini-chat-messages">
-        @for (message of recentChatMessages; track message.id) {
-          <div class="mini-chat-message">
-            <span class="mini-chat-avatar">
-              {{ message.userName.charAt(0).toUpperCase() }}
-            </span>
-
-            <div class="mini-chat-message-copy">
-              <strong>
-                {{ message.userName }}
-              </strong>
-
-              <span>
-                {{ message.message }}
-              </span>
-            </div>
-          </div>
-        }
-      </div>
-    } @else {
-      <div class="mini-chat-empty">
-        <i class="bx bx-message-rounded-dots"></i>
-
-        <span> Say hi to everyone... </span>
-      </div>
-    }
-
-    <!-- FOOTER -->
-
-    <div class="mini-chat-footer">
-      <span>
-        <i class="bx bx-group"></i>
-
-        Community chat
-      </span>
-
-      <span>
-        Open
-
-        <i class="bx bx-right-arrow-alt"></i>
-      </span>
-    </div>
-  </button>
+  <app-global-chat
+    [messages]="globalChatMessages"
+    [isOnline]="globalChatOnline"
+    [onlineCount]="multiplayer.onlinePlayers()"
+    [unreadCount]="globalChatUnreadCount"
+    [currentUsername]="globalChatCurrentUsername"
+    [moderation]="globalChatModeration"
+    (messageSend)="sendGlobalMessage($event)"
+    (chatOpened)="onGlobalChatOpened()"
+  ></app-global-chat>
 </div>
 
 <!-- ===================================================== -->

@@ -177,6 +177,20 @@ export class Explore3dMultiplayerService {
   private currentWorld: CurrentWorldState | null = null;
 
   // ===========================================================
+  // MOVEMENT NETWORK THROTTLE
+  // ===========================================================
+
+  /**
+   * Keep movement traffic bounded even if a caller accidentally calls
+   * movePlayer() every render frame. Only the newest position is kept.
+   */
+  private readonly movementSendIntervalMs = 66; // ~15 Hz
+  private pendingMove: Explore3dPlayerPosition | null = null;
+  private movementSendInFlight = false;
+  private movementSendTimer?: ReturnType<typeof setTimeout>;
+  private lastMovementSentAt = 0;
+
+  // ===========================================================
   // JOIN STATE
   // ===========================================================
 
@@ -616,6 +630,7 @@ export class Explore3dMultiplayerService {
     this.joinedWorld = false;
 
     this.clearPlayers();
+    this.pendingMove = null;
 
     this._onlinePlayers.set(0);
 
@@ -725,10 +740,6 @@ export class Explore3dMultiplayerService {
   // ===========================================================
 
   async movePlayer(position: Explore3dPlayerPosition): Promise<void> {
-    // ---------------------------------------------------------
-    // No connection
-    // ---------------------------------------------------------
-
     if (
       !this.connection ||
       this.connection.state !== HubConnectionState.Connected
@@ -736,81 +747,88 @@ export class Explore3dMultiplayerService {
       return;
     }
 
-    // ---------------------------------------------------------
-    // No current world
-    // ---------------------------------------------------------
-
-    if (!this.currentWorld) {
+    if (!this.currentWorld || !this.joinedWorld || this._joining()) {
       return;
     }
 
-    // ---------------------------------------------------------
-    // IMPORTANT:
-    //
-    // Do not send movement before JoinWorld succeeds.
-    // ---------------------------------------------------------
-
-    if (!this.joinedWorld) {
-      return;
-    }
-
-    // ---------------------------------------------------------
-    // Do not move while joining
-    // ---------------------------------------------------------
-
-    if (this._joining()) {
-      return;
-    }
-
-    // ---------------------------------------------------------
-    // Update local world position
-    // ---------------------------------------------------------
-
+    // Keep the local world state current immediately.
     this.currentWorld = {
       ...this.currentWorld,
-
       position: {
         x: position.x,
-
         y: position.y,
-
         z: position.z,
-
         rotationY: position.rotationY,
       },
     };
 
-    // ---------------------------------------------------------
-    // Send movement
-    //
-    // Backend:
-    //
-    // MovePlayer(
-    //     Explore3dPlayerPosition position
-    // )
-    //
-    // So ONLY ONE ARGUMENT is sent.
-    // ---------------------------------------------------------
+    // Coalesce movement packets: never queue stale positions.
+    this.pendingMove = {
+      x: position.x,
+      y: position.y,
+      z: position.z,
+      rotationY: position.rotationY,
+    };
+
+    void this.flushMovementSend();
+  }
+
+  private scheduleMovementFlush(delayMs: number): void {
+    if (this.movementSendTimer || this.movementSendInFlight) {
+      return;
+    }
+
+    this.movementSendTimer = setTimeout(
+      () => {
+        this.movementSendTimer = undefined;
+        void this.flushMovementSend();
+      },
+      Math.max(0, delayMs),
+    );
+  }
+
+  private async flushMovementSend(): Promise<void> {
+    if (this.movementSendInFlight || !this.pendingMove) {
+      return;
+    }
+
+    if (
+      !this.connection ||
+      this.connection.state !== HubConnectionState.Connected ||
+      !this.currentWorld ||
+      !this.joinedWorld ||
+      this._joining()
+    ) {
+      return;
+    }
+
+    const elapsed = performance.now() - this.lastMovementSentAt;
+
+    if (this.lastMovementSentAt > 0 && elapsed < this.movementSendIntervalMs) {
+      this.scheduleMovementFlush(this.movementSendIntervalMs - elapsed);
+      return;
+    }
+
+    const move = this.pendingMove;
+    this.pendingMove = null;
+    this.movementSendInFlight = true;
+    this.lastMovementSentAt = performance.now();
 
     try {
-      await this.connection.send('MovePlayer', {
-        x: position.x,
-
-        y: position.y,
-
-        z: position.z,
-
-        rotationY: position.rotationY,
-      });
+      await this.connection.send('MovePlayer', move);
     } catch (error) {
-      /*
-       * Individual movement packets are allowed to fail.
-       *
-       * Do not destroy the entire connection because of
-       * one movement packet.
-       */
-
       console.warn('[Explore3D] MovePlayer failed:', error);
+    } finally {
+      this.movementSendInFlight = false;
+
+      // If movement happened while the packet was in flight, send only
+      // the latest position after the throttle interval.
+      if (this.pendingMove) {
+        const elapsedAfterSend = performance.now() - this.lastMovementSentAt;
+        this.scheduleMovementFlush(
+          Math.max(0, this.movementSendIntervalMs - elapsedAfterSend),
+        );
+      }
     }
   }
 
@@ -820,6 +838,11 @@ export class Explore3dMultiplayerService {
 
   async leaveWorld(): Promise<void> {
     this.joinedWorld = false;
+    this.pendingMove = null;
+    if (this.movementSendTimer) {
+      clearTimeout(this.movementSendTimer);
+      this.movementSendTimer = undefined;
+    }
 
     if (this.connection?.state === HubConnectionState.Connected) {
       try {
@@ -844,6 +867,11 @@ export class Explore3dMultiplayerService {
 
   async disconnect(): Promise<void> {
     this.joinedWorld = false;
+    this.pendingMove = null;
+    if (this.movementSendTimer) {
+      clearTimeout(this.movementSendTimer);
+      this.movementSendTimer = undefined;
+    }
 
     this.currentWorld = null;
 

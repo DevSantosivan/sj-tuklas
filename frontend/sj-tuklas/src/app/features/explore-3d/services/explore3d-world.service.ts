@@ -15,6 +15,7 @@ import {
   Vector3,
   Node,
   Texture,
+  Observer,
 } from '@babylonjs/core';
 
 import '@babylonjs/loaders/glTF';
@@ -48,6 +49,26 @@ export class Explore3dWorldService {
 
   private hubModelRoots: TransformNode[] = [];
   private categoryModelRoots: TransformNode[] = [];
+
+  // =========================================================
+  // HUB GLB STREAMING
+  // =========================================================
+  private readonly hubModelStates = new Map<
+    Explore3dCategory,
+    'unloaded' | 'loading' | 'loaded'
+  >();
+  private readonly hubModelRootsByCategory = new Map<
+    Explore3dCategory,
+    TransformNode
+  >();
+  private readonly hubModelCollisionByCategory = new Map<
+    Explore3dCategory,
+    Mesh
+  >();
+  private hubModelStreamingObserver?: Observer<Scene>;
+  private hubModelStreamingFrame = 0;
+  private readonly hubModelLoadDistance = 78;
+  private readonly hubModelDisableDistance = 95;
 
   private categoryTextures: DynamicTexture[] = [];
   private categoryMaterials: StandardMaterial[] = [];
@@ -125,7 +146,7 @@ export class Explore3dWorldService {
     },
     {
       category: 'Services',
-      fileName: 'office.glb',
+      fileName: 'services.glb',
       targetSize: 18,
       x: -58,
       z: -28,
@@ -256,11 +277,14 @@ export class Explore3dWorldService {
       // CATEGORY BUILDING GLBs
       // =======================================================
 
-      this.setLoading(true, 'Loading category buildings...', 55);
+      this.setLoading(true, 'Loading category buildings...', 52);
 
       await this.waitForFrame();
 
+      // Load all important hub GLBs while the loading screen is visible.
+      // This prevents a first-approach hitch during gameplay.
       await this.createHubModelPreviews();
+      this.startHubModelStreaming();
 
       if (this.isDisposed) {
         return;
@@ -270,7 +294,7 @@ export class Explore3dWorldService {
       // BUSINESS BILLBOARDS
       // =======================================================
 
-      this.setLoading(true, 'Loading local businesses...', 75);
+      this.setLoading(true, 'Loading local businesses...', 78);
 
       await this.waitForFrame();
 
@@ -284,7 +308,7 @@ export class Explore3dWorldService {
       // TIME OF DAY
       // =======================================================
 
-      this.setLoading(true, 'Finalizing world...', 90);
+      this.setLoading(true, 'Finalizing world...', 93);
 
       await this.waitForFrame();
 
@@ -1505,6 +1529,98 @@ export class Explore3dWorldService {
   // =========================================================
 
   private async createHubModelPreviews(): Promise<void> {
+    const total = this.hubModels.length;
+
+    for (let index = 0; index < total; index++) {
+      if (this.isDisposed) return;
+
+      const config = this.hubModels[index];
+      this.hubModelStates.set(config.category, 'loading');
+
+      const progress = 55 + Math.round(((index + 1) / total) * 17);
+      this.setLoading(true, `Loading ${config.category} building...`, progress);
+
+      await this.waitForFrame();
+
+      try {
+        await this.loadHubModel(config, new Vector3(config.x, 0, config.z));
+
+        if (this.isDisposed) return;
+
+        this.hubModelStates.set(config.category, 'loaded');
+        this.hideHubFallback(config.category);
+
+        // Give Babylon one frame to finish the imported resources before
+        // the next building starts loading.
+        await this.waitForFrame();
+      } catch (error) {
+        console.warn(
+          `[Explore3dWorldService] Failed to load ${config.category}:`,
+          error,
+        );
+
+        // Keep the procedural fallback visible so one bad GLB does not
+        // prevent the rest of the world from becoming playable.
+        this.hubModelStates.set(config.category, 'unloaded');
+      }
+    }
+
+    this.setLoading(true, 'Preparing buildings for gameplay...', 72);
+    await this.waitForFrame();
+  }
+
+  private startHubModelStreaming(): void {
+    if (!this.scene || this.hubModelStreamingObserver) return;
+
+    this.hubModelStreamingObserver = this.scene.onBeforeRenderObservable.add(
+      (_scene: Scene) => {
+        if (this.isDisposed || this.currentCategory !== null) return;
+
+        this.hubModelStreamingFrame++;
+        if (this.hubModelStreamingFrame < 15) return;
+
+        this.hubModelStreamingFrame = 0;
+        this.updateHubModelStreaming();
+      },
+    );
+  }
+
+  private updateHubModelStreaming(): void {
+    if (!this.scene || this.isDisposed) return;
+
+    const camera = this.scene.activeCamera;
+    if (!camera) return;
+
+    const cameraPosition = camera.globalPosition;
+
+    for (const config of this.hubModels) {
+      if (this.hubModelStates.get(config.category) !== 'loaded') continue;
+
+      const distance = Vector3.Distance(
+        cameraPosition,
+        new Vector3(config.x, 0, config.z),
+      );
+
+      // GLBs are already loaded. This only controls rendering/collision.
+      this.setHubModelEnabled(
+        config.category,
+        distance <= this.hubModelDisableDistance,
+      );
+    }
+  }
+
+  private setHubModelEnabled(
+    category: Explore3dCategory,
+    enabled: boolean,
+  ): void {
+    const root = this.hubModelRootsByCategory.get(category);
+    const collider = this.hubModelCollisionByCategory.get(category);
+
+    root?.setEnabled(enabled);
+    collider?.setEnabled(enabled);
+  }
+
+  private hideHubFallback(category: Explore3dCategory): void {
     const fallbackNames: Record<Explore3dCategory, string> = {
       'Foods & Drinks': 'hubFoodPreview',
       Hotels: 'hubHotelFallback',
@@ -1513,21 +1629,11 @@ export class Explore3dWorldService {
       'Boarding House': 'hubBoardingFallback',
     };
 
-    for (const config of this.hubModels) {
-      if (this.isDisposed) return;
+    const fallbackName = fallbackNames[category];
 
-      try {
-        await this.loadHubModel(config, new Vector3(config.x, 0, config.z));
-
-        const fallbackName = fallbackNames[config.category];
-
-        for (const mesh of this.worldMeshes) {
-          if (mesh.name.startsWith(fallbackName)) {
-            mesh.setEnabled(false);
-          }
-        }
-      } catch {
-        // Keep procedural fallback visible if the GLB cannot load.
+    for (const mesh of this.worldMeshes) {
+      if (mesh.name.startsWith(fallbackName)) {
+        mesh.setEnabled(false);
       }
     }
   }
@@ -1537,8 +1643,8 @@ export class Explore3dWorldService {
   // =========================================================
   private configureModelTextureQuality(): void {
     for (const texture of this.scene.textures) {
-      texture.updateSamplingMode(Texture.TRILINEAR_SAMPLINGMODE);
-      texture.anisotropicFilteringLevel = 8;
+      texture.updateSamplingMode(Texture.BILINEAR_SAMPLINGMODE);
+      texture.anisotropicFilteringLevel = 2;
     }
   }
 
@@ -1600,6 +1706,7 @@ export class Explore3dWorldService {
         isHubModel: true,
       };
       this.hubModelRoots.push(root);
+      this.hubModelRootsByCategory.set(config.category, root);
       return;
     }
 
@@ -1644,8 +1751,10 @@ export class Explore3dWorldService {
       min = Vector3.Minimize(min, bounds.minimumWorld);
       max = Vector3.Maximize(max, bounds.maximumWorld);
 
+      // Visual meshes do not participate in the collision system.
+      // A single simple box collider is created below instead.
       mesh.isPickable = true;
-      mesh.checkCollisions = true;
+      mesh.checkCollisions = false;
       mesh.metadata = {
         ...(mesh.metadata ?? {}),
         exploreCategory: config.category,
@@ -1667,6 +1776,28 @@ export class Explore3dWorldService {
     };
 
     this.hubModelRoots.push(root);
+    this.hubModelRootsByCategory.set(config.category, root);
+
+    // One cheap collision box instead of collision checks on every GLB mesh.
+    const collider = MeshBuilder.CreateBox(
+      `hubModelCollider_${config.category.replace(/\W/g, '_')}`,
+      {
+        width: config.targetSize * 0.72,
+        depth: config.targetSize * 0.72,
+        height: config.targetSize * 0.65,
+      },
+      this.scene,
+    );
+
+    collider.position.set(
+      position.x,
+      position.y + (config.targetSize * 0.65) / 2,
+      position.z,
+    );
+    collider.isVisible = false;
+    collider.isPickable = false;
+    collider.checkCollisions = true;
+    this.hubModelCollisionByCategory.set(config.category, collider);
   }
 
   // =========================================================
@@ -2976,6 +3107,25 @@ export class Explore3dWorldService {
     if (this.isDisposed) return;
 
     this.isDisposed = true;
+
+    if (this.scene && this.hubModelStreamingObserver) {
+      this.scene.onBeforeRenderObservable.remove(
+        this.hubModelStreamingObserver,
+      );
+      this.hubModelStreamingObserver = undefined;
+    }
+
+    this.hubModelStreamingFrame = 0;
+    this.hubModelStates.clear();
+    this.hubModelRootsByCategory.clear();
+
+    for (const collider of this.hubModelCollisionByCategory.values()) {
+      if (!collider.isDisposed()) {
+        collider.dispose(false, false);
+      }
+    }
+    this.hubModelCollisionByCategory.clear();
+
     this.clearCategoryWorld();
 
     const hubRoots = this.hubModelRoots;

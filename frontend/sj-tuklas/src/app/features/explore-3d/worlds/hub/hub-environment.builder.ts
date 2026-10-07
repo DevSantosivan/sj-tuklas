@@ -36,9 +36,13 @@ export class HubEnvironmentBuilder {
   private environmentRoot?: TransformNode;
   private treeRoot?: TransformNode;
   private benchRoot?: TransformNode;
+  private foodCartRoot?: TransformNode;
 
   private treeContainer?: AssetContainer;
   private benchContainer?: AssetContainer;
+  private foodCartContainer?: AssetContainer;
+
+  private foodCartInstance?: TransformNode;
 
   private buildVersion = 0;
   private disposed = true;
@@ -47,6 +51,7 @@ export class HubEnvironmentBuilder {
 
   private readonly treeFile = 'tree.glb';
   private readonly benchFile = 'bench.glb';
+  private readonly foodCartFile = 'food_cart.glb';
 
   private readonly createdMaterials: StandardMaterial[] = [];
 
@@ -60,16 +65,16 @@ export class HubEnvironmentBuilder {
   ========================================================= */
 
   private readonly treePositions: TreePosition[] = [
-    { x: -20, z: -19, scale: 1, rotationY: 0.2 },
-    { x: -10, z: -21, scale: 0.9, rotationY: 1.1 },
-    { x: 2, z: -21, scale: 1, rotationY: 2.2 },
-    { x: 14, z: -20, scale: 0.95, rotationY: 0.6 },
+    { x: -20, z: -19, scale: 3.09, rotationY: 0.2 },
+    { x: -10, z: -21, scale: 3.08, rotationY: 1.1 },
+    { x: 2, z: -21, scale: 3.09, rotationY: 2.2 },
+    { x: 14, z: -20, scale: 3.085, rotationY: 0.6 },
 
-    { x: 21, z: -12, scale: 1, rotationY: 1.7 },
-    { x: 21, z: 10, scale: 0.9, rotationY: 2.8 },
+    { x: 21, z: -12, scale: 3.09, rotationY: 1.7 },
+    { x: 21, z: 10, scale: 3.08, rotationY: 2.8 },
 
-    { x: -13, z: 21, scale: 1, rotationY: 1.9 },
-    { x: -21, z: 5, scale: 0.95, rotationY: 1.4 },
+    { x: -13, z: 21, scale: 3.09, rotationY: 1.9 },
+    { x: -21, z: 5, scale: 3.085, rotationY: 1.4 },
   ];
 
   /* =========================================================
@@ -120,18 +125,25 @@ export class HubEnvironmentBuilder {
 
     this.benchRoot = new TransformNode('hub-bench-root', scene);
 
+    this.foodCartRoot = new TransformNode('hub-food-cart-root', scene);
+
     this.treeRoot.parent = this.environmentRoot;
+
     this.benchRoot.parent = this.environmentRoot;
+
+    this.foodCartRoot.parent = this.environmentRoot;
 
     this.createMaterials();
     this.createLandscape();
     this.createGardenBeds();
+    this.createTreeBoxes();
     this.createStreetLights();
     this.createCenterSign();
 
     // GLB assets load asynchronously.
     void this.loadAndCreateTrees(version);
     void this.loadAndCreateBenches(version);
+    void this.loadAndCreateFoodCart(version);
   }
 
   /* =========================================================
@@ -162,6 +174,11 @@ export class HubEnvironmentBuilder {
     this.createMaterial('hub-flower-material', '#e7b8a7');
 
     this.createMaterial('hub-leaf-material', '#587b4b');
+
+    // Tree planter: black square body + green soil
+    this.createMaterial('hub-tree-box-black', '#151515');
+
+    this.createMaterial('hub-tree-soil', '#587a4b');
   }
 
   private createMaterial(name: string, hex: string): StandardMaterial {
@@ -202,7 +219,9 @@ export class HubEnvironmentBuilder {
     const scene = this.scene;
     const root = this.environmentRoot;
 
-    if (!scene || !root) return;
+    if (!scene || !root) {
+      return;
+    }
 
     const grass = MeshBuilder.CreateGround(
       'hub-main-grass',
@@ -290,7 +309,9 @@ export class HubEnvironmentBuilder {
     const scene = this.scene;
     const root = this.environmentRoot;
 
-    if (!scene || !root) return;
+    if (!scene || !root) {
+      return;
+    }
 
     const beds = [
       {
@@ -398,6 +419,67 @@ export class HubEnvironmentBuilder {
       );
 
       this.addStaticMesh(plant, root);
+    });
+  }
+
+  /* =========================================================
+     TREE BOXES / PLANTERS
+  ========================================================= */
+
+  private createTreeBoxes(): void {
+    const scene = this.scene;
+    const root = this.environmentRoot;
+
+    if (!scene || !root) {
+      return;
+    }
+
+    this.treePositions.forEach((tree, index) => {
+      const rotation = tree.rotationY ?? 0;
+
+      /*
+       * BLACK SQUARE PLANTER BOX
+       */
+
+      const box = MeshBuilder.CreateBox(
+        `hub-tree-box-${index}`,
+        {
+          width: 3.6,
+          height: 0.6,
+          depth: 3.6,
+        },
+        scene,
+      );
+
+      box.position.set(tree.x, 0.3, tree.z);
+
+      box.rotation.y = rotation;
+
+      box.material = this.material('hub-tree-box-black');
+
+      this.addStaticMesh(box, root);
+
+      /*
+       * GREEN SOIL / GRASS
+       */
+
+      const soil = MeshBuilder.CreateBox(
+        `hub-tree-soil-${index}`,
+        {
+          width: 3.18,
+          height: 0.1,
+          depth: 3.18,
+        },
+        scene,
+      );
+
+      soil.position.set(tree.x, 0.64, tree.z);
+
+      soil.rotation.y = rotation;
+
+      soil.material = this.material('hub-tree-soil');
+
+      this.addStaticMesh(soil, root);
     });
   }
 
@@ -613,20 +695,6 @@ export class HubEnvironmentBuilder {
           });
         });
 
-        /*
-         * GLB SCALE
-         *
-         * 1 = original size
-         *
-         * If your bench is too large:
-         *
-         * 0.8, 0.7, etc.
-         *
-         * If too small:
-         *
-         * 1.2, 1.5, etc.
-         */
-
         const scale = 1;
 
         instanceRoot.scaling.set(scale, scale, scale);
@@ -641,20 +709,11 @@ export class HubEnvironmentBuilder {
           ),
         );
 
-        /*
-         * Calculate GLB world bounds.
-         */
-
         instanceRoot.computeWorldMatrix(true);
 
         benchMeshes.forEach((mesh) => {
           mesh.computeWorldMatrix(true);
         });
-
-        /*
-         * Align lowest point
-         * to ground level.
-         */
 
         if (benchMeshes.length > 0) {
           const lowestY = Math.min(
@@ -665,10 +724,6 @@ export class HubEnvironmentBuilder {
 
           instanceRoot.position.y -= lowestY;
         }
-
-        /*
-         * Recalculate matrices.
-         */
 
         instanceRoot.computeWorldMatrix(true);
 
@@ -693,6 +748,182 @@ export class HubEnvironmentBuilder {
         this.benchContainer === container
       ) {
         this.benchContainer = undefined;
+      }
+    }
+  }
+
+  /* =========================================================
+     FOOD CART
+     
+     ONE CART ONLY
+     
+     Located at the far end of the hub,
+     beside the building area.
+  ========================================================= */
+
+  private async loadAndCreateFoodCart(version: number): Promise<void> {
+    const scene = this.scene;
+    const foodCartRoot = this.foodCartRoot;
+
+    if (!scene || !foodCartRoot) {
+      return;
+    }
+
+    let container: AssetContainer | undefined;
+
+    try {
+      container = await SceneLoader.LoadAssetContainerAsync(
+        this.assetPath,
+        this.foodCartFile,
+        scene,
+      );
+
+      if (
+        this.disposed ||
+        version !== this.buildVersion ||
+        scene !== this.scene ||
+        foodCartRoot.isDisposed()
+      ) {
+        container.dispose();
+        return;
+      }
+
+      this.foodCartContainer = container;
+
+      const sourceMeshes = container.meshes.filter(
+        (mesh): mesh is Mesh => mesh instanceof Mesh,
+      );
+
+      if (sourceMeshes.length === 0) {
+        container.dispose();
+
+        this.foodCartContainer = undefined;
+
+        return;
+      }
+
+      container.removeAllFromScene();
+
+      const instanceRoot = new TransformNode('hub-food-cart-instance', scene);
+
+      instanceRoot.parent = foodCartRoot;
+
+      /*
+       * FOOD CART LOCATION
+       *
+       * Far end of the hub,
+       * beside the buildings.
+       *
+       * Shops building is around:
+       * x = 0
+       * z = 50
+       *
+       * Cart:
+       * x = 0
+       * z = 63
+       */
+
+      instanceRoot.position.set(15, 0, 60);
+
+      /*
+       * Face toward the hub.
+       */
+      instanceRoot.rotation.y = Math.PI;
+
+      const instantiated = container.instantiateModelsToScene(
+        (sourceName) => `${sourceName}-food-cart`,
+        false,
+      );
+
+      instantiated.rootNodes.forEach((node) => {
+        node.parent = instanceRoot;
+
+        const meshes =
+          node instanceof AbstractMesh
+            ? [node, ...node.getChildMeshes(false)]
+            : node.getChildMeshes(false);
+
+        meshes.forEach((mesh) => {
+          mesh.isPickable = false;
+
+          mesh.checkCollisions = false;
+
+          mesh.receiveShadows = false;
+
+          mesh.alwaysSelectAsActiveMesh = false;
+        });
+      });
+
+      /*
+       * GLB SCALE
+       *
+       * 1 = original size.
+       */
+      const scale = 1;
+
+      instanceRoot.scaling.set(scale, scale, scale);
+
+      const cartMeshes = Array.from(
+        new Set(
+          instantiated.rootNodes.flatMap((node) =>
+            node instanceof AbstractMesh
+              ? [node, ...node.getChildMeshes(false)]
+              : node.getChildMeshes(false),
+          ),
+        ),
+      );
+
+      /*
+       * Calculate world bounds.
+       */
+
+      instanceRoot.computeWorldMatrix(true);
+
+      cartMeshes.forEach((mesh) => {
+        mesh.computeWorldMatrix(true);
+      });
+
+      /*
+       * Align lowest point
+       * with the ground.
+       */
+
+      if (cartMeshes.length > 0) {
+        const lowestY = Math.min(
+          ...cartMeshes.map(
+            (mesh) => mesh.getBoundingInfo().boundingBox.minimumWorld.y,
+          ),
+        );
+
+        instanceRoot.position.y -= lowestY;
+      }
+
+      /*
+       * Freeze static food cart.
+       */
+
+      instanceRoot.computeWorldMatrix(true);
+
+      cartMeshes.forEach((mesh) => {
+        mesh.computeWorldMatrix(true);
+
+        mesh.freezeWorldMatrix();
+      });
+
+      instanceRoot.freezeWorldMatrix();
+
+      this.foodCartInstance = instanceRoot;
+    } catch {
+      if (container && container !== this.foodCartContainer) {
+        container.dispose();
+      }
+
+      if (
+        !this.disposed &&
+        version === this.buildVersion &&
+        this.foodCartContainer === container
+      ) {
+        this.foodCartContainer = undefined;
       }
     }
   }
@@ -1002,6 +1233,16 @@ export class HubEnvironmentBuilder {
     this.benchInstances.length = 0;
 
     /*
+     * FOOD CART
+     */
+
+    if (this.foodCartInstance && !this.foodCartInstance.isDisposed()) {
+      this.foodCartInstance.dispose(false, false);
+    }
+
+    this.foodCartInstance = undefined;
+
+    /*
      * GLB CONTAINERS
      */
 
@@ -1012,6 +1253,10 @@ export class HubEnvironmentBuilder {
     this.benchContainer?.dispose();
 
     this.benchContainer = undefined;
+
+    this.foodCartContainer?.dispose();
+
+    this.foodCartContainer = undefined;
 
     /*
      * ENVIRONMENT
@@ -1028,6 +1273,8 @@ export class HubEnvironmentBuilder {
     this.treeRoot = undefined;
 
     this.benchRoot = undefined;
+
+    this.foodCartRoot = undefined;
 
     /*
      * MATERIALS
