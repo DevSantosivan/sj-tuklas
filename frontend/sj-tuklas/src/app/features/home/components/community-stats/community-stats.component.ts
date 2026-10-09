@@ -27,7 +27,7 @@ import { CommunityStatsService } from '../../../../core/services/community-stats
 export class CommunityStatsComponent implements OnInit, OnDestroy {
   // =========================================================
   // SERVICES
-  // =========================================================
+  // ========================================================
 
   private readonly communityStatsService = inject(CommunityStatsService);
 

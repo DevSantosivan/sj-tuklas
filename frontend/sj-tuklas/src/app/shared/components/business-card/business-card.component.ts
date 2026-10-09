@@ -42,7 +42,12 @@ export class BusinessCardComponent {
 
   constructor() {
     effect((onCleanup) => {
-      const businessId = this.business().id;
+      const business = this.business();
+      const businessId = business.id;
+
+      console.log('[BUSINESS CARD] RECEIVED BUSINESS:', business);
+
+      console.log('[BUSINESS CARD] RECEIVED ID:', businessId);
 
       this.reviewSummary.set(null);
       this.reviewLoading.set(true);
@@ -54,13 +59,20 @@ export class BusinessCardComponent {
           this.reviewSummary.set(summary);
           this.reviewLoading.set(false);
         },
-        error: () => {
+        error: (error) => {
+          console.error('[BUSINESS CARD] REVIEW SUMMARY FAILED:', {
+            businessId,
+            error,
+          });
+
           this.reviewError.set(true);
           this.reviewLoading.set(false);
         },
       });
 
-      onCleanup(() => subscription.unsubscribe());
+      onCleanup(() => {
+        subscription.unsubscribe();
+      });
     });
   }
 

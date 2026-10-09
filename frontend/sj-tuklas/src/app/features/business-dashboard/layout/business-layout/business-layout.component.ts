@@ -40,13 +40,28 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
   // =========================================================
 
   private readonly businessService = inject(BusinessService);
+
   private readonly businessRealtimeService = inject(BusinessRealtimeService);
+
+  // =========================================================
+  // REALTIME HANDLER
+  // IMPORTANT:
+  // Keep the same function reference so the service can
+  // correctly remove this listener on destroy.
+  // =========================================================
+
+  private readonly realtimeHandler = (
+    event: BusinessStatusChangedEvent,
+  ): void => {
+    this.handleBusinessStatusChanged(event);
+  };
 
   // =========================================================
   // BUSINESS
   // =========================================================
 
   readonly business = signal<Business | null>(null);
+
   readonly isLoading = signal(true);
 
   // =========================================================
@@ -184,11 +199,12 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
     }
 
     const category = business.category?.toLowerCase().trim() ?? '';
+
     const type = business.businessType?.toLowerCase().trim() ?? '';
 
-    // =======================================================
+    // =====================================================
     // BUSINESS TYPE DETECTION
-    // =======================================================
+    // =====================================================
 
     const isFood =
       category.includes('food') ||
@@ -239,9 +255,9 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
 
     const features: BusinessFeature[] = [];
 
-    // =======================================================
+    // =====================================================
     // ADD FEATURE
-    // =======================================================
+    // =====================================================
 
     const add = (
       key: string,
@@ -259,9 +275,9 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
       }
     };
 
-    // =======================================================
+    // =====================================================
     // FOODS & DRINKS
-    // =======================================================
+    // =====================================================
 
     if (isFood) {
       add('menu', 'Menu', 'bx-food-menu', '/business/dashboard/menu');
@@ -306,9 +322,9 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
       );
     }
 
-    // =======================================================
+    // =====================================================
     // HOTELS
-    // =======================================================
+    // =====================================================
 
     if (isHotel) {
       add('rooms', 'Rooms & Units', 'bx-bed', '/business/dashboard/rooms');
@@ -349,9 +365,9 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
       );
     }
 
-    // =======================================================
+    // =====================================================
     // BOARDING HOUSE
-    // =======================================================
+    // =====================================================
 
     if (isBoardingHouse) {
       add('rooms', 'Rooms & Units', 'bx-bed', '/business/dashboard/rooms');
@@ -378,9 +394,9 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
       );
     }
 
-    // =======================================================
+    // =====================================================
     // SHOPS
-    // =======================================================
+    // =====================================================
 
     if (isShop) {
       add('products', 'Products', 'bx-package', '/business/dashboard/products');
@@ -402,9 +418,9 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
       );
     }
 
-    // =======================================================
+    // =====================================================
     // BEAUTY / SALON
-    // =======================================================
+    // =====================================================
 
     if (isBeauty) {
       add(
@@ -436,9 +452,9 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
       );
     }
 
-    // =======================================================
+    // =====================================================
     // GENERAL SERVICES
-    // =======================================================
+    // =====================================================
 
     if (isService && !isBeauty) {
       add(
@@ -477,9 +493,9 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
       );
     }
 
-    // =======================================================
+    // =====================================================
     // EVENTS / CATERING
-    // =======================================================
+    // =====================================================
 
     if (isEvents) {
       add(
@@ -525,9 +541,9 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
       );
     }
 
-    // =======================================================
+    // =====================================================
     // FALLBACK FOR OTHER BUSINESS TYPES
-    // =======================================================
+    // =====================================================
 
     if (features.length === 0) {
       add(
@@ -559,9 +575,9 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
       );
     }
 
-    // =======================================================
+    // =====================================================
     // REMOVE DUPLICATES
-    // =======================================================
+    // =====================================================
 
     return features.filter(
       (feature, index, array) =>
@@ -585,7 +601,9 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     await this.loadBusiness();
-    await this.startRealtime();
+
+    // SignalR should not block component initialization.
+    void this.startRealtime();
   }
 
   // =========================================================
@@ -600,10 +618,12 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
 
       this.business.set(business);
 
-      console.log('MY BUSINESS:', business);
+      console.log('MY BUSINESS:', business?.id);
+
       console.log('INITIAL BUSINESS STATUS:', business?.status);
     } catch (error) {
       console.error('FAILED TO LOAD BUSINESS:', error);
+
       this.business.set(null);
     } finally {
       this.isLoading.set(false);
@@ -616,11 +636,7 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
 
   private async startRealtime(): Promise<void> {
     try {
-      await this.businessRealtimeService.connect(
-        (event: BusinessStatusChangedEvent) => {
-          this.handleBusinessStatusChanged(event);
-        },
-      );
+      await this.businessRealtimeService.connect(this.realtimeHandler);
     } catch (error) {
       console.error('FAILED TO CONNECT BUSINESS SIGNALR:', error);
     }
@@ -635,11 +651,13 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
 
     if (!currentBusiness) {
       console.warn('REALTIME EVENT RECEIVED BUT NO BUSINESS IS LOADED.');
+
       return;
     }
 
     if (currentBusiness.id !== event.businessId) {
       console.warn('REALTIME EVENT BELONGS TO ANOTHER BUSINESS.');
+
       return;
     }
 
@@ -651,6 +669,7 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
       status !== 'rejected'
     ) {
       console.warn('INVALID BUSINESS STATUS:', event.status);
+
       return;
     }
 
@@ -662,16 +681,22 @@ export class BusinessLayoutComponent implements OnInit, OnDestroy {
 
     this.business.set(updatedBusiness);
 
-    console.log('BUSINESS UPDATED:', updatedBusiness);
-    console.log('BUSINESS STATUS:', this.businessStatus());
-    console.log('BUSINESS IS PRO:', this.isPro());
+    console.log(
+      'BUSINESS STATUS UPDATED:',
+      updatedBusiness.id,
+      updatedBusiness.status,
+    );
   }
 
   // =========================================================
   // DESTROY
+  // IMPORTANT:
+  // Do NOT disconnect the shared SignalR service here.
+  // Only remove this component's listener.
+  // The service decides when the actual connection can stop.
   // =========================================================
 
-  async ngOnDestroy(): Promise<void> {
-    await this.businessRealtimeService.disconnect();
+  ngOnDestroy(): void {
+    this.businessRealtimeService.removeListener(this.realtimeHandler);
   }
 }

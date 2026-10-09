@@ -10,12 +10,39 @@
           Businesses getting attention from local users.
         </p>
       </div>
+
+      <a routerLink="/search" class="view-all">
+        Explore all
+        <i class="bx bx-right-arrow-alt"></i>
+      </a>
     </div>
 
-    <div class="business-grid">
-      @for (business of businesses; track business.id) {
-        <app-business-card [business]="business" />
-      }
-    </div>
+    @if (isLoading()) {
+      <div
+        class="popular-loading"
+        aria-label="Loading popular businesses"
+        aria-busy="true"
+      >
+        <app-skeleton type="business-card" [count]="4" />
+      </div>
+    } @else if (errorMessage()) {
+      <div class="popular-error">
+        <i class="bx bx-error-circle"></i>
+        <span>
+          {{ errorMessage() }}
+        </span>
+      </div>
+    } @else if (businesses().length > 0) {
+      <div class="business-grid">
+        @for (business of businesses(); track business.id) {
+          <app-business-card [business]="business" />
+        }
+      </div>
+    } @else {
+      <div class="popular-empty">
+        <i class="bx bx-store-alt"></i>
+        <p>No popular businesses available yet.</p>
+      </div>
+    }
   </div>
 </section>
